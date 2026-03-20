@@ -1,6 +1,6 @@
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
 import type { App } from "@modelcontextprotocol/ext-apps";
-import {  Excalidraw, exportToSvg, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
+import {  Excalidraw, exportToSvg, exportToBlob, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
 import morphdom from "morphdom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { initPencilAudio, playStroke } from "./pencil-audio";
@@ -122,6 +122,83 @@ const ExternalLinkIcon = () => (
   </svg>
 );
 
+const DownloadIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.667 10v2.667c0 .368.298.666.666.666h9.334a.667.667 0 0 0 .666-.666V10" />
+    <path d="M8 2.667V10.667" />
+    <path d="M5.333 8L8 10.667L10.667 8" />
+  </svg>
+);
+
+const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="5.333" y="5.333" width="8" height="8" rx="1" />
+    <path d="M2.667 10.667H2a.667.667 0 0 1-.667-.667V2A.667.667 0 0 1 2 1.333h8a.667.667 0 0 1 .667.667v.667" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3.333 8.667L6 11.333L12.667 4.667" />
+  </svg>
+);
+
+async function copyPngToClipboard(elements: any[]): Promise<boolean> {
+  if (!elements?.length) return false;
+  const blob = await exportToBlob({
+    elements: elements as any,
+    appState: { exportBackground: true } as any,
+    files: null,
+  });
+  await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+  return true;
+}
+
+async function downloadAsPng(elements: any[], app?: App): Promise<{ path?: string } | null> {
+  if (!elements?.length || !app) return null;
+  try {
+    const blob = await exportToBlob({
+      elements: elements as any,
+      appState: { exportBackground: true } as any,
+      files: null,
+    });
+
+    // Convert blob to base64 for upload to server
+    const reader = new FileReader();
+    const base64 = await new Promise<string>((resolve, reject) => {
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.replace(/^data:[^;]+;base64,/, ""));
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+    // Upload to server — returns either a download URL (HTTP mode) or a file path (stdio mode)
+    const result = await app.callServerTool({
+      name: "upload_png",
+      arguments: { data: base64 },
+    });
+
+    if (result.isError) {
+      app.sendLog({ level: "error", logger: "Excalidraw", data: `upload_png failed: ${JSON.stringify(result.content)}` });
+      return null;
+    }
+
+    const response = JSON.parse((result.content[0] as any).text);
+    if (response.url) {
+      // HTTP mode: open download URL in browser
+      await app.openLink({ url: response.url });
+      return {};
+    }
+    // stdio mode: file was saved to ~/Downloads
+    return { path: response.path };
+  } catch (err) {
+    if (app) app.sendLog({ level: "error", logger: "Excalidraw", data: `PNG export failed: ${err}` });
+    return null;
+  }
+}
+
 async function shareToExcalidraw(data: {elements: any[], appState: any, files: any}, app: App) {
   try {
     if (!data.elements?.length) return;
@@ -145,6 +222,75 @@ async function shareToExcalidraw(data: {elements: any[], appState: any, files: a
   } catch (err) {
     fsLog(`shareToExcalidraw error: ${err}`);
   }
+}
+
+function PngButton({ getElements, app }: { getElements: () => any[]; app: App }) {
+  const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
+  const [savedPath, setSavedPath] = useState<string | null>(null);
+
+  const handleClick = async () => {
+    setState("saving");
+    setSavedPath(null);
+    try {
+      const result = await downloadAsPng(getElements(), app);
+      if (result) {
+        setState("saved");
+        setSavedPath(result.path ?? null);
+        setTimeout(() => { setState("idle"); setSavedPath(null); }, 3000);
+      } else {
+        setState("idle");
+      }
+    } catch {
+      setState("idle");
+    }
+  };
+
+  const label = state === "saving" ? "Saving…"
+    : state === "saved" ? (savedPath ? `Saved to Downloads` : "Saved!")
+    : "PNG";
+
+  return (
+    <button
+      className="app-button"
+      style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px" }}
+      onClick={handleClick}
+      disabled={state === "saving"}
+      title={savedPath ?? "Save PNG to Downloads"}
+    >
+      <DownloadIcon />
+      <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>{label}</span>
+    </button>
+  );
+}
+
+function CopyPngButton({ getElements }: { getElements: () => any[] }) {
+  const [state, setState] = useState<"idle" | "copying" | "copied">("idle");
+
+  const handleClick = async () => {
+    setState("copying");
+    try {
+      await copyPngToClipboard(getElements());
+      setState("copied");
+      setTimeout(() => setState("idle"), 2000);
+    } catch {
+      setState("idle");
+    }
+  };
+
+  return (
+    <button
+      className="app-button"
+      style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px" }}
+      onClick={handleClick}
+      disabled={state === "copying"}
+      title="Copy PNG to clipboard"
+    >
+      {state === "copied" ? <CheckIcon /> : <CopyIcon />}
+      <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>
+        {state === "copying" ? "Copying…" : state === "copied" ? "Copied!" : "Copy PNG"}
+      </span>
+    </button>
+  );
 }
 
 function ShareButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
@@ -842,6 +988,10 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
                 }}
               />
 
+          <CopyPngButton getElements={() => elements} />
+
+          <PngButton getElements={() => elements} app={app} />
+
           <button
             className="app-button"
             onClick={toggleFullscreen}
@@ -867,17 +1017,21 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
             theme="light"
             onChange={(els) => onEditorChange(app, els)}
             renderTopRightUI={() => (
-              <ShareButton
-                onConfirm={async () => {
-                  if (excalidrawApi) {
-                    const elements = excalidrawApi.getSceneElements();
-                    const appState = excalidrawApi.getAppState();
-                    const files = excalidrawApi.getFiles();
+              <>
+                <ShareButton
+                  onConfirm={async () => {
+                    if (excalidrawApi) {
+                      const elements = excalidrawApi.getSceneElements();
+                      const appState = excalidrawApi.getAppState();
+                      const files = excalidrawApi.getFiles();
 
-                    await shareToExcalidraw({ elements, appState, files }, app);
-                  }
-                }}
-              />
+                      await shareToExcalidraw({ elements, appState, files }, app);
+                    }
+                  }}
+                />
+                <CopyPngButton getElements={() => excalidrawApi?.getSceneElements() ?? []} />
+                <PngButton getElements={() => excalidrawApi?.getSceneElements() ?? []} app={app} />
+              </>
             )}
           >
             <MainMenu>

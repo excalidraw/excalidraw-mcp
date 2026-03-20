@@ -11,6 +11,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import cors from "cors";
 import type { Request, Response } from "express";
 import { FileCheckpointStore } from "./checkpoint-store.js";
+import { MemoryPngStore } from "./png-store.js";
 import { createServer } from "./server.js";
 
 /**
@@ -20,11 +21,26 @@ import { createServer } from "./server.js";
  */
 export async function startStreamableHTTPServer(
   createServer: () => McpServer,
+  pngStore: MemoryPngStore,
 ): Promise<void> {
   const port = parseInt(process.env.PORT ?? "3001", 10);
 
   const app = createMcpExpressApp({ host: "0.0.0.0" });
   app.use(cors());
+
+  // PNG download endpoint — serves stored PNGs as file downloads
+  app.get("/download/:id", (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const entry = pngStore.load(id);
+    if (!entry) {
+      res.status(404).json({ error: "Not found or expired" });
+      return;
+    }
+    pngStore.delete(id);
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Content-Disposition", `attachment; filename="${entry.filename}"`);
+    res.send(entry.data);
+  });
 
   app.all("/mcp", async (req: Request, res: Response) => {
     const server = createServer();
@@ -82,11 +98,17 @@ export async function startStdioServer(
 
 async function main() {
   const store = new FileCheckpointStore();
-  const factory = () => createServer(store);
+  const pngStore = new MemoryPngStore();
+
   if (process.argv.includes("--stdio")) {
+    // stdio mode: no HTTP server, save_png falls back to ~/Downloads
+    const factory = () => createServer(store);
     await startStdioServer(factory);
   } else {
-    await startStreamableHTTPServer(factory);
+    const port = parseInt(process.env.PORT ?? "3001", 10);
+    const baseUrl = `http://localhost:${port}`;
+    const factory = () => createServer(store, { pngStore, baseUrl });
+    await startStreamableHTTPServer(factory, pngStore);
   }
 }
 

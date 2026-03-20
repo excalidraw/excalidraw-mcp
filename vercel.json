@@ -8,7 +8,8 @@
   "rewrites": [
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/sse", "destination": "/api/mcp" },
-    { "source": "/message", "destination": "/api/mcp" }
+    { "source": "/message", "destination": "/api/mcp" },
+    { "source": "/download/:id", "destination": "/api/download/:id" }
   ],
   "headers": [
     {
