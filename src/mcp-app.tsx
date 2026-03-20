@@ -145,12 +145,14 @@ const CheckIcon = () => (
 
 async function copyPngToClipboard(elements: any[]): Promise<boolean> {
   if (!elements?.length) return false;
-  const blob = await exportToBlob({
+  // Pass the blob promise directly to ClipboardItem to retain user-activation
+  // context on Safari (awaiting exportToBlob first would expire it)
+  const blobPromise = exportToBlob({
     elements: elements as any,
     appState: { exportBackground: true } as any,
     files: null,
   });
-  await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+  await navigator.clipboard.write([new ClipboardItem({ "image/png": blobPromise })]);
   return true;
 }
 

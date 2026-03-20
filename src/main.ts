@@ -29,14 +29,14 @@ export async function startStreamableHTTPServer(
   app.use(cors());
 
   // PNG download endpoint — serves stored PNGs as file downloads
-  app.get("/download/:id", (req: Request, res: Response) => {
+  app.get("/download/:id", async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const entry = pngStore.load(id);
+    const entry = await pngStore.load(id);
     if (!entry) {
       res.status(404).json({ error: "Not found or expired" });
       return;
     }
-    pngStore.delete(id);
+    await pngStore.delete(id);
     res.setHeader("Content-Type", "image/png");
     res.setHeader("Content-Disposition", `attachment; filename="${entry.filename}"`);
     res.send(entry.data);

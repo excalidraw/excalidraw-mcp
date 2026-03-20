@@ -1,4 +1,4 @@
-import { createVercelPngStore, RedisPngStore } from "../../src/png-store.js";
+import { createVercelPngStore } from "../../src/png-store.js";
 
 const store = createVercelPngStore();
 
@@ -12,11 +12,7 @@ export async function GET(request: Request) {
     });
   }
 
-  // Redis store needs async load
-  const entry = store instanceof RedisPngStore
-    ? await store.loadAsync(id)
-    : store.load(id);
-
+  const entry = await store.load(id);
   if (!entry) {
     return new Response(JSON.stringify({ error: "Not found or expired" }), {
       status: 404,
@@ -24,7 +20,7 @@ export async function GET(request: Request) {
     });
   }
 
-  store.delete(id);
+  await store.delete(id);
 
   return new Response(entry.data, {
     headers: {

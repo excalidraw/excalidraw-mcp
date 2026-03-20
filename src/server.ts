@@ -671,7 +671,7 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
           }
           const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
           const filename = `excalidraw-${timestamp}.png`;
-          const id = pngStore.save(buf, filename);
+          const id = await pngStore.save(buf, filename);
           const url = `${baseUrl}/download/${id}`;
           return { content: [{ type: "text", text: JSON.stringify({ url }) }] };
         } catch (err) {

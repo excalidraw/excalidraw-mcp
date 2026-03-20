@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-interface PngEntry {
+export interface PngEntry {
   data: Buffer;
   filename: string;
   createdAt: number;
@@ -10,13 +10,13 @@ interface PngEntry {
 const TTL_MS = 5 * 60 * 1000;
 /** Max stored PNGs before rejecting new uploads. */
 const MAX_ENTRIES = 50;
-/** Max PNG size: 2 MB. */
-export const MAX_PNG_BYTES = 2 * 1024 * 1024;
+/** Max PNG size: 4 MB (under Vercel's 4.5 MB payload limit). */
+export const MAX_PNG_BYTES = 4 * 1024 * 1024;
 
 export interface PngStore {
-  save(data: Buffer, filename: string): string;
-  load(id: string): PngEntry | null;
-  delete(id: string): void;
+  save(data: Buffer, filename: string): Promise<string>;
+  load(id: string): Promise<PngEntry | null>;
+  delete(id: string): Promise<void>;
 }
 
 export class MemoryPngStore implements PngStore {
@@ -31,10 +31,9 @@ export class MemoryPngStore implements PngStore {
     }
   }
 
-  save(data: Buffer, filename: string): string {
+  async save(data: Buffer, filename: string): Promise<string> {
     this.sweep();
     if (this.entries.size >= MAX_ENTRIES) {
-      // Remove oldest
       const oldest = this.entries.keys().next().value;
       if (oldest !== undefined) this.entries.delete(oldest);
     }
@@ -43,12 +42,12 @@ export class MemoryPngStore implements PngStore {
     return id;
   }
 
-  load(id: string): PngEntry | null {
+  async load(id: string): Promise<PngEntry | null> {
     this.sweep();
     return this.entries.get(id) ?? null;
   }
 
-  delete(id: string): void {
+  async delete(id: string): Promise<void> {
     this.entries.delete(id);
   }
 }
@@ -56,7 +55,6 @@ export class MemoryPngStore implements PngStore {
 /** Redis-backed PNG store for Vercel (base64 string stored with TTL). */
 export class RedisPngStore implements PngStore {
   private redis: any = null;
-  private pendingOps = new Map<string, Promise<void>>();
 
   private async getRedis() {
     if (!this.redis) {
@@ -69,33 +67,17 @@ export class RedisPngStore implements PngStore {
     return this.redis;
   }
 
-  save(data: Buffer, filename: string): string {
+  async save(data: Buffer, filename: string): Promise<string> {
     const id = crypto.randomUUID().replace(/-/g, "").slice(0, 18);
-    // Fire and forget — store asynchronously, return id immediately
-    const op = this.getRedis().then((redis: any) =>
-      redis.set(`png:${id}`, JSON.stringify({
-        data: data.toString("base64"),
-        filename,
-      }), { ex: 300 }) // 5 min TTL
-    );
-    this.pendingOps.set(id, op);
-    op.finally(() => this.pendingOps.delete(id));
+    const redis = await this.getRedis();
+    await redis.set(`png:${id}`, JSON.stringify({
+      data: data.toString("base64"),
+      filename,
+    }), { ex: 300 }); // 5 min TTL
     return id;
   }
 
-  load(_id: string): PngEntry | null {
-    // Synchronous interface doesn't work for Redis — use loadAsync instead
-    return null;
-  }
-
-  delete(id: string): void {
-    this.getRedis().then((redis: any) => redis.del(`png:${id}`)).catch(() => {});
-  }
-
-  async loadAsync(id: string): Promise<PngEntry | null> {
-    // Wait for pending save if it exists
-    const pending = this.pendingOps.get(id);
-    if (pending) await pending;
+  async load(id: string): Promise<PngEntry | null> {
     try {
       const redis = await this.getRedis();
       const raw = await redis.get(`png:${id}`);
@@ -109,6 +91,13 @@ export class RedisPngStore implements PngStore {
     } catch {
       return null;
     }
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      const redis = await this.getRedis();
+      await redis.del(`png:${id}`);
+    } catch {}
   }
 }
 
