@@ -431,10 +431,16 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
     // Parse elements from string or array
     const str = typeof raw === "string" ? raw : JSON.stringify(raw);
 
+    // Support update_view: if checkpointId is provided as a top-level field,
+    // treat it as a restoreCheckpoint reference (the elements array won't contain one)
+    const externalCheckpointId = toolInput.checkpointId as string | undefined;
+
     if (isFinal) {
       // Final input — parse complete JSON, render ALL elements
       const parsed = parsePartialElements(str);
       let { viewport, drawElements, restoreId, deleteIds } = extractViewportAndElements(parsed);
+      // Use external checkpointId if no restoreCheckpoint in elements
+      if (!restoreId && externalCheckpointId) restoreId = externalCheckpointId;
 
       // Load checkpoint base if restoring (async — from server)
       let base: any[] | undefined;
@@ -475,7 +481,7 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
     const parsed = parsePartialElements(str);
 
     // Extract restoreCheckpoint and delete before dropping last (they're small, won't be incomplete)
-    let streamRestoreId: string | null = null;
+    let streamRestoreId: string | null = externalCheckpointId ?? null;
     const streamDeleteIds = new Set<string>();
     for (const el of parsed) {
       if (el.type === "restoreCheckpoint") streamRestoreId = el.id;
