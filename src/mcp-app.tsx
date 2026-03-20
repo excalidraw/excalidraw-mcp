@@ -443,6 +443,8 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
       if (!restoreId && externalCheckpointId) restoreId = externalCheckpointId;
 
       // Load checkpoint base if restoring (async — from server)
+      // NOTE: This merge logic (delete filtering + base/new combine) mirrors
+      // the server-side merge in server.ts update_view handler. Keep in sync.
       let base: any[] | undefined;
       const doFinal = async () => {
         if (restoreId && loadCheckpoint) {
@@ -495,6 +497,7 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
 
     const doStream = async () => {
       // Load checkpoint base (once per restoreId) — from server via callServerTool
+      // NOTE: Merge logic mirrors server.ts update_view handler. Keep in sync.
       let base: any[] | undefined;
       if (streamRestoreId) {
         if (!restoredRef.current || restoredRef.current.id !== streamRestoreId) {

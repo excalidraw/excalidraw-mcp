@@ -294,11 +294,15 @@ The saved state (including any user edits made in fullscreen) is loaded from the
 - \`create_view\`: New diagram from scratch
 - \`update_view\`: Edit/modify an existing diagram (add elements, delete elements, change camera)
 
+**Updating existing elements:** To modify a property (e.g. color, position) of an existing element, send the full element with the same \`id\`. The new version automatically overrides the base version — no need to delete first.
+
 ## Deleting Elements
 
 Remove elements by id using the \`delete\` pseudo-element:
 
 \`{"type":"delete","ids":"b2,a1,t3"}\`
+
+**Container cascade:** Deleting a container (rectangle, diamond, etc.) also removes its bound text elements (those with \`containerId\` pointing to it). You don't need to delete both separately.
 
 Works in two modes:
 - **With restoreCheckpoint**: restore a saved state, then surgically remove specific elements before adding new ones
@@ -438,7 +442,7 @@ Call read_me first to learn the element format.`,
       _meta: { ui: { resourceUri } },
     },
     async ({ elements }): Promise<CallToolResult> => {
-      if (elements.length > MAX_INPUT_BYTES) {
+      if (Buffer.byteLength(elements, "utf8") > MAX_INPUT_BYTES) {
         return {
           content: [{ type: "text", text: `Elements input exceeds ${MAX_INPUT_BYTES} byte limit. Reduce the number of elements or use checkpoints to build incrementally.` }],
           isError: true,
@@ -450,6 +454,13 @@ Call read_me first to learn the element format.`,
       } catch (e) {
         return {
           content: [{ type: "text", text: `Invalid JSON in elements: ${(e as Error).message}. Ensure no comments, no trailing commas, and proper quoting.` }],
+          isError: true,
+        };
+      }
+
+      if (!Array.isArray(parsed)) {
+        return {
+          content: [{ type: "text", text: `Elements must be a JSON array, got ${typeof parsed}.` }],
           isError: true,
         };
       }
@@ -532,7 +543,7 @@ Call read_me first if you haven't already.`,
       _meta: { ui: { resourceUri } },
     },
     async ({ checkpointId: inputCheckpointId, elements }): Promise<CallToolResult> => {
-      if (elements.length > MAX_INPUT_BYTES) {
+      if (Buffer.byteLength(elements, "utf8") > MAX_INPUT_BYTES) {
         return {
           content: [{ type: "text", text: `Elements input exceeds ${MAX_INPUT_BYTES} byte limit.` }],
           isError: true,
@@ -557,6 +568,13 @@ Call read_me first if you haven't already.`,
         };
       }
 
+      if (!Array.isArray(parsed)) {
+        return {
+          content: [{ type: "text", text: `Elements must be a JSON array, got ${typeof parsed}.` }],
+          isError: true,
+        };
+      }
+
       // Collect IDs to delete
       const deleteIds = new Set<string>();
       for (const el of parsed) {
@@ -565,12 +583,16 @@ Call read_me first if you haven't already.`,
         }
       }
 
-      // Filter base elements and merge with new ones
-      const baseFiltered = base.elements.filter((el: any) =>
-        !deleteIds.has(el.id) && !deleteIds.has(el.containerId)
-      );
+      // New real elements (not pseudo-elements)
       const newEls = parsed.filter((el: any) =>
         el.type !== "restoreCheckpoint" && el.type !== "delete"
+      );
+      // IDs of new elements — used to dedup (new version overrides base)
+      const newIds = new Set(newEls.map((el: any) => el.id).filter(Boolean));
+
+      // Filter base: remove deleted, remove overridden by new, cascade containerId deletes
+      const baseFiltered = base.elements.filter((el: any) =>
+        !deleteIds.has(el.id) && !deleteIds.has(el.containerId) && !newIds.has(el.id)
       );
       const resolvedElements = [...baseFiltered, ...newEls];
 
