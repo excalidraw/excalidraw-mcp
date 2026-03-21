@@ -3,10 +3,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult, ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { deflateSync } from "node:zlib";
 import { z } from "zod/v4";
 import type { CheckpointStore } from "./checkpoint-store.js";
+import type { PngStore } from "./png-store.js";
+import { MAX_PNG_BYTES } from "./png-store.js";
 
 /** Maximum allowed size for element/data input strings (5 MB). */
 const MAX_INPUT_BYTES = 5 * 1024 * 1024;
@@ -398,7 +401,7 @@ Use the Primary Colors from above — they're bright enough on dark backgrounds.
  * Registers all Excalidraw tools and resources on the given McpServer.
  * Shared between local (main.ts) and Vercel (api/mcp.ts) entry points.
  */
-export function registerTools(server: McpServer, distDir: string, store: CheckpointStore): void {
+export function registerTools(server: McpServer, distDir: string, store: CheckpointStore, opts?: { pngStore?: PngStore; baseUrl?: string }): void {
   const resourceUri = "ui://excalidraw/mcp-app.html";
 
   // ============================================================
@@ -647,6 +650,63 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
     },
   );
 
+  // ============================================================
+  // Tool 6: upload_png (private — widget only, for PNG export)
+  // ============================================================
+  if (opts?.pngStore && opts?.baseUrl) {
+    const pngStore = opts.pngStore;
+    const baseUrl = opts.baseUrl;
+    registerAppTool(server,
+      "upload_png",
+      {
+        description: "Upload PNG for download. Returns a download URL.",
+        inputSchema: { data: z.string().describe("Base64-encoded PNG data") },
+        _meta: { ui: { visibility: ["app"] } },
+      },
+      async ({ data }): Promise<CallToolResult> => {
+        try {
+          const buf = Buffer.from(data, "base64");
+          if (buf.length > MAX_PNG_BYTES) {
+            return { content: [{ type: "text", text: `PNG exceeds ${MAX_PNG_BYTES} byte limit.` }], isError: true };
+          }
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+          const filename = `excalidraw-${timestamp}.png`;
+          const id = await pngStore.save(buf, filename);
+          const url = `${baseUrl}/download/${id}`;
+          return { content: [{ type: "text", text: JSON.stringify({ url }) }] };
+        } catch (err) {
+          return { content: [{ type: "text", text: `upload failed: ${(err as Error).message}` }], isError: true };
+        }
+      },
+    );
+  } else {
+    // Fallback for stdio mode: save directly to ~/Downloads
+    registerAppTool(server,
+      "upload_png",
+      {
+        description: "Save PNG to Downloads folder.",
+        inputSchema: { data: z.string().describe("Base64-encoded PNG data") },
+        _meta: { ui: { visibility: ["app"] } },
+      },
+      async ({ data }): Promise<CallToolResult> => {
+        try {
+          const buf = Buffer.from(data, "base64");
+          if (buf.length > MAX_PNG_BYTES) {
+            return { content: [{ type: "text", text: `PNG exceeds ${MAX_PNG_BYTES} byte limit.` }], isError: true };
+          }
+          const downloadsDir = path.join(os.homedir(), "Downloads");
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+          const filename = `excalidraw-${timestamp}.png`;
+          const filePath = path.join(downloadsDir, filename);
+          await fs.writeFile(filePath, buf);
+          return { content: [{ type: "text", text: JSON.stringify({ path: filePath }) }] };
+        } catch (err) {
+          return { content: [{ type: "text", text: `save failed: ${(err as Error).message}` }], isError: true };
+        }
+      },
+    );
+  }
+
   // CSP: allow Excalidraw to load fonts from esm.sh
   const cspMeta = {
     ui: {
@@ -686,11 +746,11 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
  * Creates a new MCP server instance with Excalidraw drawing tools.
  * Used by local entry point (main.ts) and Docker deployments.
  */
-export function createServer(store: CheckpointStore): McpServer {
+export function createServer(store: CheckpointStore, opts?: { pngStore?: PngStore; baseUrl?: string }): McpServer {
   const server = new McpServer({
     name: "Excalidraw",
     version: "1.0.0",
   });
-  registerTools(server, DIST_DIR, store);
+  registerTools(server, DIST_DIR, store, opts);
   return server;
 }

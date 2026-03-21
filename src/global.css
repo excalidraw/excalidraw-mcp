@@ -104,11 +104,13 @@ body {
   right: 8px;
   z-index: 100;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.2s ease;
 }
 
 .main:hover .toolbar {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* Fullscreen button */
