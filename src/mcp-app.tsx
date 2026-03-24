@@ -126,8 +126,17 @@ async function shareToExcalidraw(data: {elements: any[], appState: any, files: a
   try {
     if (!data.elements?.length) return;
 
+    // Normalize elements via restore() to ensure all required fields are present
+    // (rawText, originalText, width, height, lineHeight, autoResize, containerId, etc.)
+    // Without this, text elements may be silently dropped by excalidraw.com.
+    const { elements: normalized } = restore(
+      { elements: data.elements },
+      null, null,
+      { refreshDimensions: true },
+    );
+
     // Serialize to Excalidraw JSON
-    const json = serializeAsJSON(data.elements, data.appState, data.files, "database");
+    const json = serializeAsJSON(normalized, data.appState, data.files, "database");
 
     // Proxy through server tool (avoids CORS on json.excalidraw.com)
     const result = await app.callServerTool({
