@@ -656,6 +656,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [toolInput, setToolInput] = useState<any>(null);
   const [inputIsFinal, setInputIsFinal] = useState(false);
   const [displayMode, setDisplayMode] = useState<"inline" | "fullscreen">("inline");
+  const [safeAreaInsets, setSafeAreaInsets] = useState<{ top: number; right: number; bottom: number; left: number } | null>(null);
   const [elements, setElements] = useState<any[]>([]);
   const [userEdits, setUserEdits] = useState<any[] | null>(null);
   const [containerHeight, setContainerHeight] = useState<number | null>(null);
@@ -773,13 +774,17 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     appRef.current = app;
     _logFn = (msg) => { try { app.sendLog({ level: "info", logger: "FS", data: msg }); } catch {} };
 
-    // Capture initial container dimensions
-    const initDims = app.getHostContext()?.containerDimensions as any;
-    if (initDims?.height) setContainerHeight(initDims.height);
+    // Capture initial container dimensions + safe area
+    const initCtx = app.getHostContext() as any;
+    if (initCtx?.containerDimensions?.height) setContainerHeight(initCtx.containerDimensions.height);
+    if (initCtx?.safeAreaInsets) setSafeAreaInsets(initCtx.safeAreaInsets);
 
     app.onhostcontextchanged = (ctx: any) => {
       if (ctx.containerDimensions?.height) {
         setContainerHeight(ctx.containerDimensions.height);
+      }
+      if (ctx.safeAreaInsets) {
+        setSafeAreaInsets(ctx.safeAreaInsets);
       }
       if (ctx.displayMode) {
         fsLog(`hostContextChanged: displayMode=${ctx.displayMode}`);
@@ -829,7 +834,18 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   }, [app]);
 
   return (
-    <main className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}`} style={displayMode === "fullscreen" && containerHeight ? { height: containerHeight } : undefined}>
+    <main
+      className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}`}
+      style={displayMode === "fullscreen" ? {
+        ...(containerHeight ? { height: containerHeight } : {}),
+        ...(safeAreaInsets ? {
+          "--safe-area-inset-top": `${safeAreaInsets.top}px`,
+          "--safe-area-inset-right": `${safeAreaInsets.right}px`,
+          "--safe-area-inset-bottom": `${safeAreaInsets.bottom}px`,
+          "--safe-area-inset-left": `${safeAreaInsets.left}px`,
+        } as React.CSSProperties : {}),
+      } : undefined}
+    >
       {displayMode === "inline" && (
         <div className="toolbar">
           <ShareButton

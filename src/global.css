@@ -70,7 +70,9 @@ body {
   position: relative;
 }
 
-/* Fullscreen mode */
+/* Fullscreen mode — canvas fills edge-to-edge, but Excalidraw's own UI
+   (toolbars, menus) stays inside the host's safe area so it isn't hidden
+   behind mobile chrome (navbar, chat input, home indicator). */
 .main.fullscreen {
   position: fixed;
   top: 0;
@@ -79,10 +81,24 @@ body {
   bottom: 0;
   background: var(--bg-color, #ffffff);
   z-index: 9999;
+  --safe-area-inset-top: 0px;
+  --safe-area-inset-right: 0px;
+  --safe-area-inset-bottom: 0px;
+  --safe-area-inset-left: 0px;
 }
 
 .main.fullscreen .excalidraw-container {
   height: 100%;
+}
+
+/* Push Excalidraw's native UI inside the safe area. The canvas itself
+   stays full-bleed; only the interactive chrome respects the insets. */
+.main.fullscreen .excalidraw .layer-ui__wrapper {
+  padding-top: var(--safe-area-inset-top);
+  padding-right: var(--safe-area-inset-right);
+  padding-bottom: var(--safe-area-inset-bottom);
+  padding-left: var(--safe-area-inset-left);
+  box-sizing: border-box;
 }
 
 /* Hide library button in fullscreen editor */
