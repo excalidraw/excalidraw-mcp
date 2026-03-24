@@ -21,7 +21,7 @@ const DIST_DIR = import.meta.filename.endsWith(".ts")
 // ============================================================
 const RECALL_CHEAT_SHEET = `# Excalidraw Element Format
 
-Thanks for calling read_me! Do NOT call it again in this conversation — you will not see anything new. Now use create_view to draw.
+Thanks for calling read_me! Do NOT call it again in this conversation — you will not see anything new. Now use create_view to draw. Use update_view to edit an existing diagram.
 
 ## Color Palette (use consistently across all tools)
 
@@ -282,19 +282,27 @@ This demonstrates a UML-style sequence diagram with 4 actors (User, Agent, App i
 ]
 \`\`\`
 
-## Checkpoints (restoring previous state)
+## Editing Diagrams (update_view)
 
-Every create_view call returns a \`checkpointId\` in its response. To continue from a previous diagram state, start your elements array with a restoreCheckpoint element:
+Every create_view and update_view call returns a \`checkpointId\` in its response. To edit an existing diagram, use **update_view** with the checkpointId and only the new/changed elements:
 
-\`[{"type":"restoreCheckpoint","id":"<checkpointId>"}, ...additional new elements...]\`
+\`update_view(checkpointId: "<id>", elements: "[...new elements...]")\`
 
-The saved state (including any user edits made in fullscreen) is loaded from the client, and your new elements are appended on top. This saves tokens — you don't need to re-send the entire diagram.
+The saved state (including any user edits made in fullscreen) is loaded from the checkpoint, and your new elements are appended on top. This saves tokens — you don't need to re-send the entire diagram.
+
+**When to use update_view vs create_view:**
+- \`create_view\`: New diagram from scratch
+- \`update_view\`: Edit/modify an existing diagram (add elements, delete elements, change camera)
+
+**Updating existing elements:** To modify a property (e.g. color, position) of an existing element, send the full element with the same \`id\`. The new version automatically overrides the base version — no need to delete first.
 
 ## Deleting Elements
 
 Remove elements by id using the \`delete\` pseudo-element:
 
 \`{"type":"delete","ids":"b2,a1,t3"}\`
+
+**Container cascade:** Deleting a container (rectangle, diamond, etc.) also removes its bound text elements (those with \`containerId\` pointing to it). You don't need to delete both separately.
 
 Works in two modes:
 - **With restoreCheckpoint**: restore a saved state, then surgically remove specific elements before adding new ones
@@ -434,7 +442,7 @@ Call read_me first to learn the element format.`,
       _meta: { ui: { resourceUri } },
     },
     async ({ elements }): Promise<CallToolResult> => {
-      if (elements.length > MAX_INPUT_BYTES) {
+      if (Buffer.byteLength(elements, "utf8") > MAX_INPUT_BYTES) {
         return {
           content: [{ type: "text", text: `Elements input exceeds ${MAX_INPUT_BYTES} byte limit. Reduce the number of elements or use checkpoints to build incrementally.` }],
           isError: true,
@@ -446,6 +454,13 @@ Call read_me first to learn the element format.`,
       } catch (e) {
         return {
           content: [{ type: "text", text: `Invalid JSON in elements: ${(e as Error).message}. Ensure no comments, no trailing commas, and proper quoting.` }],
+          isError: true,
+        };
+      }
+
+      if (!Array.isArray(parsed)) {
+        return {
+          content: [{ type: "text", text: `Elements must be a JSON array, got ${typeof parsed}.` }],
           isError: true,
         };
       }
@@ -497,20 +512,115 @@ Call read_me first to learn the element format.`,
       return {
         content: [{ type: "text", text: `Diagram displayed! Checkpoint id: "${checkpointId}".
 If user asks to create a new diagram - simply create a new one from scratch.
-However, if the user wants to edit something on this diagram "${checkpointId}", take these steps:
-1) read widget context (using read_widget_context tool) to check if user made any manual edits first
-2) decide whether you want to make new diagram from scratch OR - use this one as starting checkpoint:
-  simply start from the first element [{"type":"restoreCheckpoint","id":"${checkpointId}"}, ...your new elements...]
-  this will use same diagram state as the user currently sees, including any manual edits they made in fullscreen, allowing you to add elements on top.
-  To remove elements, use: {"type":"delete","ids":"<id1>,<id2>"}${ratioHint}` }],
+However, if the user wants to edit this diagram, use update_view with checkpointId "${checkpointId}" and only the new/changed elements.
+Before editing, read widget context (using read_widget_context tool) to check if user made any manual edits first.
+To remove elements in update_view, include: {"type":"delete","ids":"<id1>,<id2>"} in the elements array.${ratioHint}` }],
         structuredContent: { checkpointId },
       };
     },
   );
 
   // ============================================================
-  // Tool 3: export_to_excalidraw (server-side proxy for CORS)
-  // Called by widget via app.callServerTool(), not by the model.
+  // Tool 3: update_view (edit existing diagram)
+  // ============================================================
+  registerAppTool(server,
+    "update_view",
+    {
+      title: "Edit Diagram",
+      description: `Edits an existing diagram by applying changes on top of a saved checkpoint.
+Use this instead of create_view when modifying a previously created diagram.
+Only send the new or changed elements — the base state is loaded from the checkpoint.
+Call read_me first if you haven't already.`,
+      inputSchema: z.object({
+        checkpointId: z.string().describe(
+          "The checkpoint ID from a previous create_view or update_view call."
+        ),
+        elements: z.string().describe(
+          "JSON array string of new/changed Excalidraw elements to apply on top of the checkpoint. Include delete pseudo-elements to remove existing elements. Must be valid JSON."
+        ),
+      }),
+      annotations: { readOnlyHint: true },
+      _meta: { ui: { resourceUri } },
+    },
+    async ({ checkpointId: inputCheckpointId, elements }): Promise<CallToolResult> => {
+      if (Buffer.byteLength(elements, "utf8") > MAX_INPUT_BYTES) {
+        return {
+          content: [{ type: "text", text: `Elements input exceeds ${MAX_INPUT_BYTES} byte limit.` }],
+          isError: true,
+        };
+      }
+
+      const base = await store.load(inputCheckpointId);
+      if (!base) {
+        return {
+          content: [{ type: "text", text: `Checkpoint "${inputCheckpointId}" not found — it may have expired or never existed. Please recreate the diagram using create_view.` }],
+          isError: true,
+        };
+      }
+
+      let parsed: any[];
+      try {
+        parsed = JSON.parse(elements);
+      } catch (e) {
+        return {
+          content: [{ type: "text", text: `Invalid JSON in elements: ${(e as Error).message}. Ensure no comments, no trailing commas, and proper quoting.` }],
+          isError: true,
+        };
+      }
+
+      if (!Array.isArray(parsed)) {
+        return {
+          content: [{ type: "text", text: `Elements must be a JSON array, got ${typeof parsed}.` }],
+          isError: true,
+        };
+      }
+
+      // Collect IDs to delete
+      const deleteIds = new Set<string>();
+      for (const el of parsed) {
+        if (el.type === "delete") {
+          for (const id of String(el.ids ?? el.id).split(",")) deleteIds.add(id.trim());
+        }
+      }
+
+      // New real elements (not pseudo-elements)
+      const newEls = parsed.filter((el: any) =>
+        el.type !== "restoreCheckpoint" && el.type !== "delete"
+      );
+      // IDs of new elements — used to dedup (new version overrides base)
+      const newIds = new Set(newEls.map((el: any) => el.id).filter(Boolean));
+
+      // Filter base: remove deleted, remove overridden by new, cascade containerId deletes
+      const baseFiltered = base.elements.filter((el: any) =>
+        !deleteIds.has(el.id) && !deleteIds.has(el.containerId) && !newIds.has(el.id)
+      );
+      const resolvedElements = [...baseFiltered, ...newEls];
+
+      // Check camera aspect ratios
+      const cameras = parsed.filter((el: any) => el.type === "cameraUpdate");
+      const badRatio = cameras.find((c: any) => {
+        if (!c.width || !c.height) return false;
+        const ratio = c.width / c.height;
+        return Math.abs(ratio - 4 / 3) > 0.15;
+      });
+      const ratioHint = badRatio
+        ? `\nTip: your cameraUpdate used ${badRatio.width}x${badRatio.height} — try to stick with 4:3 aspect ratio (e.g. 400x300, 800x600) in future.`
+        : "";
+
+      const newCheckpointId = crypto.randomUUID().replace(/-/g, "").slice(0, 18);
+      await store.save(newCheckpointId, { elements: resolvedElements });
+      return {
+        content: [{ type: "text", text: `Diagram updated! New checkpoint id: "${newCheckpointId}".
+For further edits, use update_view with checkpointId "${newCheckpointId}".
+To remove elements, include: {"type":"delete","ids":"<id1>,<id2>"} in the elements array.${ratioHint}` }],
+        structuredContent: { checkpointId: newCheckpointId },
+      };
+    },
+  );
+
+  // ============================================================
+  // Tool 4: export_to_excalidraw (server-side proxy for CORS)
+  // Called by widget via app.callServerTool(), not by the model
   // ============================================================
   registerAppTool(server,
     "export_to_excalidraw",
@@ -601,7 +711,7 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
   );
 
   // ============================================================
-  // Tool 4: save_checkpoint (private — widget only, for user edits)
+  // Tool 5: save_checkpoint (private — widget only, for user edits)
   // ============================================================
   registerAppTool(server,
     "save_checkpoint",
@@ -627,7 +737,7 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
   );
 
   // ============================================================
-  // Tool 5: read_checkpoint (private — widget only)
+  // Tool 6: read_checkpoint (private — widget only)
   // ============================================================
   registerAppTool(server,
     "read_checkpoint",

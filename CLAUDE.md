@@ -5,7 +5,7 @@ Standalone MCP server that streams Excalidraw diagrams as SVG with hand-drawn an
 ## Architecture
 
 ```
-server.ts          → 2 tools (read_me, create_view) + resource + cheat sheet
+server.ts          → 3 tools (read_me, create_view, update_view) + resource + cheat sheet
 main.ts            → HTTP (Streamable) + stdio transports
 src/mcp-app.tsx    → ExcalidrawAppCore (widget logic) + ExcalidrawApp (useApp wrapper)
 src/mcp-entry.tsx  → Production entry point: createRoot + ExcalidrawApp
@@ -25,6 +25,9 @@ Returns a cheat sheet with element format, color palettes, coordinate tips, and 
 Takes `elements` — a JSON string of standard Excalidraw elements. The widget parses partial JSON during streaming and renders via `exportToSvg` + morphdom diffing. No Excalidraw React canvas component — pure SVG rendering.
 
 **Screenshot as model context:** After final render, the SVG is captured as a 512px-max PNG and sent via `app.updateModelContext()` so the model can see the diagram and iterate on user feedback.
+
+### `update_view` (UI tool)
+Takes `checkpointId` + `elements` — edits an existing diagram by applying changes on top of a saved checkpoint. The server loads the base state from the checkpoint, applies deletes, merges new elements, and saves a new checkpoint. The widget handles the `checkpointId` field during streaming to show the base + new elements progressively.
 
 ## Key Design Decisions
 

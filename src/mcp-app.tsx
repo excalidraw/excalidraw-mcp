@@ -431,12 +431,20 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
     // Parse elements from string or array
     const str = typeof raw === "string" ? raw : JSON.stringify(raw);
 
+    // Support update_view: if checkpointId is provided as a top-level field,
+    // treat it as a restoreCheckpoint reference (the elements array won't contain one)
+    const externalCheckpointId = toolInput.checkpointId as string | undefined;
+
     if (isFinal) {
       // Final input — parse complete JSON, render ALL elements
       const parsed = parsePartialElements(str);
       let { viewport, drawElements, restoreId, deleteIds } = extractViewportAndElements(parsed);
+      // Use external checkpointId if no restoreCheckpoint in elements
+      if (!restoreId && externalCheckpointId) restoreId = externalCheckpointId;
 
       // Load checkpoint base if restoring (async — from server)
+      // NOTE: This merge logic (delete filtering + base/new combine) mirrors
+      // the server-side merge in server.ts update_view handler. Keep in sync.
       let base: any[] | undefined;
       const doFinal = async () => {
         if (restoreId && loadCheckpoint) {
@@ -475,7 +483,7 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
     const parsed = parsePartialElements(str);
 
     // Extract restoreCheckpoint and delete before dropping last (they're small, won't be incomplete)
-    let streamRestoreId: string | null = null;
+    let streamRestoreId: string | null = externalCheckpointId ?? null;
     const streamDeleteIds = new Set<string>();
     for (const el of parsed) {
       if (el.type === "restoreCheckpoint") streamRestoreId = el.id;
@@ -489,6 +497,7 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
 
     const doStream = async () => {
       // Load checkpoint base (once per restoreId) — from server via callServerTool
+      // NOTE: Merge logic mirrors server.ts update_view handler. Keep in sync.
       let base: any[] | undefined;
       if (streamRestoreId) {
         if (!restoredRef.current || restoredRef.current.id !== streamRestoreId) {
