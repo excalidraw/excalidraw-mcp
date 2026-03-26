@@ -25,7 +25,7 @@ For apps that don't yet have an official integration, you can add a custom MCP /
 
 ```bash
 git clone https://github.com/excalidraw/excalidraw-mcp.git
-cd excalidraw-mcp-app
+cd excalidraw-mcp
 pnpm install && pnpm run build
 ```
 
@@ -36,7 +36,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "excalidraw": {
       "command": "node",
-      "args": ["/path/to/excalidraw-mcp-app/dist/index.js", "--stdio"]
+      "args": ["/path/to/excalidraw-mcp/dist/index.js", "--stdio"]
     }
   }
 }
