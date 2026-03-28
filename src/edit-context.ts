@@ -151,10 +151,12 @@ export function onSelectionChange(
         const label = el.label?.text ?? el.text
           ?? allElements.find((t: any) => t.containerId === el.id && t.type === "text")?.text
           ?? "";
-        return `${el.type}${label ? ` '${label}'` : ""} (${el.id})`;
+        const fields = [`id: ${el.id}`, `type: ${el.type}`];
+        if (label) fields.push(`label: ${label}`);
+        return `{ ${fields.join(", ")} }`;
       });
     app.updateModelContext({
-      content: [{ type: "text", text: `Selected: ${parts.join(", ")}` }],
+      content: [{ type: "text", text: `Selected elements:\n${parts.join("\n")}` }],
     }).catch(() => {});
   }, SELECTION_DEBOUNCE_MS);
 }
