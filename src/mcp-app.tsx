@@ -666,7 +666,6 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [editorSettled, setEditorSettled] = useState(false);
   // Used by Task 3: selection badge in fullscreen toolbar
   const [selectedCount, setSelectedCount] = useState(0);
-  void selectedCount; // Used in fullscreen toolbar rendering (Task 3)
   const appRef = useRef<App | null>(null);
   const svgViewportRef = useRef<ViewportRect | null>(null);
   const elementsRef = useRef<any[]>([]);
@@ -881,7 +880,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
           <button
             className="app-button"
             onClick={toggleFullscreen}
-            title="Enter fullscreen"
+            title="Enter fullscreen to edit and select elements"
           >
             <span>Edit</span>
             <ExpandIcon />
@@ -909,17 +908,28 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
               onSelectionChange(app, ids, els);
             }}
             renderTopRightUI={isNarrow ? undefined : () => (
-              <ShareButton
-                onConfirm={async () => {
-                  if (excalidrawApi) {
-                    const elements = excalidrawApi.getSceneElements();
-                    const appState = excalidrawApi.getAppState();
-                    const files = excalidrawApi.getFiles();
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {selectedCount > 0 && (
+                  <span
+                    className="app-button"
+                    style={{ fontSize: "0.75rem", fontWeight: 400, cursor: "default", opacity: 0.7 }}
+                    title="Claude will see the selected elements when you send a message"
+                  >
+                    {selectedCount === 1 ? "1 element selected" : `${selectedCount} elements selected`}
+                  </span>
+                )}
+                <ShareButton
+                  onConfirm={async () => {
+                    if (excalidrawApi) {
+                      const elements = excalidrawApi.getSceneElements();
+                      const appState = excalidrawApi.getAppState();
+                      const files = excalidrawApi.getFiles();
 
-                    await shareToExcalidraw({ elements, appState, files }, app);
-                  }
-                }}
-              />
+                      await shareToExcalidraw({ elements, appState, files }, app);
+                    }
+                  }}
+                />
+              </div>
             )}
           >
             <MainMenu>
