@@ -7,6 +7,9 @@ let initialElementsById: Map<string, any> = new Map();
 let storageKey: string | null = null;
 let checkpointId: string | null = null;
 
+const SELECTION_DEBOUNCE_MS = 300;
+let selectionTimer: ReturnType<typeof setTimeout> | null = null;
+
 /**
  * Set the localStorage key for this widget instance (use viewUUID or tool-call-derived ID).
  */
@@ -120,4 +123,31 @@ export function onEditorChange(app: App, elements: readonly any[]) {
       }).catch(() => {});
     }
   }, DEBOUNCE_MS);
+}
+
+/**
+ * Call from Excalidraw's onChange when selectedElementIds changes.
+ * Updates model context with identity of selected elements (debounced).
+ * Clears context when selection is empty.
+ */
+export function onSelectionChange(
+  app: App,
+  selectedIds: Record<string, boolean>,
+  allElements: readonly any[]
+) {
+  if (selectionTimer) clearTimeout(selectionTimer);
+  selectionTimer = setTimeout(() => {
+    const selected = allElements.filter((el: any) => selectedIds[el.id]);
+    if (selected.length === 0) {
+      app.updateModelContext({ content: [] }).catch(() => {});
+      return;
+    }
+    const parts = selected.map((el: any) => {
+      const label = el.label?.text ?? el.text ?? "";
+      return `${el.type}${label ? ` '${label}'` : ""} (${el.id})`;
+    });
+    app.updateModelContext({
+      content: [{ type: "text", text: `Selected: ${parts.join(", ")}` }],
+    }).catch(() => {});
+  }, SELECTION_DEBOUNCE_MS);
 }
