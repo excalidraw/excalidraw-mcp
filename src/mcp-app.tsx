@@ -4,7 +4,7 @@ import {  Excalidraw, exportToSvg, convertToExcalidrawElements, restore, Capture
 import morphdom from "morphdom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { initPencilAudio, playStroke } from "./pencil-audio";
-import { captureInitialElements, onEditorChange, setStorageKey, loadPersistedElements, getLatestEditedElements, setCheckpointId } from "./edit-context";
+import { captureInitialElements, onEditorChange, onSelectionChange, setStorageKey, loadPersistedElements, getLatestEditedElements, setCheckpointId } from "./edit-context";
 import "./global.css";
 
 // ============================================================
@@ -664,6 +664,8 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [editorReady, setEditorReady] = useState(false);
   const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
   const [editorSettled, setEditorSettled] = useState(false);
+  const [_selectedCount, _setSelectedCount] = useState(0);
+  const setSelectedCount = _setSelectedCount; // exported for Task 3
   const appRef = useRef<App | null>(null);
   const svgViewportRef = useRef<ViewportRect | null>(null);
   const elementsRef = useRef<any[]>([]);
@@ -898,7 +900,13 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
             excalidrawAPI={(api) => { setExcalidrawApi(api); fsLog(`excalidrawAPI set`); }}
             initialData={{ elements: elements as any, scrollToContent: true }}
             theme="light"
-            onChange={(els) => onEditorChange(app, els)}
+            onChange={(els, appState) => {
+              onEditorChange(app, els);
+              const ids = (appState as any).selectedElementIds ?? {};
+              const count = Object.values(ids).filter(Boolean).length;
+              setSelectedCount(count);
+              onSelectionChange(app, ids, els);
+            }}
             renderTopRightUI={isNarrow ? undefined : () => (
               <ShareButton
                 onConfirm={async () => {
