@@ -664,8 +664,9 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [editorReady, setEditorReady] = useState(false);
   const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
   const [editorSettled, setEditorSettled] = useState(false);
-  const [_selectedCount, _setSelectedCount] = useState(0);
-  const setSelectedCount = _setSelectedCount; // exported for Task 3
+  // Used by Task 3: selection badge in fullscreen toolbar
+  const [selectedCount, setSelectedCount] = useState(0);
+  void selectedCount; // Used in fullscreen toolbar rendering (Task 3)
   const appRef = useRef<App | null>(null);
   const svgViewportRef = useRef<ViewportRect | null>(null);
   const elementsRef = useRef<any[]>([]);
