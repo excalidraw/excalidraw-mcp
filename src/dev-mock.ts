@@ -77,6 +77,10 @@ export function createMockApp(): MockAppControls {
       return { containerDimensions: { height: 600 } };
     },
 
+    getHostCapabilities() {
+      return { message: { text: true }, updateModelContext: { text: true } };
+    },
+
     async openLink({ url }: { url: string }) {
       console.log(`[mock] openLink: ${url}`);
       window.open(url, "_blank");
@@ -84,6 +88,11 @@ export function createMockApp(): MockAppControls {
 
     async updateModelContext(opts: any) {
       console.log("[mock] updateModelContext", opts);
+    },
+
+    async sendMessage(opts: any) {
+      console.log("[mock] sendMessage", opts);
+      return { isError: false };
     },
   } as unknown as App;
 

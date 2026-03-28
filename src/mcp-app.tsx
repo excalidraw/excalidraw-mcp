@@ -1,10 +1,23 @@
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
 import type { App } from "@modelcontextprotocol/ext-apps";
-import {  Excalidraw, exportToSvg, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
+import { Excalidraw, exportToSvg, restore, CaptureUpdateAction, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
 import morphdom from "morphdom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { initPencilAudio, playStroke } from "./pencil-audio";
-import { captureInitialElements, onEditorChange, setStorageKey, loadPersistedElements, getLatestEditedElements, setCheckpointId } from "./edit-context";
+import { CommentComposer } from "./comment-ui";
+import { createEditorPersistence } from "./editor-persistence";
+import {
+  convertRawElements,
+  excludeIncompleteLastItem,
+  extractViewportAndElements,
+  fixViewBox4x3,
+  getToolInputElementsSignature,
+  parsePartialElements,
+} from "./scene-data";
+import { anchorsEqual, getSelectionAnchor, type CommentAnchor } from "./selection-anchor";
+import { buildSelectionDetails, buildSelectionSummaryFromCount } from "./selection-utils";
+import { getViewportAppState, type ViewportRect } from "./viewport-utils";
+import { createWidgetContextController, flushModelContext, type WidgetContextController } from "./widget-context";
 import "./global.css";
 
 // ============================================================
@@ -14,95 +27,6 @@ import "./global.css";
 let _logFn: ((msg: string) => void) | null = null;
 function fsLog(msg: string) {
   if (_logFn) _logFn(msg);
-}
-
-// ============================================================
-// Shared helpers
-// ============================================================
-
-function parsePartialElements(str: string | undefined): any[] {
-  if (!str?.trim().startsWith("[")) return [];
-  try { return JSON.parse(str); } catch { /* partial */ }
-  const last = str.lastIndexOf("}");
-  if (last < 0) return [];
-  try { return JSON.parse(str.substring(0, last + 1) + "]"); } catch { /* incomplete */ }
-  return [];
-}
-
-function excludeIncompleteLastItem<T>(arr: T[]): T[] {
-  if (!arr || arr.length === 0) return [];
-  if (arr.length <= 1) return [];
-  return arr.slice(0, -1);
-}
-
-interface ViewportRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-/** Convert raw shorthand elements → Excalidraw format (labels → bound text, font fix).
- *  Preserves pseudo-elements like cameraUpdate (not valid Excalidraw types). */
-function convertRawElements(els: any[]): any[] {
-  const pseudoTypes = new Set(["cameraUpdate", "delete", "restoreCheckpoint"]);
-  const pseudos = els.filter((el: any) => pseudoTypes.has(el.type));
-  const real = els.filter((el: any) => !pseudoTypes.has(el.type));
-  const withDefaults = real.map((el: any) =>
-    el.label ? { ...el, label: { textAlign: "center", verticalAlign: "middle", ...el.label } } : el
-  );
-  const converted = convertToExcalidrawElements(withDefaults, { regenerateIds: false })
-    .map((el: any) => el.type === "text" ? { ...el, fontFamily: (FONT_FAMILY as any).Excalifont ?? 1 } : el);
-  return [...converted, ...pseudos];
-}
-
-/** Fix SVG viewBox to 4:3 by expanding the smaller dimension and centering. */
-function fixViewBox4x3(svg: SVGSVGElement): void {
-  const vb = svg.getAttribute("viewBox")?.split(" ").map(Number);
-  if (!vb || vb.length !== 4) return;
-  const [vx, vy, vw, vh] = vb;
-  const r = vw / vh;
-  if (Math.abs(r - 4 / 3) < 0.01) return;
-  if (r > 4 / 3) {
-    const h2 = Math.round(vw * 3 / 4);
-    svg.setAttribute("viewBox", `${vx} ${vy - Math.round((h2 - vh) / 2)} ${vw} ${h2}`);
-  } else {
-    const w2 = Math.round(vh * 4 / 3);
-    svg.setAttribute("viewBox", `${vx - Math.round((w2 - vw) / 2)} ${vy} ${w2} ${vh}`);
-  }
-}
-
-function extractViewportAndElements(elements: any[]): {
-  viewport: ViewportRect | null;
-  drawElements: any[];
-  restoreId: string | null;
-  deleteIds: Set<string>;
-} {
-  let viewport: ViewportRect | null = null;
-  let restoreId: string | null = null;
-  const deleteIds = new Set<string>();
-  const drawElements: any[] = [];
-
-  for (const el of elements) {
-    if (el.type === "cameraUpdate") {
-      viewport = { x: el.x, y: el.y, width: el.width, height: el.height };
-    } else if (el.type === "restoreCheckpoint") {
-      restoreId = el.id;
-    } else if (el.type === "delete") {
-      for (const id of String(el.ids ?? el.id).split(",")) deleteIds.add(id.trim());
-    } else {
-      drawElements.push(el);
-    }
-  }
-
-  // Hide deleted elements via near-zero opacity instead of removing — preserves SVG
-  // group count/order so morphdom matches by position correctly (no cascade re-animations).
-  // Using 1 (not 0) because Excalidraw treats opacity:0 as "unset" → defaults to 100.
-  const processedDraw = deleteIds.size > 0
-    ? drawElements.map((el: any) => (deleteIds.has(el.id) || deleteIds.has(el.containerId)) ? { ...el, opacity: 1 } : el)
-    : drawElements;
-
-  return { viewport, drawElements: processedDraw, restoreId, deleteIds };
 }
 
 const ExpandIcon = () => (
@@ -462,7 +386,6 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
 
         // Merge base (converted) + new converted
         const allConverted = base ? [...base, ...convertedNew] : convertedNew;
-        captureInitialElements(allConverted);
         // Only set elements if user hasn't edited yet (editedElements means user edits exist)
         if (!editedElements) onElements?.(allConverted);
         if (!editedElements) renderSvgPreview(drawElements, viewport, base);
@@ -664,10 +587,58 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [editorReady, setEditorReady] = useState(false);
   const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
   const [editorSettled, setEditorSettled] = useState(false);
+  // Tracks how many Excalidraw elements are currently selected; drives the toolbar badge.
+  const [selectedCount, setSelectedCount] = useState(0);
+  const [selectedSummary, setSelectedSummary] = useState<string | null>(null);
+  const [commentDraft, setCommentDraft] = useState("");
+  const [commentOpen, setCommentOpen] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [commentSending, setCommentSending] = useState(false);
+  const [commentAnchor, setCommentAnchor] = useState<CommentAnchor | null>(null);
   const appRef = useRef<App | null>(null);
   const svgViewportRef = useRef<ViewportRect | null>(null);
   const elementsRef = useRef<any[]>([]);
-  const checkpointIdRef = useRef<string | null>(null);
+  const lastFullscreenToolInputRef = useRef<string | null>(null);
+  const selectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const contextRef = useRef<WidgetContextController>(createWidgetContextController());
+  const persistenceRef = useRef(createEditorPersistence({
+    app,
+    context: contextRef.current,
+  }));
+  const hostCapabilities = app.getHostCapabilities?.();
+  const canSendSelectionComments = Boolean(
+    hostCapabilities?.message && hostCapabilities?.updateModelContext,
+  );
+
+  const clearSelectionUi = useCallback(() => {
+    setSelectedCount(0);
+    setSelectedSummary(null);
+    setCommentAnchor(null);
+    setCommentOpen(false);
+    setCommentDraft("");
+    setCommentError(null);
+  }, []);
+
+  const clearSelectionState = useCallback((clearModelContext = false) => {
+    if (selectionTimerRef.current) {
+      clearTimeout(selectionTimerRef.current);
+      selectionTimerRef.current = null;
+    }
+    clearSelectionUi();
+    if (clearModelContext && appRef.current) {
+      contextRef.current.clearSelection();
+      flushModelContext(appRef.current, contextRef.current);
+    }
+  }, [clearSelectionUi]);
+
+  const syncLatestEditsOnInline = useCallback((clearModelContext = true) => {
+    const edited = persistenceRef.current.getLatestEditedElements();
+    if (edited) {
+      setElements(edited);
+      setUserEdits(edited);
+    }
+    clearSelectionState(clearModelContext);
+  }, [clearSelectionState]);
 
   const toggleFullscreen = useCallback(async () => {
     if (!appRef.current) return;
@@ -675,11 +646,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     fsLog(`toggle: ${displayMode}→${newMode}`);
     // Sync edited elements before leaving fullscreen
     if (newMode === "inline") {
-      const edited = getLatestEditedElements();
-      if (edited) {
-            setElements(edited);
-        setUserEdits(edited);
-      }
+      syncLatestEditsOnInline(true);
     }
     try {
       const result = await appRef.current.requestDisplayMode({ mode: newMode });
@@ -688,7 +655,122 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     } catch (err) {
       fsLog(`requestDisplayMode FAILED: ${err}`);
     }
-  }, [displayMode, elements.length, inputIsFinal]);
+  }, [displayMode, syncLatestEditsOnInline]);
+
+  const submitSelectionComment = useCallback(async () => {
+    if (!selectedSummary || !commentDraft.trim()) return;
+    if (!canSendSelectionComments) {
+      setCommentError("This host does not support selection-aware comments from the diagram.");
+      return;
+    }
+
+    setCommentSending(true);
+    setCommentError(null);
+    try {
+      const sceneElements = excalidrawApi?.getSceneElements?.() ?? [];
+      const appState = excalidrawApi?.getAppState?.() as any;
+      const selectedIds = appState?.selectedElementIds ?? {};
+      const selectionSnapshot = buildSelectionDetails(selectedIds, sceneElements);
+      const messageText = commentDraft.trim();
+
+      contextRef.current.setSelection(selectionSnapshot);
+      await flushModelContext(app, contextRef.current);
+
+      const result = await app.sendMessage({
+        role: "user",
+        content: [{
+          type: "text",
+          text: messageText,
+        }],
+      });
+      if (result.isError) {
+        setCommentError("The host rejected the message.");
+        return;
+      }
+      contextRef.current.recordComment(messageText, selectionSnapshot);
+      await flushModelContext(app, contextRef.current);
+      setCommentDraft("");
+      setCommentOpen(false);
+    } catch (err) {
+      setCommentError(err instanceof Error ? err.message : "Failed to send comment.");
+    } finally {
+      setCommentSending(false);
+    }
+  }, [app, canSendSelectionComments, commentDraft, excalidrawApi, selectedSummary]);
+
+  const syncCommentAnchor = useCallback((api: any, selectedIds: Record<string, boolean>, allElements: readonly any[]) => {
+    const nextAnchor = getSelectionAnchor(api, selectedIds, allElements);
+    setCommentAnchor((current) => anchorsEqual(current, nextAnchor) ? current : nextAnchor);
+  }, []);
+
+  const syncSelectionContext = useCallback((selectedIds: Record<string, boolean>, allElements: readonly any[]) => {
+    if (selectionTimerRef.current) {
+      clearTimeout(selectionTimerRef.current);
+    }
+
+    selectionTimerRef.current = setTimeout(() => {
+      const details = buildSelectionDetails(selectedIds, allElements);
+      if (details.length > 0) {
+        contextRef.current.setSelection(details);
+      } else {
+        contextRef.current.clearSelection();
+      }
+      flushModelContext(app, contextRef.current);
+    }, 300);
+  }, [app]);
+
+  const applyFinalToolInputToEditor = useCallback(async (args: any) => {
+    if (!excalidrawApi) return;
+    const raw = args?.elements;
+    if (!raw) return;
+
+    const str = typeof raw === "string" ? raw : JSON.stringify(raw);
+    const parsed = parsePartialElements(str);
+    let { viewport, drawElements, restoreId, deleteIds } = extractViewportAndElements(parsed);
+
+    let base: any[] | undefined;
+    if (restoreId && appRef.current) {
+      try {
+        const result = await appRef.current.callServerTool({ name: "read_checkpoint", arguments: { id: restoreId } });
+        const text = (result.content[0] as any)?.text;
+        const saved = text ? JSON.parse(text) : null;
+        if (saved?.elements) {
+          const baseElements = saved.elements as any[];
+          base = baseElements;
+          if (!viewport) {
+            const cam = baseElements.find((el: any) => el.type === "cameraUpdate");
+            if (cam) viewport = { x: cam.x, y: cam.y, width: cam.width, height: cam.height };
+          }
+          base = convertRawElements(baseElements);
+        }
+        if (base && deleteIds.size > 0) {
+          base = base.filter((el: any) => !deleteIds.has(el.id) && !deleteIds.has(el.containerId));
+        }
+      } catch {
+        // Leave base undefined when checkpoint restore fails.
+      }
+    }
+
+    const convertedNew = convertRawElements(drawElements);
+    const allConverted = base ? [...base, ...convertedNew] : convertedNew;
+    persistenceRef.current.captureInitialElements(allConverted);
+    elementsRef.current = allConverted;
+    setElements(allConverted);
+    setUserEdits(null);
+    clearSelectionState();
+
+    const nextAppState = viewport ? getViewportAppState(excalidrawApi, viewport) : null;
+    excalidrawApi.updateScene({
+      elements: allConverted,
+      ...(nextAppState ? { appState: nextAppState } : {}),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+    if (!nextAppState) {
+      excalidrawApi.scrollToContent(allConverted, {
+        fitToContent: true,
+      });
+    }
+  }, [clearSelectionState, excalidrawApi]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -697,6 +779,15 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [displayMode, toggleFullscreen]);
+
+  useEffect(() => {
+    return () => {
+      if (selectionTimerRef.current) {
+        clearTimeout(selectionTimerRef.current);
+      }
+      persistenceRef.current.dispose();
+    };
+  }, []);
 
   // Preload ALL Excalidraw fonts on first mount (inline mode) so they're
   // cached before fullscreen. Without this, Excalidraw's component init
@@ -791,11 +882,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
         fsLog(`hostContextChanged: displayMode=${ctx.displayMode}`);
         // Sync edited elements when host exits fullscreen
         if (ctx.displayMode === "inline") {
-          const edited = getLatestEditedElements();
-          if (edited) {
-            setElements(edited);
-            setUserEdits(edited);
-          }
+          syncLatestEditsOnInline(true);
         }
         setDisplayMode(ctx.displayMode as "inline" | "fullscreen");
       }
@@ -816,12 +903,12 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     app.ontoolresult = (result: any) => {
       const cpId = (result.structuredContent as { checkpointId?: string })?.checkpointId;
       if (cpId) {
-        checkpointIdRef.current = cpId;
-        setCheckpointId(cpId);
+        contextRef.current.setCheckpoint(cpId);
+        flushModelContext(app, contextRef.current);
         // Use checkpointId as localStorage key for persisting user edits
-        setStorageKey(cpId);
+        persistenceRef.current.setStorageKey(cpId);
         // Check for persisted edits from a previous fullscreen session
-        const persisted = loadPersistedElements();
+        const persisted = persistenceRef.current.loadPersistedElements();
         if (persisted && persisted.length > 0) {
           elementsRef.current = persisted;
           setElements(persisted);
@@ -832,7 +919,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
 
     app.onteardown = async () => ({});
     app.onerror = (err) => console.error("[Excalidraw] Error:", err);
-  }, [app]);
+  }, [app, syncLatestEditsOnInline]);
 
   // Track narrow viewport for mobile layout adjustments
   useEffect(() => {
@@ -841,6 +928,33 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  useEffect(() => {
+    if (displayMode !== "fullscreen" || !editorSettled) {
+      lastFullscreenToolInputRef.current = null;
+    }
+  }, [displayMode, editorSettled]);
+
+  useEffect(() => {
+    if (inputIsFinal && toolInput?.elements) {
+      contextRef.current.resetForNewToolResult();
+      flushModelContext(app, contextRef.current);
+    }
+  }, [app, inputIsFinal, toolInput]);
+
+  useEffect(() => {
+    if (!inputIsFinal || !toolInput?.elements) return;
+    if (displayMode !== "fullscreen" || !editorSettled || !excalidrawApi) return;
+    const signature = getToolInputElementsSignature(toolInput);
+    if (!signature) return;
+    if (lastFullscreenToolInputRef.current === null) {
+      lastFullscreenToolInputRef.current = signature;
+      return;
+    }
+    if (lastFullscreenToolInputRef.current === signature) return;
+    lastFullscreenToolInputRef.current = signature;
+    applyFinalToolInputToEditor(toolInput);
+  }, [applyFinalToolInputToEditor, displayMode, editorSettled, excalidrawApi, inputIsFinal, toolInput]);
 
   // Bridge hostContext.safeAreaInsets → Excalidraw's native --sat/--sar/--sab/--sal.
   // Excalidraw's .FixedSideContainer reads padding-top: var(--sat) — this offsets
@@ -878,7 +992,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
           <button
             className="app-button"
             onClick={toggleFullscreen}
-            title="Enter fullscreen"
+            title="Enter fullscreen to edit and select elements"
           >
             <span>Edit</span>
             <ExpandIcon />
@@ -898,19 +1012,54 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
             excalidrawAPI={(api) => { setExcalidrawApi(api); fsLog(`excalidrawAPI set`); }}
             initialData={{ elements: elements as any, scrollToContent: true }}
             theme="light"
-            onChange={(els) => onEditorChange(app, els)}
+            onChange={(els, appState) => {
+              persistenceRef.current.onEditorChange(els);
+              // appState type is not fully exported by Excalidraw — cast required
+              const ids = (appState as any).selectedElementIds ?? {};
+              // Mirror onSelectionChange's filter: exclude bound text elements so the
+              // badge count matches what the model context actually contains.
+              const details = buildSelectionDetails(ids, els);
+              const count = details.length;
+              const summary = buildSelectionSummaryFromCount(count);
+              setSelectedCount(count);
+              setSelectedSummary(summary);
+              syncCommentAnchor(excalidrawApi, ids, els);
+              if (!summary) {
+                setCommentOpen(false);
+                setCommentDraft("");
+                setCommentError(null);
+              }
+              syncSelectionContext(ids, els);
+            }}
+            onScrollChange={() => {
+              if (!excalidrawApi) return;
+              const appState = excalidrawApi.getAppState?.() as any;
+              const ids = appState?.selectedElementIds ?? {};
+              syncCommentAnchor(excalidrawApi, ids, excalidrawApi.getSceneElements());
+            }}
             renderTopRightUI={isNarrow ? undefined : () => (
-              <ShareButton
-                onConfirm={async () => {
-                  if (excalidrawApi) {
-                    const elements = excalidrawApi.getSceneElements();
-                    const appState = excalidrawApi.getAppState();
-                    const files = excalidrawApi.getFiles();
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {selectedCount > 0 && (
+                  <span
+                    className="app-button"
+                    style={{ fontSize: "0.75rem", fontWeight: 400, pointerEvents: "none", opacity: 0.7 }}
+                    title="Claude will see the selected elements when you send a message"
+                  >
+                    {selectedCount === 1 ? "1 element selected" : `${selectedCount} elements selected`}
+                  </span>
+                )}
+                <ShareButton
+                  onConfirm={async () => {
+                    if (excalidrawApi) {
+                      const elements = excalidrawApi.getSceneElements();
+                      const appState = excalidrawApi.getAppState();
+                      const files = excalidrawApi.getFiles();
 
-                    await shareToExcalidraw({ elements, appState, files }, app);
-                  }
-                }}
-              />
+                      await shareToExcalidraw({ elements, appState, files }, app);
+                    }
+                  }}
+                />
+              </div>
             )}
           >
             <MainMenu>
@@ -957,7 +1106,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
             </MainMenu >
           </Excalidraw>
           {isNarrow && (
-            <div className="mobile-share-slot">
+            <div className="mobile-action-slot">
               <ShareButton
                 compact
                 onConfirm={async () => {
@@ -971,6 +1120,38 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
               />
             </div>
           )}
+          {selectedSummary && canSendSelectionComments && commentAnchor && (
+            <div
+              className={`selection-comment-anchor${commentOpen ? " open" : ""}${isNarrow ? " mobile" : ""}`}
+              style={{ left: commentAnchor.left, top: commentAnchor.top }}
+            >
+              {!commentOpen ? (
+                <button
+                  className="selection-comment-trigger"
+                  type="button"
+                  title="Comment on the selected element"
+                  onClick={() => {
+                    setCommentOpen(true);
+                    setCommentError(null);
+                  }}
+                >
+                  Comment
+                </button>
+              ) : (
+                <CommentComposer
+                  draft={commentDraft}
+                  error={commentError}
+                  sending={commentSending}
+                  onChange={setCommentDraft}
+                  onCancel={() => {
+                    setCommentOpen(false);
+                    setCommentError(null);
+                  }}
+                  onSend={submitSelectionComment}
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
       {/* SVG: stays visible until editor is fully settled */}
@@ -979,7 +1160,11 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
           onClick={undefined}
           style={undefined}
         >
-          <DiagramView toolInput={toolInput} isFinal={inputIsFinal} displayMode={displayMode} onElements={(els) => { elementsRef.current = els; setElements(els); }} editedElements={userEdits ?? undefined} onViewport={(vp) => { svgViewportRef.current = vp; }} loadCheckpoint={async (id) => {
+          <DiagramView toolInput={toolInput} isFinal={inputIsFinal} displayMode={displayMode} onElements={(els) => {
+            persistenceRef.current.captureInitialElements(els);
+            elementsRef.current = els;
+            setElements(els);
+          }} editedElements={userEdits ?? undefined} onViewport={(vp) => { svgViewportRef.current = vp; }} loadCheckpoint={async (id) => {
             if (!appRef.current) return null;
             try {
               const result = await appRef.current.callServerTool({ name: "read_checkpoint", arguments: { id } });

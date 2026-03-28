@@ -27,6 +27,7 @@
     "start": "cross-env NODE_ENV=development npm run build && npm run serve",
     "dev": "cross-env NODE_ENV=development concurrently 'npm run watch' 'npm run serve'",
     "dev:ui": "vite --config vite.config.dev.ts",
+    "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -53,7 +54,8 @@
     "cross-env": "^10.1.0",
     "typescript": "^5.9.3",
     "vite": "^6.0.0",
-    "vite-plugin-singlefile": "^2.3.0"
+    "vite-plugin-singlefile": "^2.3.0",
+    "vitest": "^4.1.2"
   },
   "optionalDependencies": {
     "@oven/bun-darwin-aarch64": "^1.2.21",
