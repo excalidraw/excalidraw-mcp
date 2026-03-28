@@ -73,4 +73,19 @@ describe("onSelectionChange", () => {
     await Promise.resolve();
     expect(app.updateModelContext).toHaveBeenCalledTimes(1);
   });
+
+  it("ignores elements mapped to false in selectedIds", async () => {
+    const app = makeApp();
+    const elements = [
+      { id: "r1", type: "rectangle", label: { text: "Database" } },
+      { id: "r2", type: "rectangle", label: { text: "Cache" } },
+    ];
+    // r2 is in the map but deselected (false)
+    onSelectionChange(app, { r1: true, r2: false }, elements);
+    vi.runAllTimers();
+    await Promise.resolve();
+    expect(app.updateModelContext).toHaveBeenCalledWith({
+      content: [{ type: "text", text: "Selected: rectangle 'Database' (r1)" }],
+    });
+  });
 });
