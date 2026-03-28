@@ -74,6 +74,36 @@ describe("onSelectionChange", () => {
     expect(app.updateModelContext).toHaveBeenCalledTimes(1);
   });
 
+  it("resolves label from bound text element (post-convertToExcalidrawElements)", async () => {
+    const app = makeApp();
+    // After conversion, rectangle has no label — label becomes a bound text child
+    const elements = [
+      { id: "r1", type: "rectangle" },
+      { id: "t1", type: "text", containerId: "r1", text: "update_diagram" },
+    ];
+    onSelectionChange(app, { r1: true }, elements);
+    vi.runAllTimers();
+    await Promise.resolve();
+    expect(app.updateModelContext).toHaveBeenCalledWith({
+      content: [{ type: "text", text: "Selected: rectangle 'update_diagram' (r1)" }],
+    });
+  });
+
+  it("skips bound text elements from selection (their container is shown instead)", async () => {
+    const app = makeApp();
+    const elements = [
+      { id: "r1", type: "rectangle" },
+      { id: "t1", type: "text", containerId: "r1", text: "update_diagram" },
+    ];
+    // Both container and bound text are selected
+    onSelectionChange(app, { r1: true, t1: true }, elements);
+    vi.runAllTimers();
+    await Promise.resolve();
+    expect(app.updateModelContext).toHaveBeenCalledWith({
+      content: [{ type: "text", text: "Selected: rectangle 'update_diagram' (r1)" }],
+    });
+  });
+
   it("ignores elements mapped to false in selectedIds", async () => {
     const app = makeApp();
     const elements = [

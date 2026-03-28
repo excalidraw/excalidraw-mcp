@@ -142,10 +142,17 @@ export function onSelectionChange(
       app.updateModelContext({ content: [] }).catch(() => {});
       return;
     }
-    const parts = selected.map((el: any) => {
-      const label = el.label?.text ?? el.text ?? "";
-      return `${el.type}${label ? ` '${label}'` : ""} (${el.id})`;
-    });
+    const parts = selected
+      .filter((el: any) => !el.containerId) // skip bound text elements — their container is shown instead
+      .map((el: any) => {
+        // el.label is only present on raw elements before conversion.
+        // After convertToExcalidrawElements, labels become bound text children
+        // (containerId === el.id). Look them up from allElements.
+        const label = el.label?.text ?? el.text
+          ?? allElements.find((t: any) => t.containerId === el.id && t.type === "text")?.text
+          ?? "";
+        return `${el.type}${label ? ` '${label}'` : ""} (${el.id})`;
+      });
     app.updateModelContext({
       content: [{ type: "text", text: `Selected: ${parts.join(", ")}` }],
     }).catch(() => {});
