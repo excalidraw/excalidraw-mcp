@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { onSelectionChange } from "./edit-context.js";
 
 function makeApp() {
@@ -8,6 +8,11 @@ function makeApp() {
 describe("onSelectionChange", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it("sends identity summary for a single selected rectangle with label", async () => {
