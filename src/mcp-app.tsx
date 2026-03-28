@@ -664,7 +664,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [editorReady, setEditorReady] = useState(false);
   const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
   const [editorSettled, setEditorSettled] = useState(false);
-  // Used by Task 3: selection badge in fullscreen toolbar
+  // Tracks how many Excalidraw elements are currently selected; drives the toolbar badge.
   const [selectedCount, setSelectedCount] = useState(0);
   const appRef = useRef<App | null>(null);
   const svgViewportRef = useRef<ViewportRect | null>(null);
@@ -682,6 +682,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
             setElements(edited);
         setUserEdits(edited);
       }
+      setSelectedCount(0);
     }
     try {
       const result = await appRef.current.requestDisplayMode({ mode: newMode });
@@ -912,7 +913,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
                 {selectedCount > 0 && (
                   <span
                     className="app-button"
-                    style={{ fontSize: "0.75rem", fontWeight: 400, cursor: "default", opacity: 0.7 }}
+                    style={{ fontSize: "0.75rem", fontWeight: 400, pointerEvents: "none", opacity: 0.7 }}
                     title="Claude will see the selected elements when you send a message"
                   >
                     {selectedCount === 1 ? "1 element selected" : `${selectedCount} elements selected`}
