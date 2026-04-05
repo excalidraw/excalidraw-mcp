@@ -14,6 +14,19 @@ Works with any client that supports [MCP Apps](https://modelcontextprotocol.io/d
 
 For apps that don't yet have an official integration, you can add a custom MCP / connector (naming can vary between apps).
 
+**Claude Code** — add to `~/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "excalidraw": {
+      "type": "http",
+      "url": "https://mcp.excalidraw.com"
+    }
+  }
+}
+```
+
 ### Local
 
 **Option A: Download Extension**
