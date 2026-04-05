@@ -426,29 +426,22 @@ export function registerTools(server: McpServer, distDir: string, store: Checkpo
 Elements stream in one by one with draw-on animations.
 Call read_me first to learn the element format.`,
       inputSchema: z.object({
-        elements: z.string().describe(
-          "JSON array string of Excalidraw elements. Must be valid JSON — no comments, no trailing commas. Keep compact. Call read_me first for format reference."
+        elements: z.array(z.record(z.any())).describe(
+          "Array of Excalidraw elements. Each element is an object with at least a type field. Call read_me first for format reference."
         ),
       }),
       annotations: { readOnlyHint: true },
       _meta: { ui: { resourceUri } },
     },
     async ({ elements }): Promise<CallToolResult> => {
-      if (elements.length > MAX_INPUT_BYTES) {
+      const serialized = JSON.stringify(elements);
+      if (serialized.length > MAX_INPUT_BYTES) {
         return {
           content: [{ type: "text", text: `Elements input exceeds ${MAX_INPUT_BYTES} byte limit. Reduce the number of elements or use checkpoints to build incrementally.` }],
           isError: true,
         };
       }
-      let parsed: any[];
-      try {
-        parsed = JSON.parse(elements);
-      } catch (e) {
-        return {
-          content: [{ type: "text", text: `Invalid JSON in elements: ${(e as Error).message}. Ensure no comments, no trailing commas, and proper quoting.` }],
-          isError: true,
-        };
-      }
+      const parsed: any[] = elements;
 
       // Resolve restoreCheckpoint references and save fully resolved state
       const restoreEl = parsed.find((el: any) => el.type === "restoreCheckpoint");
