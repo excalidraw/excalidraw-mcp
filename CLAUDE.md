@@ -22,7 +22,7 @@ vite.config.dev.ts → Dev-only vite config (resolves from node_modules, no esm.
 Returns a cheat sheet with element format, color palettes, coordinate tips, and examples. The model should call this before `create_view`.
 
 ### `create_view` (UI tool)
-Takes `elements` — a JSON string of standard Excalidraw elements. The widget parses partial JSON during streaming and renders via `exportToSvg` + morphdom diffing. No Excalidraw React canvas component — pure SVG rendering.
+Takes `elements` — an array of standard Excalidraw element objects. Zod validates the array structure (no manual JSON parsing needed). The widget renders via `exportToSvg` + morphdom diffing. No Excalidraw React canvas component — pure SVG rendering.
 
 **Screenshot as model context:** After final render, the SVG is captured as a 512px-max PNG and sent via `app.updateModelContext()` so the model can see the diagram and iterate on user feedback.
 
