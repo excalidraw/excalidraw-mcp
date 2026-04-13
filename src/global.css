@@ -70,13 +70,12 @@ body {
   position: relative;
 }
 
-/* Fullscreen mode */
+/* Fullscreen mode. Mobile safe-area insets are applied via Excalidraw's native
+   --sat/--sar/--sab/--sal vars (set from hostContext.safeAreaInsets in JS),
+   which offset only the floating toolbar/menus — canvas stays full-bleed. */
 .main.fullscreen {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: var(--bg-color, #ffffff);
   z-index: 9999;
 }
@@ -88,6 +87,15 @@ body {
 /* Hide library button in fullscreen editor */
 .main.fullscreen .default-sidebar-trigger {
   display: none !important;
+}
+
+/* Mobile: export button moves below the toolbar row (narrow viewports can't
+   fit it in top-right alongside lock/hand icons). */
+.mobile-share-slot {
+  position: absolute;
+  top: calc(var(--sat, 0px) + 64px);
+  right: calc(var(--sar, 0px) + 12px);
+  z-index: 5;
 }
 
 /* Contain SVG inside fullscreen viewport (not cover) */

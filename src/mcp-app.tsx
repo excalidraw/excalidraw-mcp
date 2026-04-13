@@ -247,7 +247,7 @@ async function shareToExcalidraw(data: {elements: any[], appState: any, files: a
   }
 }
 
-function ShareButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
+function ShareButton({ onConfirm, compact }: { onConfirm: () => Promise<void>; compact?: boolean }) {
   const [state, setState] = useState<"idle" | "confirm" | "uploading">("idle");
 
   const handleConfirm = async () => {
@@ -263,13 +263,13 @@ function ShareButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
     <>
       <button
         className=" app-button"
-        style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px", marginRight: -8 }}
+        style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px", marginRight: compact ? 0 : -8 }}
         title="Export to Excalidraw"
         disabled={state === "uploading"}
         onClick={() => setState("confirm")}
       >
         <ExternalLinkIcon />
-        <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>{state === "uploading" ? "Exporting…" : "Open in Excalidraw"}</span>
+        {!compact && <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>{state === "uploading" ? "Exporting…" : "Open in Excalidraw"}</span>}
       </button>
 
       {state === "confirm" && (
@@ -762,6 +762,8 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [elements, setElements] = useState<any[]>([]);
   const [userEdits, setUserEdits] = useState<any[] | null>(null);
   const [containerHeight, setContainerHeight] = useState<number | null>(null);
+  const [safeAreaInsets, setSafeAreaInsets] = useState<{ top: number; right: number; bottom: number; left: number } | null>(null);
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches);
   const [editorReady, setEditorReady] = useState(false);
   const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
   const [editorSettled, setEditorSettled] = useState(false);
@@ -876,13 +878,17 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     appRef.current = app;
     _logFn = (msg) => { try { app.sendLog({ level: "info", logger: "FS", data: msg }); } catch {} };
 
-    // Capture initial container dimensions
-    const initDims = app.getHostContext()?.containerDimensions as any;
-    if (initDims?.height) setContainerHeight(initDims.height);
+    // Capture initial container dimensions + safe area insets
+    const initCtx = app.getHostContext() as any;
+    if (initCtx?.containerDimensions?.height) setContainerHeight(initCtx.containerDimensions.height);
+    if (initCtx?.safeAreaInsets) setSafeAreaInsets(initCtx.safeAreaInsets);
 
     app.onhostcontextchanged = (ctx: any) => {
       if (ctx.containerDimensions?.height) {
         setContainerHeight(ctx.containerDimensions.height);
+      }
+      if (ctx.safeAreaInsets) {
+        setSafeAreaInsets(ctx.safeAreaInsets);
       }
       if (ctx.displayMode) {
         fsLog(`hostContextChanged: displayMode=${ctx.displayMode}`);
@@ -931,6 +937,33 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     app.onerror = (err) => console.error("[Excalidraw] Error:", err);
   }, [app]);
 
+  // Track narrow viewport for mobile layout adjustments
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const handler = (e: MediaQueryListEvent) => setIsNarrow(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Bridge hostContext.safeAreaInsets → Excalidraw's native --sat/--sar/--sab/--sal.
+  // Excalidraw's .FixedSideContainer reads padding-top: var(--sat) — this offsets
+  // only the floating toolbar/menus, keeping the canvas full-bleed. env(safe-area-*)
+  // is 0 inside cross-origin iframes on iOS, so the host MUST supply pixel values.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (displayMode === "fullscreen" && isNarrow && safeAreaInsets) {
+      root.style.setProperty("--sat", `${safeAreaInsets.top}px`);
+      root.style.setProperty("--sar", `${safeAreaInsets.right}px`);
+      root.style.setProperty("--sab", `${safeAreaInsets.bottom}px`);
+      root.style.setProperty("--sal", `${safeAreaInsets.left}px`);
+    } else {
+      root.style.removeProperty("--sat");
+      root.style.removeProperty("--sar");
+      root.style.removeProperty("--sab");
+      root.style.removeProperty("--sal");
+    }
+  }, [displayMode, isNarrow, safeAreaInsets]);
+
   return (
     <main className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}`} style={displayMode === "fullscreen" && containerHeight ? { height: containerHeight } : undefined}>
       {displayMode === "inline" && (
@@ -969,7 +1002,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
             initialData={{ elements: elements as any, scrollToContent: true }}
             theme="light"
             onChange={(els) => onEditorChange(app, els)}
-            renderTopRightUI={() => (
+            renderTopRightUI={isNarrow ? undefined : () => (
               <ShareButton
                 onConfirm={async () => {
                   if (excalidrawApi) {
@@ -1026,6 +1059,21 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
               </MainMenu.Item>
             </MainMenu >
           </Excalidraw>
+          {isNarrow && (
+            <div className="mobile-share-slot">
+              <ShareButton
+                compact
+                onConfirm={async () => {
+                  if (excalidrawApi) {
+                    const elements = excalidrawApi.getSceneElements();
+                    const appState = excalidrawApi.getAppState();
+                    const files = excalidrawApi.getFiles();
+                    await shareToExcalidraw({ elements, appState, files }, app);
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
       {/* SVG: stays visible until editor is fully settled */}
