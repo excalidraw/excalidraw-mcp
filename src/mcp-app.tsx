@@ -3,7 +3,7 @@ import type { App } from "@modelcontextprotocol/ext-apps";
 import {  Excalidraw, exportToSvg, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
 import morphdom from "morphdom";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { initPencilAudio, playStroke } from "./pencil-audio";
+import { initPencilAudio, playStroke, isMuted, toggleMute } from "./pencil-audio";
 import { captureInitialElements, onEditorChange, setStorageKey, loadPersistedElements, getLatestEditedElements, setCheckpointId } from "./edit-context";
 import "./global.css";
 
@@ -104,6 +104,22 @@ function extractViewportAndElements(elements: any[]): {
 
   return { viewport, drawElements: processedDraw, restoreId, deleteIds };
 }
+
+const SoundOnIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" />
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+  </svg>
+);
+
+const SoundOffIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" />
+    <line x1="23" y1="9" x2="17" y2="15" />
+    <line x1="17" y1="9" x2="23" y2="15" />
+  </svg>
+);
 
 const ExpandIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -664,6 +680,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [editorReady, setEditorReady] = useState(false);
   const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
   const [editorSettled, setEditorSettled] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(isMuted);
   const appRef = useRef<App | null>(null);
   const svgViewportRef = useRef<ViewportRect | null>(null);
   const elementsRef = useRef<any[]>([]);
@@ -863,28 +880,36 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
 
   return (
     <main className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}`} style={displayMode === "fullscreen" && containerHeight ? { height: containerHeight } : undefined}>
-      {displayMode === "inline" && (
-        <div className="toolbar">
-          <ShareButton
-                onConfirm={async () => {
-                  await shareToExcalidraw({
-                    elements,
-                    appState: {},
-                    files: {}
-                  }, app);
-                }}
-              />
-
-          <button
-            className="app-button"
-            onClick={toggleFullscreen}
-            title="Enter fullscreen"
-          >
-            <span>Edit</span>
-            <ExpandIcon />
-          </button>
-        </div>
-      )}
+      <div className="toolbar">
+        <button
+          className="mute-btn"
+          onClick={() => setSoundMuted(toggleMute())}
+          title={soundMuted ? "Unmute sounds" : "Mute sounds"}
+        >
+          {soundMuted ? <SoundOffIcon /> : <SoundOnIcon />}
+        </button>
+        {displayMode === "inline" && (
+          <>
+            <ShareButton
+              onConfirm={async () => {
+                await shareToExcalidraw({
+                  elements,
+                  appState: {},
+                  files: {}
+                }, app);
+              }}
+            />
+            <button
+              className="app-button"
+              onClick={toggleFullscreen}
+              title="Enter fullscreen"
+            >
+              <span>Edit</span>
+              <ExpandIcon />
+            </button>
+          </>
+        )}
+      </div>
       {/* Editor: mount hidden when ready, reveal after viewport is set */}
       {mountEditor && (
         <div style={{
