@@ -70,13 +70,12 @@ body {
   position: relative;
 }
 
-/* Fullscreen mode */
+/* Fullscreen mode. Mobile safe-area insets are applied via Excalidraw's native
+   --sat/--sar/--sab/--sal vars (set from hostContext.safeAreaInsets in JS),
+   which offset only the floating toolbar/menus — canvas stays full-bleed. */
 .main.fullscreen {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: var(--bg-color, #ffffff);
   z-index: 9999;
 }
@@ -90,6 +89,15 @@ body {
   display: none !important;
 }
 
+/* Mobile: export button moves below the toolbar row (narrow viewports can't
+   fit it in top-right alongside lock/hand icons). */
+.mobile-share-slot {
+  position: absolute;
+  top: calc(var(--sat, 0px) + 64px);
+  right: calc(var(--sar, 0px) + 12px);
+  z-index: 5;
+}
+
 /* Contain SVG inside fullscreen viewport (not cover) */
 .main.fullscreen .svg-wrapper svg {
   max-height: 100%;
@@ -97,6 +105,8 @@ body {
 
 /* Toolbar - appears on hover */
 .toolbar {
+  display: flex;
+  gap: 1rem;
   position: absolute;
   top: 8px;
   right: 8px;
@@ -112,15 +122,15 @@ body {
 }
 
 /* Toolbar buttons (shared) */
-.fullscreen-btn,
+.app-button,
 .mute-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
+  gap: 0.5rem;
   height: 28px;
-  padding: 0;
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(0, 0, 0, 0.95);
+  padding: 2px 8px;
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -132,16 +142,11 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.fullscreen-btn:hover,
+.app-button:hover,
 .mute-btn:hover {
   color: rgba(0, 0, 0, 0.7);
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-}
-
-/* Hide fullscreen button in fullscreen mode (host provides exit UI) */
-.main.fullscreen .fullscreen-btn {
-  display: none !important;
 }
 
 /* Reposition toolbar in fullscreen to sit beside Excalidraw's top-right UI */

@@ -10,9 +10,9 @@ Works with any client that supports [MCP Apps](https://modelcontextprotocol.io/d
 
 ### Remote (recommended)
 
-### `https://excalidraw-mcp-app.vercel.app/mcp`
+### `https://mcp.excalidraw.com`
 
-Add as a remote MCP server in your client. For example, in [claude.ai](https://claude.ai): **Settings** → **Connectors** → **Add custom connector** → paste the URL above.
+For apps that don't yet have an official integration, you can add a custom MCP / connector (naming can vary between apps).
 
 ### Local
 
@@ -24,9 +24,9 @@ Add as a remote MCP server in your client. For example, in [claude.ai](https://c
 **Option B: Build from Source**
 
 ```bash
-git clone https://github.com/antonpk1/excalidraw-mcp-app.git
+git clone https://github.com/excalidraw/excalidraw-mcp.git
 cd excalidraw-mcp-app
-npm install && npm run build
+pnpm install && pnpm run build
 ```
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
@@ -78,7 +78,7 @@ You can deploy your own copy to Vercel in a few clicks:
 ```bash
 # 1. Bump version in manifest.json and package.json
 # 2. Build and pack
-npm run build && mcpb pack .
+pnpm run build && mcpb pack .
 
 # 3. Create GitHub release
 gh release create v0.3.0 excalidraw-mcp-app.mcpb --title "v0.3.0" --notes "What changed"

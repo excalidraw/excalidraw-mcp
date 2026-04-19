@@ -1,9 +1,8 @@
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
 import type { App } from "@modelcontextprotocol/ext-apps";
-import { Excalidraw, exportToSvg, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON } from "@excalidraw/excalidraw";
+import {  Excalidraw, exportToSvg, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
 import morphdom from "morphdom";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
 import { initPencilAudio, playStroke, isMuted, toggleMute } from "./pencil-audio";
 import { captureInitialElements, onEditorChange, setStorageKey, loadPersistedElements, getLatestEditedElements, setCheckpointId } from "./edit-context";
 import "./global.css";
@@ -139,15 +138,12 @@ const ExternalLinkIcon = () => (
   </svg>
 );
 
-async function shareToExcalidraw(api: any, app: App) {
+async function shareToExcalidraw(data: {elements: any[], appState: any, files: any}, app: App) {
   try {
-    const elements = api.getSceneElements();
-    const appState = api.getAppState();
-    const files = api.getFiles();
-    if (!elements?.length) return;
+    if (!data.elements?.length) return;
 
     // Serialize to Excalidraw JSON
-    const json = serializeAsJSON(elements, appState, files, "database");
+    const json = serializeAsJSON(data.elements, data.appState, data.files, "database");
 
     // Proxy through server tool (avoids CORS on json.excalidraw.com)
     const result = await app.callServerTool({
@@ -167,7 +163,7 @@ async function shareToExcalidraw(api: any, app: App) {
   }
 }
 
-function ShareButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
+function ShareButton({ onConfirm, compact }: { onConfirm: () => Promise<void>; compact?: boolean }) {
   const [state, setState] = useState<"idle" | "confirm" | "uploading">("idle");
 
   const handleConfirm = async () => {
@@ -182,18 +178,18 @@ function ShareButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
   return (
     <>
       <button
-        className="standalone"
-        style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px", marginRight: -8 }}
+        className=" app-button"
+        style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px", marginRight: compact ? 0 : -8 }}
         title="Export to Excalidraw"
         disabled={state === "uploading"}
         onClick={() => setState("confirm")}
       >
         <ExternalLinkIcon />
-        <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>{state === "uploading" ? "Exporting…" : "Export"}</span>
+        {!compact && <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>{state === "uploading" ? "Exporting…" : "Open in Excalidraw"}</span>}
       </button>
 
       {state === "confirm" && (
-        <div className="export-modal-overlay" onClick={() => setState("idle")}>
+        <div className="excalidraw export-modal-overlay" onClick={() => setState("idle")}>
           <div className="Island export-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="export-modal-title">Export to Excalidraw</h3>
             <p className="export-modal-text">
@@ -204,7 +200,7 @@ function ShareButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
                 Cancel
               </button>
               <button className="standalone export-modal-confirm" onClick={handleConfirm}>
-                Export
+                Open in Excalidraw
               </button>
             </div>
           </div>
@@ -302,21 +298,37 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
   const sceneBoundsRef = useRef<{ minX: number; minY: number }>({ minX: 0, minY: 0 });
   const animFrameRef = useRef<number>(0);
 
-  /** Apply current animated scene-space viewport to the SVG. */
+  // User-controlled zoom during streaming (scale + pan offset in viewBox units)
+  const zoomRef = useRef({ scale: 1, panX: 0, panY: 0 });
+  const baseViewBoxRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  /** Apply user zoom on top of the stored base viewBox. */
+  const applyZoom = useCallback(() => {
+    if (!svgRef.current || !baseViewBoxRef.current) return;
+    const svg = svgRef.current.querySelector("svg");
+    if (!svg) return;
+    const { x, y, w, h } = baseViewBoxRef.current;
+    const { scale, panX, panY } = zoomRef.current;
+    const zw = w / scale;
+    const zh = h / scale;
+    svg.setAttribute("viewBox", `${x + (w - zw) / 2 + panX} ${y + (h - zh) / 2 + panY} ${zw} ${zh}`);
+  }, []);
+
+  /** Apply current animated scene-space viewport to the SVG, then user zoom. */
   const applyViewBox = useCallback(() => {
     if (!animatedVP.current || !svgRef.current) return;
     const svg = svgRef.current.querySelector("svg");
     if (!svg) return;
     const { minX, minY } = sceneBoundsRef.current;
-    // Auto-correct to 4:3 at render time (expand smaller dimension)
     const { x, y, width: w, height: h } = animatedVP.current;
     const ratio = w / h;
     const vp4x3: ViewportRect = Math.abs(ratio - 4 / 3) < 0.01 ? animatedVP.current
       : ratio > 4 / 3 ? { x, y, width: w, height: Math.round(w * 3 / 4) }
       : { x, y, width: Math.round(h * 4 / 3), height: h };
     const vb = sceneToSvgViewBox(vp4x3, minX, minY);
-    svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
-  }, []);
+    baseViewBoxRef.current = { x: vb.x, y: vb.y, w: vb.w, h: vb.h };
+    applyZoom();
+  }, [applyZoom]);
 
   /** Lerp scene-space viewport toward target each frame. */
   const animateViewBox = useCallback(() => {
@@ -383,9 +395,15 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
         wrapper.appendChild(svg);
       }
 
-      // Always fix SVG viewBox to 4:3
+      // Always fix SVG viewBox to 4:3, then store as base for user zoom
       const renderedSvg = wrapper.querySelector("svg");
-      if (renderedSvg) fixViewBox4x3(renderedSvg as SVGSVGElement);
+      if (renderedSvg) {
+        fixViewBox4x3(renderedSvg as SVGSVGElement);
+        const vbAttr = (renderedSvg as SVGSVGElement).getAttribute("viewBox")?.split(" ").map(Number);
+        if (vbAttr && vbAttr.length === 4) {
+          baseViewBoxRef.current = { x: vbAttr[0], y: vbAttr[1], w: vbAttr[2], h: vbAttr[3] };
+        }
+      }
 
       // Animate viewport in scene space, convert to SVG space at apply time
       if (viewport) {
@@ -413,11 +431,13 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
         animFrameRef.current = requestAnimationFrame(animateViewBox);
         targetVP.current = null;
         if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+        // Apply user zoom on top of the fixed viewBox
+        applyZoom();
       }
     } catch {
       // export can fail on partial/malformed elements
     }
-  }, [applyViewBox, animateViewBox]);
+  }, [applyViewBox, animateViewBox, applyZoom]);
 
   useEffect(() => {
     if (!toolInput) return;
@@ -556,16 +576,69 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
           wrapper.appendChild(svg);
         }
         const final = wrapper.querySelector("svg");
-        if (final) fixViewBox4x3(final as SVGSVGElement);
+        if (final) {
+          fixViewBox4x3(final as SVGSVGElement);
+          const vbAttr = (final as SVGSVGElement).getAttribute("viewBox")?.split(" ").map(Number);
+          if (vbAttr && vbAttr.length === 4) {
+            baseViewBoxRef.current = { x: vbAttr[0], y: vbAttr[1], w: vbAttr[2], h: vbAttr[3] };
+            applyZoom();
+          }
+        }
       } catch {}
     })();
-  }, [editedElements]);
+  }, [editedElements, applyZoom]);
+
+  // Zoom: pinch-to-zoom / Ctrl+scroll, pan when zoomed, double-click to reset
+  useEffect(() => {
+    const container = svgRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const isZoomGesture = e.ctrlKey || e.metaKey;
+      const isZoomedIn = Math.abs(zoomRef.current.scale - 1) > 0.01;
+
+      if (!isZoomGesture && !isZoomedIn) return;
+      e.preventDefault();
+
+      const zoom = zoomRef.current;
+      if (isZoomGesture) {
+        const factor = e.deltaY > 0 ? 0.97 : 1.03;
+        const newScale = Math.max(0.25, Math.min(8, zoom.scale * factor));
+        if (baseViewBoxRef.current) {
+          const rect = container.getBoundingClientRect();
+          const mx = (e.clientX - rect.left) / rect.width;
+          const my = (e.clientY - rect.top) / rect.height;
+          const { w, h } = baseViewBoxRef.current;
+          zoom.panX += w * (1 / newScale - 1 / zoom.scale) * (0.5 - mx);
+          zoom.panY += h * (1 / newScale - 1 / zoom.scale) * (0.5 - my);
+        }
+        zoom.scale = newScale;
+      } else if (baseViewBoxRef.current) {
+        const { w, h } = baseViewBoxRef.current;
+        zoom.panX += (e.deltaX / container.clientWidth) * (w / zoom.scale);
+        zoom.panY += (e.deltaY / container.clientHeight) * (h / zoom.scale);
+      }
+      applyZoom();
+    };
+
+    const handleDblClick = () => {
+      zoomRef.current = { scale: 1, panX: 0, panY: 0 };
+      applyZoom();
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    container.addEventListener("dblclick", handleDblClick);
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("dblclick", handleDblClick);
+    };
+  }, [applyZoom]);
 
   return (
     <div
       ref={svgRef}
       className="excalidraw-container"
-      style={{ display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}
+      style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
     />
   );
 }
@@ -574,13 +647,36 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
 // Main app — Excalidraw only
 // ============================================================
 
-function ExcalidrawApp() {
+const excalidrawLogo = <svg
+      focusable="false"
+      role="img"
+      viewBox="0 0 40 40"
+      fill="none"
+    >
+    <g fill="currentColor">
+    <path
+      d="M39.9 32.889a.326.326 0 0 0-.279-.056c-2.094-3.083-4.774-6-7.343-8.833l-.419-.472a.212.212 0 0 0-.056-.139.586.586 0 0 0-.167-.111l-.084-.083-.056-.056c-.084-.167-.28-.278-.475-.167-.782.39-1.507.973-2.206 1.528-.92.722-1.842 1.445-2.708 2.25a8.405 8.405 0 0 0-.977 1.028c-.14.194-.028.361.14.444-.615.611-1.23 1.223-1.843 1.861a.315.315 0 0 0-.084.223c0 .083.056.166.111.194l1.09.833v.028c1.535 1.528 4.244 3.611 7.12 5.861.418.334.865.667 1.284 1 .195.223.39.473.558.695.084.11.28.139.391.055.056.056.14.111.196.167a.398.398 0 0 0 .167.056.255.255 0 0 0 .224-.111.394.394 0 0 0 .055-.167c.029 0 .028.028.056.028a.318.318 0 0 0 .224-.084l5.082-5.528a.309.309 0 0 0 0-.444Zm-14.63-1.917a.485.485 0 0 0 .111.14c.586.5 1.2 1 1.843 1.555l-2.569-1.945-.251-.166c-.056-.028-.112-.084-.168-.111l-.195-.167.056-.056.055-.055.112-.111c.866-.861 2.346-2.306 3.1-3.028-.81.805-2.43 3.167-2.095 3.944Zm8.767 6.89-2.122-1.612a44.713 44.713 0 0 0-2.625-2.5c1.145.861 2.122 1.611 2.262 1.75 1.117.972 1.06.806 1.815 1.445l.921.666a1.06 1.06 0 0 1-.251.25Zm.558.416-.056-.028c.084-.055.168-.111.252-.194l-.196.222ZM1.089 5.75c.055.361.14.722.195 1.056.335 1.833.67 3.5 1.284 4.75l.252.944c.084.361.223.806.363.917 1.424 1.25 3.602 3.11 5.947 4.889a.295.295 0 0 0 .363 0s0 .027.028.027a.254.254 0 0 0 .196.084.318.318 0 0 0 .223-.084c2.988-3.305 5.221-6.027 6.813-8.305.112-.111.14-.278.14-.417.111-.111.195-.25.307-.333.111-.111.111-.306 0-.39l-.028-.027c0-.055-.028-.139-.084-.167-.698-.666-1.2-1.138-1.731-1.638-.922-.862-1.871-1.75-3.881-3.75l-.028-.028c-.028-.028-.056-.056-.112-.056-.558-.194-1.703-.389-3.127-.639C6.087 2.223 3.21 1.723.614.944c0 0-.168 0-.196.028l-.083.084c-.028.027-.056.055-.224.11h.056-.056c.028.167.028.278.084.473 0 .055.112.5.112.555l.782 3.556Zm15.496 3.278-.335-.334c.084.112.196.195.335.334Zm-3.546 4.666-.056.056c0-.028.028-.056.056-.056Zm-2.038-10c.168.167.866.834 1.033.973-.726-.334-2.54-1.167-3.379-1.445.838.167 1.983.334 2.346.472ZM1.424 2.306c.419.722.754 3.222 1.089 5.666-.196-.778-.335-1.555-.503-2.278-.251-1.277-.503-2.416-.838-3.416.056 0 .14 0 .252.028Zm-.168-.584c-.112 0-.223-.028-.307-.028 0-.027 0-.055-.028-.055.14 0 .223.028.335.083Zm-1.089.222c0-.027 0-.027 0 0ZM39.453 1.333c.028-.11-.558-.61-.363-.639.42-.027.42-.666 0-.666-.558.028-1.144.166-1.675.25-.977.194-1.982.389-2.96.61-2.205.473-4.383.973-6.561 1.557-.67.194-1.424.333-2.066.666-.224.111-.196.333-.084.472-.056.028-.084.028-.14.056-.195.028-.363.056-.558.083-.168.028-.252.167-.224.334 0 .027.028.083.028.11-1.173 1.556-2.485 3.195-3.909 4.945-1.396 1.611-2.876 3.306-4.356 5.056-4.719 5.5-10.052 11.75-15.943 17.25a.268.268 0 0 0 0 .389c.028.027.056.055.084.055-.084.084-.168.14-.252.222-.056.056-.084.111-.084.167a.605.605 0 0 0-.111.139c-.112.111-.112.305.028.389.111.11.307.11.39-.028.029-.028.029-.056.056-.056a.44.44 0 0 1 .615 0c.335.362.67.723.977 1.028l-.698-.583c-.112-.111-.307-.083-.39.028-.113.11-.085.305.027.389l7.427 6.194c.056.056.112.056.196.056s.14-.028.195-.084l.168-.166c.028.027.083.027.111.027.084 0 .14-.027.196-.083 10.052-10.055 18.15-17.639 27.42-24.417.083-.055.111-.166.111-.25.112 0 .196-.083.251-.194 1.704-5.194 2.039-9.806 2.15-12.083v-.028c0-.028.028-.056.028-.083.028-.056.028-.084.028-.084a1.626 1.626 0 0 0-.111-1.028ZM21.472 9.5c.446-.5.893-1.028 1.34-1.5-2.876 3.778-7.65 9.583-14.408 16.5 4.607-5.083 9.242-10.333 13.068-15ZM5.193 35.778h.084-.084Zm3.462 3.194c-.027-.028-.027-.028 0-.028v.028Zm4.16-3.583c.224-.25.448-.472.699-.722 0 0 0 .027.028.027-.252.223-.475.445-.726.695Zm1.146-1.111c.14-.14.279-.334.446-.5l.028-.028c1.648-1.694 3.351-3.389 5.082-5.111l.028-.028c.419-.333.921-.694 1.368-1.028a379.003 379.003 0 0 0-6.952 6.695ZM24.794 6.472c-.921 1.195-1.954 2.778-2.82 4.028-2.736 3.944-11.532 13.583-11.727 13.75a1976.983 1976.983 0 0 1-8.042 7.639l-.167.167c-.14-.167-.14-.417.028-.556C14.49 19.861 22.03 10.167 25.074 5.917c-.084.194-.14.36-.28.555Zm4.83 5.695c-1.116-.64-1.646-1.64-1.34-2.611l.084-.334c.028-.083.084-.194.14-.277.307-.5.754-.917 1.257-1.167.027 0 .055 0 .083-.028-.028-.056-.028-.139-.028-.222.028-.167.14-.278.335-.278.335 0 1.369.306 1.76.639.111.083.223.194.335.305.14.167.363.445.474.667.056.028.112.306.196.445.056.222.111.472.084.694-.028.028 0 .194-.028.194a2.668 2.668 0 0 1-.363 1.028c-.028.028-.028.056-.056.084l-.028.027c-.14.223-.335.417-.53.556-.643.444-1.369.583-2.095.389 0 0-.195-.084-.28-.111Zm8.154-.834a39.098 39.098 0 0 1-.893 3.167c0 .028-.028.083 0 .111-.056 0-.084.028-.14.056-2.206 1.61-4.356 3.305-6.506 5.028 1.843-1.64 3.686-3.306 5.613-4.945.558-.5.949-1.139 1.06-1.861l.28-1.667v-.055c.14-.334.67-.195.586.166Z"
+      fill="currentColor"
+    />
+  </g>
+    </svg>
+
+  const githubIcon = <svg focusable="false" role="img" viewBox="0 0 20 20"  fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 15.833c-3.583 1.167-3.583-2.083-5-2.5m10 4.167v-2.917c0-.833.083-1.166-.417-1.666 2.334-.25 4.584-1.167 4.584-5a3.833 3.833 0 0 0-1.084-2.667 3.5 3.5 0 0 0-.083-2.667s-.917-.25-2.917 1.084a10.25 10.25 0 0 0-5.166 0C5.417 2.333 4.5 2.583 4.5 2.583a3.5 3.5 0 0 0-.083 2.667 3.833 3.833 0 0 0-1.084 2.667c0 3.833 2.25 4.75 4.584 5-.5.5-.5 1-.417 1.666V17.5" stroke-width="1.25"></path></svg>
+
+  const twitterIcon = <svg focusable="false" role="img" viewBox="0 0 24 24"  fill="none" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="1.25"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 4l11.733 16h4.267l-11.733 -16z"></path><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path></g></svg>
+
+  const discordIcon = <svg focusable="false" role="img" viewBox="0 0 20 20"  fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="1.25"><path d="M7.5 10.833a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666ZM12.5 10.833a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666ZM6.25 6.25c2.917-.833 4.583-.833 7.5 0M5.833 13.75c2.917.833 5.417.833 8.334 0"></path><path d="M12.917 14.167c0 .833 1.25 2.5 1.666 2.5 1.25 0 2.361-1.39 2.917-2.5.556-1.39.417-4.861-1.25-9.584-1.214-.846-2.5-1.116-3.75-1.25l-.833 2.084M7.083 14.167c0 .833-1.13 2.5-1.526 2.5-1.191 0-2.249-1.39-2.778-2.5-.529-1.39-.397-4.861 1.19-9.584 1.157-.846 2.318-1.116 3.531-1.25l.833 2.084"></path></g></svg>
+
+
+export function ExcalidrawAppCore({ app }: { app: App }) {
   const [toolInput, setToolInput] = useState<any>(null);
   const [inputIsFinal, setInputIsFinal] = useState(false);
   const [displayMode, setDisplayMode] = useState<"inline" | "fullscreen">("inline");
   const [elements, setElements] = useState<any[]>([]);
   const [userEdits, setUserEdits] = useState<any[] | null>(null);
   const [containerHeight, setContainerHeight] = useState<number | null>(null);
+  const [safeAreaInsets, setSafeAreaInsets] = useState<{ top: number; right: number; bottom: number; left: number } | null>(null);
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches);
   const [editorReady, setEditorReady] = useState(false);
   const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
   const [editorSettled, setEditorSettled] = useState(false);
@@ -691,71 +787,96 @@ function ExcalidrawApp() {
   // Keep elementsRef in sync for ontoolresult handler (which captures closure once)
   useEffect(() => { elementsRef.current = elements; }, [elements]);
 
-  const { app, error } = useApp({
-    appInfo: { name: "Excalidraw", version: "1.0.0" },
-    capabilities: {},
-    onAppCreated: (app) => {
-      appRef.current = app;
-      _logFn = (msg) => { try { app.sendLog({ level: "info", logger: "FS", data: msg }); } catch {} };
+  // Set up MCP event handlers when app is provided
+  useEffect(() => {
+    appRef.current = app;
+    _logFn = (msg) => { try { app.sendLog({ level: "info", logger: "FS", data: msg }); } catch {} };
 
-      // Capture initial container dimensions
-      const initDims = app.getHostContext()?.containerDimensions as any;
-      if (initDims?.height) setContainerHeight(initDims.height);
+    // Capture initial container dimensions + safe area insets
+    const initCtx = app.getHostContext() as any;
+    if (initCtx?.containerDimensions?.height) setContainerHeight(initCtx.containerDimensions.height);
+    if (initCtx?.safeAreaInsets) setSafeAreaInsets(initCtx.safeAreaInsets);
 
-      app.onhostcontextchanged = (ctx: any) => {
-        if (ctx.containerDimensions?.height) {
-          setContainerHeight(ctx.containerDimensions.height);
-        }
-        if (ctx.displayMode) {
-          fsLog(`hostContextChanged: displayMode=${ctx.displayMode}`);
-          // Sync edited elements when host exits fullscreen
-          if (ctx.displayMode === "inline") {
-            const edited = getLatestEditedElements();
-            if (edited) {
-              setElements(edited);
-              setUserEdits(edited);
-            }
-          }
-          setDisplayMode(ctx.displayMode as "inline" | "fullscreen");
-        }
-      };
-
-      app.ontoolinputpartial = async (input) => {
-        const args = (input as any)?.arguments || input;
-        setInputIsFinal(false);
-        setToolInput(args);
-      };
-
-      app.ontoolinput = async (input) => {
-        const args = (input as any)?.arguments || input;
-        setInputIsFinal(true);
-        setToolInput(args);
-      };
-
-      app.ontoolresult = (result: any) => {
-        const cpId = (result.structuredContent as { checkpointId?: string })?.checkpointId;
-        if (cpId) {
-          checkpointIdRef.current = cpId;
-          setCheckpointId(cpId);
-          // Use checkpointId as localStorage key for persisting user edits
-          setStorageKey(cpId);
-          // Check for persisted edits from a previous fullscreen session
-          const persisted = loadPersistedElements();
-          if (persisted && persisted.length > 0) {
-            elementsRef.current = persisted;
-            setElements(persisted);
-            setUserEdits(persisted);
+    app.onhostcontextchanged = (ctx: any) => {
+      if (ctx.containerDimensions?.height) {
+        setContainerHeight(ctx.containerDimensions.height);
+      }
+      if (ctx.safeAreaInsets) {
+        setSafeAreaInsets(ctx.safeAreaInsets);
+      }
+      if (ctx.displayMode) {
+        fsLog(`hostContextChanged: displayMode=${ctx.displayMode}`);
+        // Sync edited elements when host exits fullscreen
+        if (ctx.displayMode === "inline") {
+          const edited = getLatestEditedElements();
+          if (edited) {
+            setElements(edited);
+            setUserEdits(edited);
           }
         }
-      };
+        setDisplayMode(ctx.displayMode as "inline" | "fullscreen");
+      }
+    };
 
-      app.onteardown = async () => ({});
-      app.onerror = (err) => console.error("[Excalidraw] Error:", err);
-    },
-  });
+    app.ontoolinputpartial = async (input) => {
+      const args = (input as any)?.arguments || input;
+      setInputIsFinal(false);
+      setToolInput(args);
+    };
 
-  if (error) return <div className="error">ERROR: {error.message}</div>;
-  if (!app) return <div className="loading">Connecting...</div>;
+    app.ontoolinput = async (input) => {
+      const args = (input as any)?.arguments || input;
+      setInputIsFinal(true);
+      setToolInput(args);
+    };
+
+    app.ontoolresult = (result: any) => {
+      const cpId = (result.structuredContent as { checkpointId?: string })?.checkpointId;
+      if (cpId) {
+        checkpointIdRef.current = cpId;
+        setCheckpointId(cpId);
+        // Use checkpointId as localStorage key for persisting user edits
+        setStorageKey(cpId);
+        // Check for persisted edits from a previous fullscreen session
+        const persisted = loadPersistedElements();
+        if (persisted && persisted.length > 0) {
+          elementsRef.current = persisted;
+          setElements(persisted);
+          setUserEdits(persisted);
+        }
+      }
+    };
+
+    app.onteardown = async () => ({});
+    app.onerror = (err) => console.error("[Excalidraw] Error:", err);
+  }, [app]);
+
+  // Track narrow viewport for mobile layout adjustments
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const handler = (e: MediaQueryListEvent) => setIsNarrow(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Bridge hostContext.safeAreaInsets → Excalidraw's native --sat/--sar/--sab/--sal.
+  // Excalidraw's .FixedSideContainer reads padding-top: var(--sat) — this offsets
+  // only the floating toolbar/menus, keeping the canvas full-bleed. env(safe-area-*)
+  // is 0 inside cross-origin iframes on iOS, so the host MUST supply pixel values.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (displayMode === "fullscreen" && isNarrow && safeAreaInsets) {
+      root.style.setProperty("--sat", `${safeAreaInsets.top}px`);
+      root.style.setProperty("--sar", `${safeAreaInsets.right}px`);
+      root.style.setProperty("--sab", `${safeAreaInsets.bottom}px`);
+      root.style.setProperty("--sal", `${safeAreaInsets.left}px`);
+    } else {
+      root.style.removeProperty("--sat");
+      root.style.removeProperty("--sar");
+      root.style.removeProperty("--sab");
+      root.style.removeProperty("--sal");
+    }
+  }, [displayMode, isNarrow, safeAreaInsets]);
 
   return (
     <main className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}`} style={displayMode === "fullscreen" && containerHeight ? { height: containerHeight } : undefined}>
@@ -768,13 +889,25 @@ function ExcalidrawApp() {
           {soundMuted ? <SoundOffIcon /> : <SoundOnIcon />}
         </button>
         {displayMode === "inline" && (
-          <button
-            className="fullscreen-btn"
-            onClick={toggleFullscreen}
-            title="Enter fullscreen"
-          >
-            <ExpandIcon />
-          </button>
+          <>
+            <ShareButton
+              onConfirm={async () => {
+                await shareToExcalidraw({
+                  elements,
+                  appState: {},
+                  files: {}
+                }, app);
+              }}
+            />
+            <button
+              className="app-button"
+              onClick={toggleFullscreen}
+              title="Enter fullscreen"
+            >
+              <span>Edit</span>
+              <ExpandIcon />
+            </button>
+          </>
         )}
       </div>
       {/* Editor: mount hidden when ready, reveal after viewport is set */}
@@ -791,14 +924,78 @@ function ExcalidrawApp() {
             initialData={{ elements: elements as any, scrollToContent: true }}
             theme="light"
             onChange={(els) => onEditorChange(app, els)}
-            renderTopRightUI={() => (
+            renderTopRightUI={isNarrow ? undefined : () => (
               <ShareButton
                 onConfirm={async () => {
-                  if (excalidrawApi) await shareToExcalidraw(excalidrawApi, app);
+                  if (excalidrawApi) {
+                    const elements = excalidrawApi.getSceneElements();
+                    const appState = excalidrawApi.getAppState();
+                    const files = excalidrawApi.getFiles();
+
+                    await shareToExcalidraw({ elements, appState, files }, app);
+                  }
                 }}
               />
             )}
-          />
+          >
+            <MainMenu>
+              <MainMenu.Item
+                onSelect={() => {
+                  app.openLink({
+                    url: "https://plus.excalidraw.com?utm_source=mcp_app_menu"
+                  })
+                }}
+                style={{minWidth: 200}}
+              >
+                {excalidrawLogo} Excalidraw
+              </MainMenu.Item>
+              <MainMenu.Item
+                onSelect={() => {
+                  app.openLink({
+                    url: "https://github.com/excalidraw/excalidraw"
+                  })
+                }}
+                style={{minWidth: 200}}
+              >
+                {githubIcon} GitHub
+              </MainMenu.Item>
+              <MainMenu.Item
+                onSelect={() => {
+                  app.openLink({
+                    url: "https://x.com/excalidraw"
+                  })
+                }}
+                style={{minWidth: 200}}
+              >
+                {twitterIcon} Follow us
+              </MainMenu.Item>
+              <MainMenu.Item
+                onSelect={() => {
+                  app.openLink({
+                    url: "https://discord.gg/UexuTaE"
+                  })
+                }}
+                style={{minWidth: 200}}
+              >
+                {discordIcon} Discord chat
+              </MainMenu.Item>
+            </MainMenu >
+          </Excalidraw>
+          {isNarrow && (
+            <div className="mobile-share-slot">
+              <ShareButton
+                compact
+                onConfirm={async () => {
+                  if (excalidrawApi) {
+                    const elements = excalidrawApi.getSceneElements();
+                    const appState = excalidrawApi.getAppState();
+                    const files = excalidrawApi.getFiles();
+                    await shareToExcalidraw({ elements, appState, files }, app);
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
       {/* SVG: stays visible until editor is fully settled */}
@@ -822,4 +1019,13 @@ function ExcalidrawApp() {
   );
 }
 
-createRoot(document.body).render(<ExcalidrawApp />);
+export function ExcalidrawApp() {
+  const { app, error } = useApp({
+    appInfo: { name: "Excalidraw", version: "1.0.0" },
+    capabilities: {},
+  });
+
+  if (error) return <div className="error">ERROR: {error.message}</div>;
+  if (!app) return <div className="loading">Connecting...</div>;
+  return <ExcalidrawAppCore app={app} />;
+}
