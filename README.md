@@ -21,7 +21,32 @@ For apps that don't yet have an official integration, you can add a custom MCP /
 1. Download `excalidraw-mcp-app.mcpb` from [Releases](https://github.com/antonpk1/excalidraw-mcp-app/releases)
 2. Double-click to install in Claude Desktop
 
-**Option B: Build from Source**
+**Option B: npm (for Claude Code CLI and other stdio-based MCP clients)**
+
+```bash
+npm install -g excalidraw-mcp
+```
+
+Then add to your `~/.claude.json` (for Claude Code) or `~/.mcp.json` (for other clients):
+
+```json
+{
+  "mcpServers": {
+    "excalidraw": {
+      "type": "stdio",
+      "command": "excalidraw-mcp",
+      "args": ["--stdio"]
+    }
+  }
+}
+```
+
+Or via CLI:
+```bash
+claude mcp add excalidraw --scope user -- excalidraw-mcp --stdio
+```
+
+**Option C: Build from Source**
 
 ```bash
 git clone https://github.com/excalidraw/excalidraw-mcp.git
