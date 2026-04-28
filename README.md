@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/excalidraw-excalidraw-mcp-badge.png)](https://mseep.ai/app/excalidraw-excalidraw-mcp)
+
 # Excalidraw MCP App Server
 
 MCP server that streams hand-drawn Excalidraw diagrams with smooth viewport camera control and interactive fullscreen editing.
