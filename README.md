@@ -14,6 +14,21 @@ Works with any client that supports [MCP Apps](https://modelcontextprotocol.io/d
 
 For apps that don't yet have an official integration, you can add a custom MCP / connector (naming can vary between apps).
 
+For Claude Code, add Excalidraw as an HTTP MCP server in your `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "excalidraw": {
+      "type": "http",
+      "url": "https://mcp.excalidraw.com"
+    }
+  }
+}
+```
+
+The `type` field is required for Claude Code to validate the HTTP server configuration.
+
 ### Local
 
 **Option A: Download Extension**
