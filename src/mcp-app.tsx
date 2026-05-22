@@ -114,6 +114,26 @@ const ExpandIcon = () => (
   </svg>
 );
 
+const ReplayIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1.5 7a5.5 5.5 0 1 0 1.7-3.97" />
+    <path d="M1.5 1.5v3h3" />
+  </svg>
+);
+
+const PauseIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+    <rect x="3" y="2.5" width="2.5" height="9" rx="0.5" />
+    <rect x="8.5" y="2.5" width="2.5" height="9" rx="0.5" />
+  </svg>
+);
+
+const PlayIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+    <path d="M3.5 2.5v9l8-4.5z" />
+  </svg>
+);
+
 const ExternalLinkIcon = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 8.667V12.667C12 13.035 11.702 13.333 11.333 13.333H3.333C2.965 13.333 2.667 13.035 2.667 12.667V4.667C2.667 4.298 2.965 4 3.333 4H7.333" />
@@ -241,7 +261,7 @@ function sceneToSvgViewBox(
   };
 }
 
-function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElements, onViewport, loadCheckpoint }: { toolInput: any; isFinal: boolean; displayMode: string; onElements?: (els: any[]) => void; editedElements?: any[]; onViewport?: (vp: ViewportRect) => void; loadCheckpoint?: (id: string) => Promise<{ elements: any[] } | null> }) {
+function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElements, onViewport, loadCheckpoint, replayKey = 0 }: { toolInput: any; isFinal: boolean; displayMode: string; onElements?: (els: any[]) => void; editedElements?: any[]; onViewport?: (vp: ViewportRect) => void; loadCheckpoint?: (id: string) => Promise<{ elements: any[] } | null>; replayKey?: number }) {
   const svgRef = useRef<HTMLDivElement | null>(null);
   const latestRef = useRef<any[]>([]);
   const restoredRef = useRef<{ id: string; elements: any[] } | null>(null);
@@ -249,6 +269,15 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
 
   // Init pencil audio on first mount
   useEffect(() => { initPencilAudio(); }, []);
+
+  // Reset on replay: clear svg + render state so animations fire on the next stream
+  useEffect(() => {
+    if (replayKey === 0) return;
+    latestRef.current = [];
+    setCount(0);
+    const wrapper = svgRef.current?.querySelector(".svg-wrapper") as HTMLDivElement | null;
+    if (wrapper) wrapper.innerHTML = "";
+  }, [replayKey]);
 
   // Set container height: 4:3 in inline, full viewport in fullscreen
   useEffect(() => {
@@ -668,6 +697,67 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const svgViewportRef = useRef<ViewportRect | null>(null);
   const elementsRef = useRef<any[]>([]);
   const checkpointIdRef = useRef<string | null>(null);
+  const finalInputRef = useRef<string | null>(null);
+  const [replayKey, setReplayKey] = useState(0);
+  const [isReplaying, setIsReplaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const replayStateRef = useRef<{
+    elements: any[];
+    finalStr: string;
+    index: number;
+    timer: number | null;
+  } | null>(null);
+
+  const replayTick = useCallback(() => {
+    const state = replayStateRef.current;
+    if (!state) return;
+    if (state.index < state.elements.length) {
+      state.index++;
+      setInputIsFinal(false);
+      setToolInput({ elements: JSON.stringify(state.elements.slice(0, state.index)) });
+      state.timer = window.setTimeout(replayTick, 150);
+    } else {
+      setInputIsFinal(true);
+      setToolInput({ elements: state.finalStr });
+      replayStateRef.current = null;
+      setIsReplaying(false);
+      setIsPaused(false);
+    }
+  }, []);
+
+  const replayStream = useCallback(() => {
+    const str = finalInputRef.current;
+    if (!str || isReplaying) return;
+    let parsed: any[];
+    try { parsed = JSON.parse(str); } catch { return; }
+    if (!Array.isArray(parsed) || parsed.length === 0) return;
+
+    setIsReplaying(true);
+    setIsPaused(false);
+    setReplayKey((k) => k + 1);
+    setInputIsFinal(false);
+    setToolInput(null);
+
+    replayStateRef.current = { elements: parsed, finalStr: str, index: 0, timer: null };
+    replayStateRef.current.timer = window.setTimeout(replayTick, 60);
+  }, [isReplaying, replayTick]);
+
+  const pauseReplay = useCallback(() => {
+    const state = replayStateRef.current;
+    if (!state) return;
+    if (state.timer !== null) {
+      clearTimeout(state.timer);
+      state.timer = null;
+    }
+    setIsPaused(true);
+  }, []);
+
+  const resumeReplay = useCallback(() => {
+    const state = replayStateRef.current;
+    if (!state) return;
+    setIsPaused(false);
+    state.timer = window.setTimeout(replayTick, 0);
+  }, [replayTick]);
 
   const toggleFullscreen = useCallback(async () => {
     if (!appRef.current) return;
@@ -811,6 +901,9 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
       const args = (input as any)?.arguments || input;
       setInputIsFinal(true);
       setToolInput(args);
+      // Save final input so the user can replay the streaming animation
+      const raw = args?.elements;
+      if (raw) finalInputRef.current = typeof raw === "string" ? raw : JSON.stringify(raw);
     };
 
     app.ontoolresult = (result: any) => {
@@ -862,7 +955,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   }, [displayMode, isNarrow, safeAreaInsets]);
 
   return (
-    <main className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}`} style={displayMode === "fullscreen" && containerHeight ? { height: containerHeight } : undefined}>
+    <main className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}${isReplaying ? " replaying" : ""}`} style={displayMode === "fullscreen" && containerHeight ? { height: containerHeight } : undefined}>
       {displayMode === "inline" && (
         <div className="toolbar">
           <ShareButton
@@ -874,6 +967,21 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
                   }, app);
                 }}
               />
+
+          {(inputIsFinal || isReplaying) && finalInputRef.current && !userEdits && (
+            <button
+              className="app-button"
+              onClick={
+                !isReplaying ? replayStream : isPaused ? resumeReplay : pauseReplay
+              }
+              title={
+                !isReplaying ? "Replay streaming animation" : isPaused ? "Resume" : "Pause"
+              }
+            >
+              <span>{!isReplaying ? "Replay" : isPaused ? "Play" : "Pause"}</span>
+              {!isReplaying ? <ReplayIcon /> : isPaused ? <PlayIcon /> : <PauseIcon />}
+            </button>
+          )}
 
           <button
             className="app-button"
@@ -979,7 +1087,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
           onClick={undefined}
           style={undefined}
         >
-          <DiagramView toolInput={toolInput} isFinal={inputIsFinal} displayMode={displayMode} onElements={(els) => { elementsRef.current = els; setElements(els); }} editedElements={userEdits ?? undefined} onViewport={(vp) => { svgViewportRef.current = vp; }} loadCheckpoint={async (id) => {
+          <DiagramView toolInput={toolInput} isFinal={inputIsFinal} displayMode={displayMode} onElements={(els) => { elementsRef.current = els; setElements(els); }} editedElements={userEdits ?? undefined} onViewport={(vp) => { svgViewportRef.current = vp; }} replayKey={replayKey} loadCheckpoint={async (id) => {
             if (!appRef.current) return null;
             try {
               const result = await appRef.current.callServerTool({ name: "read_checkpoint", arguments: { id } });
