@@ -115,7 +115,8 @@ body {
   transition: opacity 0.2s ease;
 }
 
-.main:hover .toolbar {
+.main:hover .toolbar,
+.main.replaying .toolbar {
   opacity: 1;
 }
 
