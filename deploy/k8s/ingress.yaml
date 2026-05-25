@@ -9,10 +9,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - excalidraw-mcp.example.com
+        - excalidraw-mcp.sitesoftllc.net
       secretName: excalidraw-mcp-tls
   rules:
-    - host: excalidraw-mcp.example.com
+    - host: excalidraw-mcp.sitesoftllc.net
       http:
         paths:
           - path: /

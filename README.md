@@ -75,7 +75,7 @@ You can deploy your own copy to Vercel in a few clicks:
 Build and run locally:
 
 ```bash
-docker build -t excalidraw-mcp:local .
+docker buildx build --platform linux/amd64 -t excalidraw-mcp:local --load .
 docker run --rm -p 3001:3001 excalidraw-mcp:local
 ```
 
@@ -89,8 +89,17 @@ Endpoints:
 Example manifests live in `deploy/k8s/`.
 
 1. Build and push your image
+   Multi-arch example:
+
+```bash
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t ghcr.io/maluberian/excalidraw-mcp:latest \
+  --push .
+```
+
 2. Update `deploy/k8s/deployment.yaml` with your real image tag
-3. Update `deploy/k8s/ingress.yaml` with your real hostname and ingress annotations
+3. Update `deploy/k8s/ingress.yaml` with your real ingress annotations if needed
 4. Apply:
 
 ```bash
