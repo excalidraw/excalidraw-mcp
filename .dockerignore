@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.gitignore
+docs
+*.log
+tmp
+coverage

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: excalidraw-mcp
+  namespace: excalidraw-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: excalidraw-mcp
+  template:
+    metadata:
+      labels:
+        app: excalidraw-mcp
+    spec:
+      containers:
+        - name: excalidraw-mcp
+          image: ghcr.io/maluberian/excalidraw-mcp:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3001
+          env:
+            - name: PORT
+              value: "3001"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
