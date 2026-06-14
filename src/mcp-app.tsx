@@ -1,6 +1,6 @@
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
 import type { App } from "@modelcontextprotocol/ext-apps";
-import {  Excalidraw, exportToSvg, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
+import {  Excalidraw, exportToSvg, exportToClipboard, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
 import morphdom from "morphdom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { initPencilAudio, playStroke } from "./pencil-audio";
@@ -122,6 +122,19 @@ const ExternalLinkIcon = () => (
   </svg>
 );
 
+const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="5" y="2" width="9" height="9" rx="1" />
+    <rect x="2" y="5" width="9" height="9" rx="1" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 8.5L6.5 12L13 5" />
+  </svg>
+);
+
 async function shareToExcalidraw(data: {elements: any[], appState: any, files: any}, app: App) {
   try {
     if (!data.elements?.length) return;
@@ -147,6 +160,34 @@ async function shareToExcalidraw(data: {elements: any[], appState: any, files: a
   }
 }
 
+function CopyButton({ elements }: { elements: any[] }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await exportToClipboard({
+        elements,
+        type: "json",
+      })
+      setCopied(true);
+      setTimeout(() => setCopied(false), 600);
+    } catch (err) {
+      fsLog(`Copy failed: ${err}`);
+    }
+  };
+
+  return (
+    <button
+      className="app-button"
+      style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "auto", padding: "0 8px" }}
+      title={copied ? "Copied!" : "Copy diagram JSON"}
+      onClick={handleCopy}
+    >
+      {copied ? <CheckIcon /> : <CopyIcon />}
+    </button>
+  );
+}
+
 function ShareButton({ onConfirm, compact }: { onConfirm: () => Promise<void>; compact?: boolean }) {
   const [state, setState] = useState<"idle" | "confirm" | "uploading">("idle");
 
@@ -163,7 +204,7 @@ function ShareButton({ onConfirm, compact }: { onConfirm: () => Promise<void>; c
     <>
       <button
         className=" app-button"
-        style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px", marginRight: compact ? 0 : -8 }}
+        style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px" }}
         title="Export to Excalidraw"
         disabled={state === "uploading"}
         onClick={() => setState("confirm")}
@@ -865,6 +906,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     <main className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}`} style={displayMode === "fullscreen" && containerHeight ? { height: containerHeight } : undefined}>
       {displayMode === "inline" && (
         <div className="toolbar">
+          <CopyButton elements={elements} />
           <ShareButton
                 onConfirm={async () => {
                   await shareToExcalidraw({

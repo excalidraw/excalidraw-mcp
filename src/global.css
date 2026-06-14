@@ -106,7 +106,7 @@ body {
 /* Toolbar - appears on hover */
 .toolbar {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   position: absolute;
   top: 8px;
   right: 8px;
