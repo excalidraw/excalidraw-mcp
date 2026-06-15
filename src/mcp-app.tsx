@@ -5,6 +5,7 @@ import morphdom from "morphdom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { initPencilAudio, playStroke } from "./pencil-audio";
 import { captureInitialElements, onEditorChange, setStorageKey, loadPersistedElements, getLatestEditedElements, setCheckpointId } from "./edit-context";
+import { exportJsonToExcalidrawUrl } from "./export-to-excalidraw";
 import "./global.css";
 
 // ============================================================
@@ -122,69 +123,298 @@ const ExternalLinkIcon = () => (
   </svg>
 );
 
-async function shareToExcalidraw(data: {elements: any[], appState: any, files: any}, app: App) {
+async function openLinkWithFallback(app: App, url: string): Promise<boolean> {
   try {
-    if (!data.elements?.length) return;
+    const { isError } = await app.openLink({ url });
+    if (!isError) return true;
+  } catch (err) {
+    fsLog(`openLink failed: ${err}`);
+  }
 
-    // Serialize to Excalidraw JSON
-    const json = serializeAsJSON(data.elements, data.appState, data.files, "database");
+  const popup = window.open(url, "_blank", "noopener,noreferrer");
+  if (popup) return true;
 
-    // Proxy through server tool (avoids CORS on json.excalidraw.com)
-    const result = await app.callServerTool({
-      name: "export_to_excalidraw",
-      arguments: { json },
-    });
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.target = "_blank";
+  anchor.rel = "noopener noreferrer";
+  anchor.click();
+  return false;
+}
 
-    if (result.isError) {
-      fsLog(`export failed: ${JSON.stringify(result.content)}`);
-      return;
+const EXPORT_RETRY_ATTEMPTS = 3;
+const EXPORT_RETRY_DELAY_MS = 400;
+
+async function exportViaServerTool(app: App, json: string): Promise<string> {
+  let lastError = "Server export failed";
+
+  for (let attempt = 1; attempt <= EXPORT_RETRY_ATTEMPTS; attempt++) {
+    try {
+      const result = await app.callServerTool({
+        name: "export_to_excalidraw",
+        arguments: { json },
+      });
+      if (!result.isError) {
+        return (result.content[0] as { text: string }).text;
+      }
+      lastError = (result.content[0] as { text?: string })?.text ?? lastError;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
     }
 
-    const url = (result.content[0] as any).text;
-    await app.openLink({ url });
+    fsLog(`export attempt ${attempt}/${EXPORT_RETRY_ATTEMPTS} failed: ${lastError}`);
+    if (attempt < EXPORT_RETRY_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, EXPORT_RETRY_DELAY_MS * attempt));
+    }
+  }
+
+  throw new Error(lastError);
+}
+
+async function exportViaBrowser(json: string): Promise<string> {
+  try {
+    return await exportJsonToExcalidrawUrl(json);
   } catch (err) {
-    fsLog(`shareToExcalidraw error: ${err}`);
+    const message = err instanceof Error ? err.message : String(err);
+    if (message === "Failed to fetch" || message.includes("NetworkError")) {
+      throw new Error(
+        "Browser export blocked by network or sandbox policy. Retry once, or allow popups for Cursor.",
+      );
+    }
+    throw err instanceof Error ? err : new Error(message);
   }
 }
 
-function ShareButton({ onConfirm, compact }: { onConfirm: () => Promise<void>; compact?: boolean }) {
+async function requestDisplayModeWithFallback(
+  app: App,
+  mode: "inline" | "fullscreen",
+): Promise<{ mode: "inline" | "fullscreen"; local: boolean }> {
+  const available = app.getHostContext()?.availableDisplayModes;
+  const hostMaySupport = !available || available.includes(mode);
+
+  if (hostMaySupport) {
+    try {
+      const result = await app.requestDisplayMode({ mode });
+      if (result.mode === mode) {
+        return { mode: result.mode, local: false };
+      }
+      fsLog(`requestDisplayMode returned ${result.mode}, wanted ${mode}`);
+    } catch (err) {
+      fsLog(`requestDisplayMode failed: ${err}`);
+    }
+  }
+
+  return { mode, local: true };
+}
+
+type ExportResult =
+  | { success: true; url: string; opened: boolean; json: string }
+  | { success: false; error: string; json: string | null };
+
+function getDiagramJson(data: { elements: any[]; appState: any; files: any }): string | null {
+  if (!data.elements?.length) return null;
+  return serializeAsJSON(data.elements, data.appState, data.files, "database");
+}
+
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return copied;
+    } catch {
+      return false;
+    }
+  }
+}
+async function shareToExcalidraw(
+  data: { elements: any[]; appState: any; files: any },
+  app: App,
+): Promise<ExportResult> {
+  const json = getDiagramJson(data);
+  try {
+    if (!json) {
+      return { success: false, error: "Nothing to export yet — wait for the drawing to finish.", json: null };
+    }
+
+    let url: string;
+
+    try {
+      url = await exportViaServerTool(app, json);
+    } catch (serverErr) {
+      fsLog(`server export failed, trying browser: ${serverErr}`);
+      url = await exportViaBrowser(json);
+    }
+
+    const opened = await openLinkWithFallback(app, url);
+    return { success: true, url, opened, json };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    fsLog(`shareToExcalidraw error: ${message}`);
+    return { success: false, error: message, json };
+  }
+}
+
+const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+    <path d="M10.5 5.5V4.25A1.25 1.25 0 0 0 9.25 3h-5A1.25 1.25 0 0 0 3 4.25v5A1.25 1.25 0 0 0 4.25 10.5H5.5" />
+  </svg>
+);
+
+function ShareButton({
+  onConfirm,
+  getDiagramJson: getJson,
+  compact,
+}: {
+  onConfirm: () => Promise<ExportResult>;
+  getDiagramJson: () => string | null;
+  compact?: boolean;
+}) {
   const [state, setState] = useState<"idle" | "confirm" | "uploading">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [exportedUrl, setExportedUrl] = useState<string | null>(null);
+  const [diagramJson, setDiagramJson] = useState<string | null>(null);
+  const [linkCopyState, setLinkCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [jsonCopyState, setJsonCopyState] = useState<"idle" | "copied" | "failed">("idle");
+
+  const resetModal = () => {
+    setState("idle");
+    setError(null);
+    setExportedUrl(null);
+    setDiagramJson(null);
+    setLinkCopyState("idle");
+    setJsonCopyState("idle");
+  };
+
+  const openModal = () => {
+    setDiagramJson(getJson());
+    setState("confirm");
+  };
+
+  const handleCopyLink = async (url: string) => {
+    const copied = await copyTextToClipboard(url);
+    setLinkCopyState(copied ? "copied" : "failed");
+  };
+
+  const handleCopyDiagram = async (json: string) => {
+    const copied = await copyTextToClipboard(json);
+    setJsonCopyState(copied ? "copied" : "failed");
+  };
+
+  const handleQuickCopy = async () => {
+    const json = getJson();
+    if (!json) return;
+    await copyTextToClipboard(json);
+  };
 
   const handleConfirm = async () => {
+    if (exportedUrl) {
+      window.open(exportedUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     setState("uploading");
+    setError(null);
+    setExportedUrl(null);
+    setLinkCopyState("idle");
+    setJsonCopyState("idle");
+    const json = getJson();
+    setDiagramJson(json);
     try {
-      await onConfirm();
-    } finally {
-      setState("idle");
+      const result = await onConfirm();
+      setDiagramJson(result.json ?? json);
+      if (!result.success) {
+        setError(result.error);
+        setState("confirm");
+        return;
+      }
+
+      setExportedUrl(result.url);
+      const copied = await copyTextToClipboard(result.url);
+      setLinkCopyState(copied ? "copied" : "failed");
+      setState("confirm");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setState("confirm");
     }
   };
 
   return (
     <>
       <button
+        className="app-button"
+        style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px" }}
+        title="Copy diagram JSON to clipboard"
+        onClick={handleQuickCopy}
+      >
+        <CopyIcon />
+        {!compact && <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>Copy</span>}
+      </button>
+      <button
         className=" app-button"
         style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px", marginRight: compact ? 0 : -8 }}
         title="Export to Excalidraw"
         disabled={state === "uploading"}
-        onClick={() => setState("confirm")}
+        onClick={openModal}
       >
         <ExternalLinkIcon />
         {!compact && <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>{state === "uploading" ? "Exporting…" : "Open in Excalidraw"}</span>}
       </button>
 
-      {state === "confirm" && (
-        <div className="excalidraw export-modal-overlay" onClick={() => setState("idle")}>
+      {(state === "confirm" || state === "uploading") && (
+        <div className="excalidraw export-modal-overlay" onClick={resetModal}>
           <div className="Island export-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="export-modal-title">Export to Excalidraw</h3>
             <p className="export-modal-text">
-              This will upload your diagram to excalidraw.com and open it in a new tab.
+              {exportedUrl
+                ? linkCopyState === "copied"
+                  ? "Link copied to clipboard. Paste it in your browser to open the diagram."
+                  : linkCopyState === "failed"
+                    ? "Export succeeded. Use Copy link below."
+                    : "Export succeeded. If the tab did not open, use Copy link below."
+                : error
+                  ? "Upload failed. Use Copy diagram to save JSON, or retry Open in Excalidraw."
+                  : "Upload to excalidraw.com, or copy the diagram JSON to clipboard."}
             </p>
+            {error && (
+              <p className="export-modal-error">{error}</p>
+            )}
+            {exportedUrl && (
+              <p className="export-modal-link">
+                <a href={exportedUrl} target="_blank" rel="noopener noreferrer">{exportedUrl}</a>
+              </p>
+            )}
             <div className="export-modal-actions">
-              <button className="standalone" onClick={() => setState("idle")}>
-                Cancel
+              <button className="standalone" onClick={resetModal}>
+                {exportedUrl || error ? "Close" : "Cancel"}
               </button>
-              <button className="standalone export-modal-confirm" onClick={handleConfirm}>
-                Open in Excalidraw
+              {diagramJson && (
+                <button
+                  className="standalone export-modal-copy"
+                  onClick={() => handleCopyDiagram(diagramJson)}
+                >
+                  {jsonCopyState === "copied" ? "Diagram copied!" : "Copy diagram"}
+                </button>
+              )}
+              <button
+                className="standalone export-modal-copy"
+                disabled={!exportedUrl}
+                onClick={() => exportedUrl && handleCopyLink(exportedUrl)}
+              >
+                {linkCopyState === "copied" ? "Link copied!" : "Copy link"}
+              </button>
+              <button className="standalone export-modal-confirm" onClick={handleConfirm} disabled={state === "uploading"}>
+                {exportedUrl ? "Open link" : state === "uploading" ? "Exporting…" : "Open in Excalidraw"}
               </button>
             </div>
           </div>
@@ -664,6 +894,7 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
   const [editorReady, setEditorReady] = useState(false);
   const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
   const [editorSettled, setEditorSettled] = useState(false);
+  const [localFullscreen, setLocalFullscreen] = useState(false);
   const appRef = useRef<App | null>(null);
   const svgViewportRef = useRef<ViewportRect | null>(null);
   const elementsRef = useRef<any[]>([]);
@@ -673,22 +904,30 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
     if (!appRef.current) return;
     const newMode = displayMode === "fullscreen" ? "inline" : "fullscreen";
     fsLog(`toggle: ${displayMode}→${newMode}`);
-    // Sync edited elements before leaving fullscreen
     if (newMode === "inline") {
       const edited = getLatestEditedElements();
       if (edited) {
-            setElements(edited);
+        setElements(edited);
         setUserEdits(edited);
       }
+      setLocalFullscreen(false);
+      setDisplayMode("inline");
+      try {
+        await appRef.current.requestDisplayMode({ mode: "inline" });
+      } catch {
+        // Host may not support display mode changes — local state is enough.
+      }
+      return;
     }
-    try {
-      const result = await appRef.current.requestDisplayMode({ mode: newMode });
-      fsLog(`requestDisplayMode result: ${result.mode}`);
-      setDisplayMode(result.mode as "inline" | "fullscreen");
-    } catch (err) {
-      fsLog(`requestDisplayMode FAILED: ${err}`);
+
+    const { mode, local } = await requestDisplayModeWithFallback(appRef.current, "fullscreen");
+    fsLog(`fullscreen result: mode=${mode}, local=${local}`);
+    setLocalFullscreen(local);
+    if (local) {
+      setContainerHeight(window.innerHeight);
     }
-  }, [displayMode, elements.length, inputIsFinal]);
+    setDisplayMode(mode);
+  }, [displayMode]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -866,8 +1105,9 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
       {displayMode === "inline" && (
         <div className="toolbar">
           <ShareButton
+                getDiagramJson={() => getDiagramJson({ elements, appState: {}, files: {} })}
                 onConfirm={async () => {
-                  await shareToExcalidraw({
+                  return shareToExcalidraw({
                     elements,
                     appState: {},
                     files: {}
@@ -882,6 +1122,17 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
           >
             <span>Edit</span>
             <ExpandIcon />
+          </button>
+        </div>
+      )}
+      {displayMode === "fullscreen" && localFullscreen && (
+        <div className="toolbar local-fullscreen-toolbar">
+          <button
+            className="app-button"
+            onClick={toggleFullscreen}
+            title="Exit editor"
+          >
+            <span>Done</span>
           </button>
         </div>
       )}
@@ -901,14 +1152,23 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
             onChange={(els) => onEditorChange(app, els)}
             renderTopRightUI={isNarrow ? undefined : () => (
               <ShareButton
+                getDiagramJson={() => {
+                  if (!excalidrawApi) return null;
+                  return getDiagramJson({
+                    elements: excalidrawApi.getSceneElements(),
+                    appState: excalidrawApi.getAppState(),
+                    files: excalidrawApi.getFiles(),
+                  });
+                }}
                 onConfirm={async () => {
                   if (excalidrawApi) {
                     const elements = excalidrawApi.getSceneElements();
                     const appState = excalidrawApi.getAppState();
                     const files = excalidrawApi.getFiles();
 
-                    await shareToExcalidraw({ elements, appState, files }, app);
+                    return shareToExcalidraw({ elements, appState, files }, app);
                   }
+                  return { success: false, error: "Editor not ready yet.", json: null };
                 }}
               />
             )}
@@ -960,13 +1220,22 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
             <div className="mobile-share-slot">
               <ShareButton
                 compact
+                getDiagramJson={() => {
+                  if (!excalidrawApi) return null;
+                  return getDiagramJson({
+                    elements: excalidrawApi.getSceneElements(),
+                    appState: excalidrawApi.getAppState(),
+                    files: excalidrawApi.getFiles(),
+                  });
+                }}
                 onConfirm={async () => {
                   if (excalidrawApi) {
                     const elements = excalidrawApi.getSceneElements();
                     const appState = excalidrawApi.getAppState();
                     const files = excalidrawApi.getFiles();
-                    await shareToExcalidraw({ elements, appState, files }, app);
+                    return shareToExcalidraw({ elements, appState, files }, app);
                   }
+                  return { success: false, error: "Editor not ready yet.", json: null };
                 }}
               />
             </div>
