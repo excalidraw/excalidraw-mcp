@@ -33,12 +33,12 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
-  "mcpServers": {
-    "excalidraw": {
-      "command": "node",
-      "args": ["/path/to/excalidraw-mcp-app/dist/index.js", "--stdio"]
-    }
-  }
+	"mcpServers": {
+		"excalidraw": {
+			"command": "node",
+			"args": ["/path/to/excalidraw-mcp-app/dist/index.js", "--stdio"]
+		}
+	}
 }
 ```
 
@@ -47,6 +47,7 @@ Restart Claude Desktop.
 ## Usage
 
 Example prompts:
+
 - "Draw a cute cat using excalidraw"
 - "Draw an architecture diagram showing a user connecting to an API server which talks to a database"
 
@@ -95,4 +96,4 @@ Built with [Excalidraw](https://github.com/excalidraw/excalidraw) — a virtual 
 
 ## License
 
-MIT
+[MIT](/LICENCE.txt)
