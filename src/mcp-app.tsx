@@ -16,6 +16,33 @@ function fsLog(msg: string) {
   if (_logFn) _logFn(msg);
 }
 
+type PendingToolEvents = {
+  partialInput?: any;
+  input?: any;
+  result?: any;
+};
+
+const pendingToolEvents = new WeakMap<App, PendingToolEvents>();
+
+/**
+ * Tool notifications can arrive immediately after the MCP Apps handshake.
+ * Buffer them until ExcalidrawAppCore mounts and installs the React handlers.
+ */
+function bufferInitialToolEvents(app: App) {
+  const pending: PendingToolEvents = {};
+  pendingToolEvents.set(app, pending);
+
+  app.ontoolinputpartial = (input) => {
+    pending.partialInput = input;
+  };
+  app.ontoolinput = (input) => {
+    pending.input = input;
+  };
+  app.ontoolresult = (result) => {
+    pending.result = result;
+  };
+}
+
 // ============================================================
 // Shared helpers
 // ============================================================
@@ -801,19 +828,19 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
       }
     };
 
-    app.ontoolinputpartial = async (input) => {
+    const handleToolInputPartial = (input: any) => {
       const args = (input as any)?.arguments || input;
       setInputIsFinal(false);
       setToolInput(args);
     };
 
-    app.ontoolinput = async (input) => {
+    const handleToolInput = (input: any) => {
       const args = (input as any)?.arguments || input;
       setInputIsFinal(true);
       setToolInput(args);
     };
 
-    app.ontoolresult = (result: any) => {
+    const handleToolResult = (result: any) => {
       const cpId = (result.structuredContent as { checkpointId?: string })?.checkpointId;
       if (cpId) {
         checkpointIdRef.current = cpId;
@@ -829,6 +856,18 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
         }
       }
     };
+
+    app.ontoolinputpartial = handleToolInputPartial;
+    app.ontoolinput = handleToolInput;
+    app.ontoolresult = handleToolResult;
+
+    const pending = pendingToolEvents.get(app);
+    pendingToolEvents.delete(app);
+    if (pending) {
+      if (pending.partialInput) handleToolInputPartial(pending.partialInput);
+      if (pending.input) handleToolInput(pending.input);
+      if (pending.result) handleToolResult(pending.result);
+    }
 
     app.onteardown = async () => ({});
     app.onerror = (err) => console.error("[Excalidraw] Error:", err);
@@ -998,6 +1037,7 @@ export function ExcalidrawApp() {
   const { app, error } = useApp({
     appInfo: { name: "Excalidraw", version: "1.0.0" },
     capabilities: {},
+    onAppCreated: bufferInitialToolEvents,
   });
 
   if (error) return <div className="error">ERROR: {error.message}</div>;
