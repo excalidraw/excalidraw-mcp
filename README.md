@@ -47,8 +47,13 @@ Restart Claude Desktop.
 ## Usage
 
 Example prompts:
-- "Draw a cute cat using excalidraw"
-- "Draw an architecture diagram showing a user connecting to an API server which talks to a database"
+```text
+Draw a cute cat using excalidraw
+```
+
+```text
+Draw an architecture diagram showing a user connecting to an API server which talks to a database
+```
 
 ## What are MCP Apps and how can I build one?
 
@@ -57,37 +62,7 @@ Text responses can only go so far. Sometimes users need to interact with data, n
 - **Getting started for humans**: [documentation](https://modelcontextprotocol.io/docs/extensions/apps)
 - **Getting started for AIs**: [skill](https://github.com/modelcontextprotocol/ext-apps/blob/main/plugins/mcp-apps/skills/create-mcp-app/SKILL.md)
 
-## Contributing
-
-PRs welcome! See [Local](#local) above for build instructions.
-
-### Deploy your own instance
-
-You can deploy your own copy to Vercel in a few clicks:
-
-1. Fork this repo
-2. Go to [vercel.com/new](https://vercel.com/new) and import your fork
-3. No environment variables needed — just deploy
-4. Your server will be at `https://your-project.vercel.app/mcp`
-
-### Release checklist
-
-<details>
-<summary>For maintainers</summary>
-
-```bash
-# 1. Bump version in manifest.json and package.json
-# 2. Build and pack
-pnpm run build && mcpb pack .
-
-# 3. Create GitHub release
-gh release create v0.3.0 excalidraw-mcp-app.mcpb --title "v0.3.0" --notes "What changed"
-
-# 4. Deploy to Vercel
-vercel --prod
-```
-
-</details>
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution, deployment, and release instructions.
 
 ## Credits
 
@@ -95,4 +70,4 @@ Built with [Excalidraw](https://github.com/excalidraw/excalidraw) — a virtual 
 
 ## License
 
-MIT
+[MIT](https://github.com/excalidraw/excalidraw-mcp/blob/main/LICENSE)
