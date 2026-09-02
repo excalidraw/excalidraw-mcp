@@ -430,7 +430,7 @@ Call read_me first to learn the element format.`,
           "JSON array string of Excalidraw elements. Must be valid JSON — no comments, no trailing commas. Keep compact. Call read_me first for format reference."
         ),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: false },
       _meta: { ui: { resourceUri } },
     },
     async ({ elements }): Promise<CallToolResult> => {
