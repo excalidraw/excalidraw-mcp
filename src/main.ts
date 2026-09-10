@@ -21,7 +21,7 @@ import { createServer } from "./server.js";
 export async function startStreamableHTTPServer(
   createServer: () => McpServer,
 ): Promise<void> {
-  const port = parseInt(process.env.PORT ?? "3001", 10);
+  const port = parseInt(process.env.PORT ?? "3500", 10);
 
   const app = createMcpExpressApp({ host: "0.0.0.0" });
   app.use(cors());

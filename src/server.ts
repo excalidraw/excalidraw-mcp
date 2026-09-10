@@ -7,6 +7,7 @@ import path from "node:path";
 import { deflateSync } from "node:zlib";
 import { z } from "zod/v4";
 import type { CheckpointStore } from "./checkpoint-store.js";
+import { defaultLibraryManager } from "./library-manager.js";
 
 /** Maximum allowed size for element/data input strings (5 MB). */
 const MAX_INPUT_BYTES = 5 * 1024 * 1024;
@@ -22,6 +23,25 @@ const DIST_DIR = import.meta.filename.endsWith(".ts")
 const RECALL_CHEAT_SHEET = `# Excalidraw Element Format
 
 Thanks for calling read_me! Do NOT call it again in this conversation — you will not see anything new. Now use create_view to draw.
+
+## 🌟 660+ Pre-built Library Shapes Available (USE THESE FIRST!)
+You have 14 official Excalidraw libraries installed (AWS, Google Cloud, System Design, Database Engineering, DevOps, Network, UX, Forms, etc.).
+**NEVER draw plain rectangles for cloud services, databases, queues, or architecture components!** Use the real shapes:
+1. Call \`search_library({ query: "database" })\` (or \`"lambda"\`, \`"redis"\`, \`"load balancer"\`, \`"queue"\`, \`"docker"\`) to find shapes.
+2. Call \`get_library_shape({ shapeId: "system-design/relational-db", x: 800, y: 200, label: "Primary DB" })\`.
+3. Include the returned elements array directly in your \`create_view\` payload!
+
+### Quick Essential Component IDs:
+- **Relational DB**: \`system-design/relational-db\` or \`db-eng/database\`
+- **Key-Value Cache / Redis**: \`system-design/key-value-cache\` or \`aws/memorydb-for-redis\`
+- **Message Queue / Kafka**: \`system-design/message-q\` or \`aws/sqs\` or \`aws/stream\`
+- **Load Balancer**: \`system-design/load-balancer\` or \`db-eng/load-balancer\`
+- **Compute / Server**: \`aws/lambda\` or \`system-design/application-server\`
+- **Storage / S3**: \`system-design/object-storage\` or \`aws/s3\`
+- **Containers / Docker**: \`architecture/docker\` or \`google/anthos\`
+- **Auth & IAM**: \`system-design/auth-iam\`
+- **DNS / Gateway**: \`system-design/dns\`
+- **Network / Firewall / VPN**: \`network/firewall\`, \`network/vpn\`
 
 ## Color Palette (use consistently across all tools)
 
@@ -412,6 +432,81 @@ export function registerTools(server: McpServer, distDir: string, store: Checkpo
     },
     async (): Promise<CallToolResult> => {
       return { content: [{ type: "text", text: RECALL_CHEAT_SHEET }] };
+    },
+  );
+
+  // ============================================================
+  // Tool: search_library (discover 660+ components)
+  // ============================================================
+  server.registerTool(
+    "search_library",
+    {
+      description: "Search across 660+ production-grade Excalidraw library shapes (AWS, Google Cloud, System Design, Database Engineering, DevOps, Network Topology, UX Wireframes, Forms, etc.). Returns shape IDs, names, libraries, and dimensions.",
+      inputSchema: {
+        query: z.string().describe("Search keywords (e.g. 'database', 'lambda', 'redis', 'load balancer', 'queue', 'firewall', 'docker')"),
+        library: z.string().optional().describe("Optional library filter (e.g. 'aws', 'google', 'system-design', 'db-eng', 'devops', 'network', 'ux', 'forms')"),
+        limit: z.number().optional().describe("Maximum number of results to return (default 10)"),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ query, library, limit }): Promise<CallToolResult> => {
+      const results = defaultLibraryManager.search(query, library, limit);
+      return {
+        content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
+      };
+    },
+  );
+
+  // ============================================================
+  // Tool: get_library_shape (stamp component at target x,y)
+  // ============================================================
+  server.registerTool(
+    "get_library_shape",
+    {
+      description: "Retrieve a ready-to-use Excalidraw element group for a library shape positioned at (x, y) with unique IDs and optional label. Pass the returned elements into create_view.",
+      inputSchema: {
+        shapeId: z.string().describe("Shape ID from search_library (e.g. 'system-design/relational-db', 'aws/lambda', 'db-eng/database')"),
+        x: z.number().describe("Target X coordinate on canvas"),
+        y: z.number().describe("Target Y coordinate on canvas"),
+        label: z.string().optional().describe("Optional label text centered underneath or on the component"),
+        theme: z.enum(["dark", "light"]).optional().describe("Canvas theme mode: 'dark' (default) or 'light'"),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ shapeId, x, y, label, theme }): Promise<CallToolResult> => {
+      const res = defaultLibraryManager.stampShape(shapeId, x, y, { label, theme });
+      if (!res.success) {
+        return {
+          content: [{ type: "text", text: res.error || "Failed to stamp shape" }],
+          isError: true,
+        };
+      }
+      return {
+        content: [{ type: "text", text: JSON.stringify(res.elements) }],
+        structuredContent: {
+          shapeId: res.shapeId,
+          width: res.width,
+          height: res.height,
+          elementCount: res.elements.length,
+        },
+      };
+    },
+  );
+
+  // ============================================================
+  // Tool: list_libraries (overview of installed packs)
+  // ============================================================
+  server.registerTool(
+    "list_libraries",
+    {
+      description: "List all installed Excalidraw shape libraries and component counts.",
+      annotations: { readOnlyHint: true },
+    },
+    async (): Promise<CallToolResult> => {
+      const libs = defaultLibraryManager.listLibraries();
+      return {
+        content: [{ type: "text", text: JSON.stringify(libs, null, 2) }],
+      };
     },
   );
 

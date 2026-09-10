@@ -1,0 +1,9104 @@
+[
+  {
+    "shapeId": "architecture/slack",
+    "name": "Slack",
+    "library": "architecture",
+    "elementCount": 10,
+    "width": 64,
+    "height": 94,
+    "keywords": [
+      "slack",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/docker",
+    "name": "Docker",
+    "library": "architecture",
+    "elementCount": 12,
+    "width": 73,
+    "height": 95,
+    "keywords": [
+      "docker",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/github",
+    "name": "GitHub",
+    "library": "architecture",
+    "elementCount": 4,
+    "width": 65,
+    "height": 95,
+    "keywords": [
+      "github",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/vpc",
+    "name": "VPC",
+    "library": "architecture",
+    "elementCount": 7,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "vpc",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/private-subnet",
+    "name": "Private subnet",
+    "library": "architecture",
+    "elementCount": 7,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "private",
+      "subnet",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/public-subnet",
+    "name": "Public subnet",
+    "library": "architecture",
+    "elementCount": 7,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "public",
+      "subnet",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/user",
+    "name": "User",
+    "library": "architecture",
+    "elementCount": 3,
+    "width": 49,
+    "height": 111,
+    "keywords": [
+      "user",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/users",
+    "name": "Users",
+    "library": "architecture",
+    "elementCount": 7,
+    "width": 73,
+    "height": 97,
+    "keywords": [
+      "users",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/device",
+    "name": "Device",
+    "library": "architecture",
+    "elementCount": 6,
+    "width": 63,
+    "height": 102,
+    "keywords": [
+      "device",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/server",
+    "name": "Server",
+    "library": "architecture",
+    "elementCount": 6,
+    "width": 63,
+    "height": 104,
+    "keywords": [
+      "server",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "architecture/email",
+    "name": "Email",
+    "library": "architecture",
+    "elementCount": 4,
+    "width": 62,
+    "height": 77,
+    "keywords": [
+      "email",
+      "architecture"
+    ]
+  },
+  {
+    "shapeId": "aws/cloudsearch",
+    "name": "CloudSearch",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 117,
+    "height": 89,
+    "keywords": [
+      "cloudsearch",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/emr",
+    "name": "EMR",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 64,
+    "height": 92,
+    "keywords": [
+      "emr",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/lake-formation",
+    "name": "Lake Formation",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 149,
+    "height": 91,
+    "keywords": [
+      "lake",
+      "formation",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/data-lake",
+    "name": "Data Lake",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 104,
+    "height": 70,
+    "keywords": [
+      "data",
+      "lake",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/kinesis",
+    "name": "Kinesis",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 106,
+    "height": 93,
+    "keywords": [
+      "kinesis",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/kinesis-video-streams",
+    "name": "Kinesis Video Streams",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 142,
+    "height": 117,
+    "keywords": [
+      "kinesis",
+      "video",
+      "streams",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/kinesis-data-streams",
+    "name": "Kinesis Data Streams",
+    "library": "aws",
+    "elementCount": 18,
+    "width": 145,
+    "height": 117,
+    "keywords": [
+      "kinesis",
+      "data",
+      "streams",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/kinesis-data-firehose",
+    "name": "Kinesis Data Firehose",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 142,
+    "height": 116,
+    "keywords": [
+      "kinesis",
+      "data",
+      "firehose",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/kinesis-data-analytics",
+    "name": "Kinesis Data Analytics",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 151,
+    "height": 118,
+    "keywords": [
+      "kinesis",
+      "data",
+      "analytics",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/managed-service-for-apache-flink",
+    "name": "Managed Service for Apache Flink",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 161,
+    "height": 113,
+    "keywords": [
+      "managed",
+      "service",
+      "for",
+      "apache",
+      "flink",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/glue",
+    "name": "Glue",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 64,
+    "height": 91,
+    "keywords": [
+      "glue",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/crawler",
+    "name": "Crawler",
+    "library": "aws",
+    "elementCount": 21,
+    "width": 106,
+    "height": 74,
+    "keywords": [
+      "crawler",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/datacatalog",
+    "name": "DataCatalog",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 131,
+    "height": 75,
+    "keywords": [
+      "datacatalog",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/elastic-views",
+    "name": "Elastic Views",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 127,
+    "height": 91,
+    "keywords": [
+      "elastic",
+      "views",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/opensearch-service",
+    "name": "OpenSearch Service",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 120,
+    "height": 114,
+    "keywords": [
+      "opensearch",
+      "service",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/redshift",
+    "name": "Redshift",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 82,
+    "height": 92,
+    "keywords": [
+      "redshift",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/quicksight",
+    "name": "QuickSight",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 108,
+    "height": 92,
+    "keywords": [
+      "quicksight",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/data-pipeline",
+    "name": "Data Pipeline",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 132,
+    "height": 90,
+    "keywords": [
+      "data",
+      "pipeline",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/managed-streaming-for-apache-kafka",
+    "name": "Managed Streaming for Apache Kafka",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 186,
+    "height": 115,
+    "keywords": [
+      "managed",
+      "streaming",
+      "for",
+      "apache",
+      "kafka",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/data-exchange",
+    "name": "Data Exchange",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 152,
+    "height": 91,
+    "keywords": [
+      "data",
+      "exchange",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/glue-databrew",
+    "name": "Glue DataBrew",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 153,
+    "height": 92,
+    "keywords": [
+      "glue",
+      "databrew",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/datazone",
+    "name": "DataZone",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 101,
+    "height": 89,
+    "keywords": [
+      "datazone",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/business-data-catalog",
+    "name": "Business data catalog",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 144,
+    "height": 108,
+    "keywords": [
+      "business",
+      "data",
+      "catalog",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/athena",
+    "name": "Athena",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 68,
+    "height": 93,
+    "keywords": [
+      "athena",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/comprehend",
+    "name": "Comprehend",
+    "library": "aws",
+    "elementCount": 16,
+    "width": 108,
+    "height": 93,
+    "keywords": [
+      "comprehend",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/elastic-inference",
+    "name": "Elastic Inference",
+    "library": "aws",
+    "elementCount": 23,
+    "width": 169,
+    "height": 93,
+    "keywords": [
+      "elastic",
+      "inference",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/forecast",
+    "name": "Forecast",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 104,
+    "height": 93,
+    "keywords": [
+      "forecast",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/lex",
+    "name": "Lex",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 83,
+    "height": 93,
+    "keywords": [
+      "lex",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/personalize",
+    "name": "Personalize",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 109,
+    "height": 93,
+    "keywords": [
+      "personalize",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/polly",
+    "name": "Polly",
+    "library": "aws",
+    "elementCount": 21,
+    "width": 65,
+    "height": 93,
+    "keywords": [
+      "polly",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/rekognition",
+    "name": "Rekognition",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 105,
+    "height": 94,
+    "keywords": [
+      "rekognition",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/sagemaker",
+    "name": "SageMaker",
+    "library": "aws",
+    "elementCount": 20,
+    "width": 104,
+    "height": 94,
+    "keywords": [
+      "sagemaker",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/notebook",
+    "name": "Notebook",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 88,
+    "height": 91,
+    "keywords": [
+      "notebook",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/canvas",
+    "name": "Canvas",
+    "library": "aws",
+    "elementCount": 17,
+    "width": 77,
+    "height": 83,
+    "keywords": [
+      "canvas",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/model",
+    "name": "Model",
+    "library": "aws",
+    "elementCount": 22,
+    "width": 75,
+    "height": 87,
+    "keywords": [
+      "model",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/train",
+    "name": "Train",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 59,
+    "height": 81,
+    "keywords": [
+      "train",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/geospatial-ml",
+    "name": "Geospatial ML",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 121,
+    "height": 115,
+    "keywords": [
+      "geospatial",
+      "ml",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ground-truth",
+    "name": "Ground Truth",
+    "library": "aws",
+    "elementCount": 19,
+    "width": 135,
+    "height": 93,
+    "keywords": [
+      "ground",
+      "truth",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/textract",
+    "name": "Textract",
+    "library": "aws",
+    "elementCount": 19,
+    "width": 93,
+    "height": 93,
+    "keywords": [
+      "textract",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/transcribe",
+    "name": "Transcribe",
+    "library": "aws",
+    "elementCount": 20,
+    "width": 102,
+    "height": 93,
+    "keywords": [
+      "transcribe",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/deepcomposer",
+    "name": "DeepComposer",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 135,
+    "height": 93,
+    "keywords": [
+      "deepcomposer",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/fraud-detector",
+    "name": "Fraud Detector",
+    "library": "aws",
+    "elementCount": 22,
+    "width": 156,
+    "height": 93,
+    "keywords": [
+      "fraud",
+      "detector",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/kendra",
+    "name": "Kendra",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 79,
+    "height": 98,
+    "keywords": [
+      "kendra",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/codeguru",
+    "name": "CodeGuru",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 93,
+    "height": 94,
+    "keywords": [
+      "codeguru",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/devops-guru",
+    "name": "DevOps Guru",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 129,
+    "height": 110,
+    "keywords": [
+      "devops",
+      "guru",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/panorama",
+    "name": "Panorama",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 95,
+    "height": 93,
+    "keywords": [
+      "panorama",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/sagemaker-studio-lab",
+    "name": "SageMaker Studio Lab",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 107,
+    "height": 117,
+    "keywords": [
+      "sagemaker",
+      "studio",
+      "lab",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/comprehend-medical",
+    "name": "Comprehend Medical",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 108,
+    "height": 117,
+    "keywords": [
+      "comprehend",
+      "medical",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/codewhisperer",
+    "name": "CodeWhisperer",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 136,
+    "height": 94,
+    "keywords": [
+      "codewhisperer",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/augmented-ai",
+    "name": "Augmented AI",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 135,
+    "height": 93,
+    "keywords": [
+      "augmented",
+      "ai",
+      "aws",
+      "ia"
+    ]
+  },
+  {
+    "shapeId": "aws/amazon-bedrock",
+    "name": "Amazon Bedrock",
+    "library": "aws",
+    "elementCount": 20,
+    "width": 157,
+    "height": 93,
+    "keywords": [
+      "amazon",
+      "bedrock",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/amazon-q",
+    "name": "Amazon Q",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 96,
+    "height": 93,
+    "keywords": [
+      "amazon",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/aurora",
+    "name": "Aurora",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 66,
+    "height": 91,
+    "keywords": [
+      "aurora",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/documentdb",
+    "name": "DocumentDB",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 122,
+    "height": 93,
+    "keywords": [
+      "documentdb",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/dynamodb",
+    "name": "DynamoDB",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 102,
+    "height": 93,
+    "keywords": [
+      "dynamodb",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/dynamodb-table",
+    "name": "DynamoDB Table",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 59,
+    "height": 73,
+    "keywords": [
+      "dynamodb",
+      "table",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/dax",
+    "name": "DAX",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 60,
+    "height": 70,
+    "keywords": [
+      "dax",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/stream",
+    "name": "Stream",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 69,
+    "height": 74,
+    "keywords": [
+      "stream",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/keyspaces",
+    "name": "Keyspaces",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 98,
+    "height": 93,
+    "keywords": [
+      "keyspaces",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/dms",
+    "name": "DMS",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 65,
+    "height": 94,
+    "keywords": [
+      "dms",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/neptune",
+    "name": "Neptune",
+    "library": "aws",
+    "elementCount": 19,
+    "width": 77,
+    "height": 93,
+    "keywords": [
+      "neptune",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/timestream",
+    "name": "Timestream",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 112,
+    "height": 93,
+    "keywords": [
+      "timestream",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/rds",
+    "name": "RDS",
+    "library": "aws",
+    "elementCount": 16,
+    "width": 66,
+    "height": 94,
+    "keywords": [
+      "rds",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/multi-az-db-cluster",
+    "name": "Multi-AZ DB cluster",
+    "library": "aws",
+    "elementCount": 19,
+    "width": 110,
+    "height": 100,
+    "keywords": [
+      "multi",
+      "az",
+      "db",
+      "cluster",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/memorydb-for-redis",
+    "name": "MemoryDB for Redis",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 104,
+    "height": 117,
+    "keywords": [
+      "memorydb",
+      "for",
+      "redis",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/elasticache",
+    "name": "ElastiCache",
+    "library": "aws",
+    "elementCount": 19,
+    "width": 116,
+    "height": 94,
+    "keywords": [
+      "elasticache",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/rds-instance",
+    "name": "RDS instance",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 132,
+    "height": 101,
+    "keywords": [
+      "rds",
+      "instance",
+      "aws",
+      "amazon"
+    ]
+  },
+  {
+    "shapeId": "aws/aurora-instance",
+    "name": "Aurora instance",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 157,
+    "height": 101,
+    "keywords": [
+      "aurora",
+      "instance",
+      "aws",
+      "amazon"
+    ]
+  },
+  {
+    "shapeId": "aws/ebs",
+    "name": "EBS",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 66,
+    "height": 94,
+    "keywords": [
+      "ebs",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/storage-gateway",
+    "name": "Storage Gateway",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 105,
+    "height": 118,
+    "keywords": [
+      "storage",
+      "gateway",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/efs",
+    "name": "EFS",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 93,
+    "height": 94,
+    "keywords": [
+      "efs",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/fsx",
+    "name": "FSx",
+    "library": "aws",
+    "elementCount": 3,
+    "width": 65,
+    "height": 94,
+    "keywords": [
+      "fsx",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/snowball",
+    "name": "Snowball",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 79,
+    "height": 91,
+    "keywords": [
+      "snowball",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/backup",
+    "name": "Backup",
+    "library": "aws",
+    "elementCount": 18,
+    "width": 75,
+    "height": 94,
+    "keywords": [
+      "backup",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/s3",
+    "name": "S3",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 65,
+    "height": 93,
+    "keywords": [
+      "s3",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/glacier",
+    "name": "Glacier",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 70,
+    "height": 95,
+    "keywords": [
+      "glacier",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/managed-blockchain",
+    "name": "Managed Blockchain",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 128,
+    "height": 117,
+    "keywords": [
+      "managed",
+      "blockchain",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/quantum-ledger-database",
+    "name": "Quantum Ledger Database",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 158,
+    "height": 117,
+    "keywords": [
+      "quantum",
+      "ledger",
+      "database",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ec2",
+    "name": "EC2",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 73,
+    "height": 93,
+    "keywords": [
+      "ec2",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ami",
+    "name": "AMI",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 63,
+    "height": 88,
+    "keywords": [
+      "ami",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/auto-scaling",
+    "name": "Auto scaling",
+    "library": "aws",
+    "elementCount": 30,
+    "width": 120,
+    "height": 89,
+    "keywords": [
+      "auto",
+      "scaling",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/instance",
+    "name": "Instance",
+    "library": "aws",
+    "elementCount": 22,
+    "width": 86,
+    "height": 87,
+    "keywords": [
+      "instance",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/db-instance",
+    "name": "DB Instance",
+    "library": "aws",
+    "elementCount": 24,
+    "width": 113,
+    "height": 84,
+    "keywords": [
+      "db",
+      "instance",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/instances",
+    "name": "Instances",
+    "library": "aws",
+    "elementCount": 4,
+    "width": 97,
+    "height": 75,
+    "keywords": [
+      "instances",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/spot-instance",
+    "name": "Spot instance",
+    "library": "aws",
+    "elementCount": 16,
+    "width": 134,
+    "height": 91,
+    "keywords": [
+      "spot",
+      "instance",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/instance-with-cloudwatch",
+    "name": "Instance with CloudWatch",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 143,
+    "height": 117,
+    "keywords": [
+      "instance",
+      "with",
+      "cloudwatch",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/elastic-beanstalk",
+    "name": "Elastic Beanstalk",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 113,
+    "height": 116,
+    "keywords": [
+      "elastic",
+      "beanstalk",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/lambda",
+    "name": "Lambda",
+    "library": "aws",
+    "elementCount": 4,
+    "width": 89,
+    "height": 93,
+    "keywords": [
+      "lambda",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ec2-auto-scaling",
+    "name": "EC2 Auto Scaling",
+    "library": "aws",
+    "elementCount": 31,
+    "width": 121,
+    "height": 117,
+    "keywords": [
+      "ec2",
+      "auto",
+      "scaling",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/outposts",
+    "name": "Outposts",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 91,
+    "height": 91,
+    "keywords": [
+      "outposts",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ec2-image-builder",
+    "name": "EC2 Image Builder",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 108,
+    "height": 115,
+    "keywords": [
+      "ec2",
+      "image",
+      "builder",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/elastic-fabric-adapter",
+    "name": "Elastic Fabric Adapter",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 137,
+    "height": 120,
+    "keywords": [
+      "elastic",
+      "fabric",
+      "adapter",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/app-runner",
+    "name": "App Runner",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 106,
+    "height": 91,
+    "keywords": [
+      "app",
+      "runner",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/batch",
+    "name": "Batch",
+    "library": "aws",
+    "elementCount": 17,
+    "width": 64,
+    "height": 91,
+    "keywords": [
+      "batch",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/eks",
+    "name": "EKS",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 75,
+    "height": 93,
+    "keywords": [
+      "eks",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ecr",
+    "name": "ECR",
+    "library": "aws",
+    "elementCount": 4,
+    "width": 64,
+    "height": 91,
+    "keywords": [
+      "ecr",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/registry",
+    "name": "Registry",
+    "library": "aws",
+    "elementCount": 26,
+    "width": 80,
+    "height": 71,
+    "keywords": [
+      "registry",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/image",
+    "name": "Image",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 59,
+    "height": 71,
+    "keywords": [
+      "image",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ecs",
+    "name": "ECS",
+    "library": "aws",
+    "elementCount": 4,
+    "width": 75,
+    "height": 91,
+    "keywords": [
+      "ecs",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/container",
+    "name": "Container",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 92,
+    "height": 60,
+    "keywords": [
+      "container",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/container2",
+    "name": "Container2",
+    "library": "aws",
+    "elementCount": 27,
+    "width": 105,
+    "height": 60,
+    "keywords": [
+      "container2",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/task",
+    "name": "Task",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 52,
+    "height": 72,
+    "keywords": [
+      "task",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/service",
+    "name": "Service",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 74,
+    "height": 70,
+    "keywords": [
+      "service",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/eks-anywhere",
+    "name": "EKS Anywhere",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 133,
+    "height": 92,
+    "keywords": [
+      "eks",
+      "anywhere",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/fargate",
+    "name": "Fargate",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 84,
+    "height": 92,
+    "keywords": [
+      "fargate",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/sns",
+    "name": "SNS",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 65,
+    "height": 93,
+    "keywords": [
+      "sns",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/sqs",
+    "name": "SQS",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 65,
+    "height": 93,
+    "keywords": [
+      "sqs",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/amazon-mq",
+    "name": "Amazon MQ",
+    "library": "aws",
+    "elementCount": 20,
+    "width": 110,
+    "height": 92,
+    "keywords": [
+      "amazon",
+      "mq",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/appsync",
+    "name": "AppSync",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 77,
+    "height": 92,
+    "keywords": [
+      "appsync",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/step-functions",
+    "name": "Step Functions",
+    "library": "aws",
+    "elementCount": 16,
+    "width": 143,
+    "height": 93,
+    "keywords": [
+      "step",
+      "functions",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/eventbridge",
+    "name": "EventBridge",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 115,
+    "height": 92,
+    "keywords": [
+      "eventbridge",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/event",
+    "name": "Event",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 56,
+    "height": 69,
+    "keywords": [
+      "event",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/rule",
+    "name": "Rule",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 49,
+    "height": 69,
+    "keywords": [
+      "rule",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/event-bus",
+    "name": "Event bus",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 98,
+    "height": 56,
+    "keywords": [
+      "event",
+      "bus",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/scheduler",
+    "name": "Scheduler",
+    "library": "aws",
+    "elementCount": 19,
+    "width": 92,
+    "height": 68,
+    "keywords": [
+      "scheduler",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/appflow",
+    "name": "AppFlow",
+    "library": "aws",
+    "elementCount": 4,
+    "width": 73,
+    "height": 91,
+    "keywords": [
+      "appflow",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/managed-workflows-for-apache-airflow",
+    "name": "Managed Workflows for Apache Airflow",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 187,
+    "height": 117,
+    "keywords": [
+      "managed",
+      "workflows",
+      "for",
+      "apache",
+      "airflow",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-analytics",
+    "name": "IoT Analytics",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 135,
+    "height": 94,
+    "keywords": [
+      "iot",
+      "analytics",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-core",
+    "name": "IoT Core",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 92,
+    "height": 94,
+    "keywords": [
+      "iot",
+      "core",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-greengrass",
+    "name": "Iot Greengrass",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 157,
+    "height": 94,
+    "keywords": [
+      "iot",
+      "greengrass",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-sitewise",
+    "name": "IoT SiteWise",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 128,
+    "height": 94,
+    "keywords": [
+      "iot",
+      "sitewise",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-expresslink",
+    "name": "IoT ExpressLink",
+    "library": "aws",
+    "elementCount": 20,
+    "width": 159,
+    "height": 94,
+    "keywords": [
+      "iot",
+      "expresslink",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-roborunner",
+    "name": "IoT RoboRunner",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 157,
+    "height": 94,
+    "keywords": [
+      "iot",
+      "roborunner",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-sensor",
+    "name": "IoT sensor",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 111,
+    "height": 51,
+    "keywords": [
+      "iot",
+      "sensor",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-topic",
+    "name": "IoT topic",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 95,
+    "height": 71,
+    "keywords": [
+      "iot",
+      "topic",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cloud9",
+    "name": "Cloud9",
+    "library": "aws",
+    "elementCount": 4,
+    "width": 85,
+    "height": 92,
+    "keywords": [
+      "cloud9",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/codebuild",
+    "name": "CodeBuild",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 93,
+    "height": 96,
+    "keywords": [
+      "codebuild",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/codecommit",
+    "name": "CodeCommit",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 111,
+    "height": 94,
+    "keywords": [
+      "codecommit",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/codedeploy",
+    "name": "CodeDeploy",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 108,
+    "height": 93,
+    "keywords": [
+      "codedeploy",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/codepipeline",
+    "name": "CodePipeline",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 115,
+    "height": 92,
+    "keywords": [
+      "codepipeline",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/aws-cli",
+    "name": "AWS CLI",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 102,
+    "height": 93,
+    "keywords": [
+      "aws",
+      "cli"
+    ]
+  },
+  {
+    "shapeId": "aws/tools-and-sdks",
+    "name": "Tools and SDKs",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 110,
+    "height": 116,
+    "keywords": [
+      "tools",
+      "and",
+      "sdks",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/x-ray",
+    "name": "X-Ray",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 65,
+    "height": 92,
+    "keywords": [
+      "ray",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/codeartifact",
+    "name": "CodeArtifact",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 128,
+    "height": 92,
+    "keywords": [
+      "codeartifact",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cloudshell",
+    "name": "CloudShell",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 95,
+    "height": 92,
+    "keywords": [
+      "cloudshell",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/application-composer",
+    "name": "Application Composer",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 102,
+    "height": 116,
+    "keywords": [
+      "application",
+      "composer",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/fault-injection-simulator",
+    "name": "Fault Injection Simulator",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 147,
+    "height": 117,
+    "keywords": [
+      "fault",
+      "injection",
+      "simulator",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/amplify",
+    "name": "Amplify",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 80,
+    "height": 94,
+    "keywords": [
+      "amplify",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/device-farm",
+    "name": "Device Farm",
+    "library": "aws",
+    "elementCount": 19,
+    "width": 118,
+    "height": 94,
+    "keywords": [
+      "device",
+      "farm",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/location-service",
+    "name": "Location Service",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 83,
+    "height": 118,
+    "keywords": [
+      "location",
+      "service",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/application-discovery-service",
+    "name": "Application Discovery Service",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 169,
+    "height": 118,
+    "keywords": [
+      "application",
+      "discovery",
+      "service",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/agentless-collector",
+    "name": "Agentless Collector",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 93,
+    "height": 98,
+    "keywords": [
+      "agentless",
+      "collector",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/discovery-agent",
+    "name": "Discovery Agent",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 156,
+    "height": 63,
+    "keywords": [
+      "discovery",
+      "agent",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/transfer-family",
+    "name": "Transfer Family",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 154,
+    "height": 94,
+    "keywords": [
+      "transfer",
+      "family",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/datasync",
+    "name": "DataSync",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 112,
+    "height": 94,
+    "keywords": [
+      "datasync",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/agent",
+    "name": "Agent",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 68,
+    "height": 76,
+    "keywords": [
+      "agent",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/discovery",
+    "name": "Discovery",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 92,
+    "height": 76,
+    "keywords": [
+      "discovery",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/migration-hub",
+    "name": "Migration Hub",
+    "library": "aws",
+    "elementCount": 20,
+    "width": 130,
+    "height": 94,
+    "keywords": [
+      "migration",
+      "hub",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/application-migration-service",
+    "name": "Application Migration Service",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 165,
+    "height": 118,
+    "keywords": [
+      "application",
+      "migration",
+      "service",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/migration-evaluator",
+    "name": "Migration Evaluator",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 98,
+    "height": 117,
+    "keywords": [
+      "migration",
+      "evaluator",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/server-migration-service",
+    "name": "Server Migration Service",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 159,
+    "height": 118,
+    "keywords": [
+      "server",
+      "migration",
+      "service",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/alexa-for-business",
+    "name": "Alexa for Business",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 93,
+    "height": 118,
+    "keywords": [
+      "alexa",
+      "for",
+      "business",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/chime",
+    "name": "Chime",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 65,
+    "height": 91,
+    "keywords": [
+      "chime",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/connect",
+    "name": "Connect",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 84,
+    "height": 103,
+    "keywords": [
+      "connect",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ses",
+    "name": "SES",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 64,
+    "height": 92,
+    "keywords": [
+      "ses",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cloudwatch",
+    "name": "CloudWatch",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 132,
+    "height": 93,
+    "keywords": [
+      "cloudwatch",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/alarm",
+    "name": "Alarm",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 53,
+    "height": 78,
+    "keywords": [
+      "alarm",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/logs",
+    "name": "Logs",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 53,
+    "height": 69,
+    "keywords": [
+      "logs",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/dashboard",
+    "name": "Dashboard",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 105,
+    "height": 83,
+    "keywords": [
+      "dashboard",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cloudformation",
+    "name": "CloudFormation",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 145,
+    "height": 93,
+    "keywords": [
+      "cloudformation",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/application-auto-scaling",
+    "name": "Application Auto Scaling",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 121,
+    "height": 118,
+    "keywords": [
+      "application",
+      "auto",
+      "scaling",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/config",
+    "name": "Config",
+    "library": "aws",
+    "elementCount": 17,
+    "width": 75,
+    "height": 94,
+    "keywords": [
+      "config",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/license-manager",
+    "name": "License Manager",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 160,
+    "height": 93,
+    "keywords": [
+      "license",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/personal-health-dashboard",
+    "name": "Personal Health Dashboard",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 154,
+    "height": 118,
+    "keywords": [
+      "personal",
+      "health",
+      "dashboard",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/opsworks",
+    "name": "OpsWorks",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 90,
+    "height": 92,
+    "keywords": [
+      "opsworks",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cloudtrail",
+    "name": "CloudTrail",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 100,
+    "height": 94,
+    "keywords": [
+      "cloudtrail",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/service-catalog",
+    "name": "Service Catalog",
+    "library": "aws",
+    "elementCount": 17,
+    "width": 155,
+    "height": 93,
+    "keywords": [
+      "service",
+      "catalog",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/system-manager",
+    "name": "System Manager",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 158,
+    "height": 94,
+    "keywords": [
+      "system",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/automation",
+    "name": "Automation",
+    "library": "aws",
+    "elementCount": 4,
+    "width": 109,
+    "height": 83,
+    "keywords": [
+      "automation",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/documents",
+    "name": "Documents",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 104,
+    "height": 80,
+    "keywords": [
+      "documents",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/parameter-store",
+    "name": "Parameter Store",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 168,
+    "height": 78,
+    "keywords": [
+      "parameter",
+      "store",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/incident-manager",
+    "name": "Incident Manager",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 170,
+    "height": 65,
+    "keywords": [
+      "incident",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/session-manager",
+    "name": "Session Manager",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 162,
+    "height": 72,
+    "keywords": [
+      "session",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/well-arhitected-tool",
+    "name": "Well-Arhitected Tool",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 157,
+    "height": 118,
+    "keywords": [
+      "well",
+      "arhitected",
+      "tool",
+      "aws",
+      "architected"
+    ]
+  },
+  {
+    "shapeId": "aws/control-tower",
+    "name": "Control Tower",
+    "library": "aws",
+    "elementCount": 25,
+    "width": 138,
+    "height": 93,
+    "keywords": [
+      "control",
+      "tower",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/organizations",
+    "name": "Organizations",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 132,
+    "height": 93,
+    "keywords": [
+      "organizations",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/appconfig",
+    "name": "AppConfig",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 90,
+    "height": 97,
+    "keywords": [
+      "appconfig",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/chatbot",
+    "name": "Chatbot",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 80,
+    "height": 92,
+    "keywords": [
+      "chatbot",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/backint-agent",
+    "name": "Backint Agent",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 137,
+    "height": 93,
+    "keywords": [
+      "backint",
+      "agent",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/managed-service-for-grafana",
+    "name": "Managed Service for Grafana",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 161,
+    "height": 117,
+    "keywords": [
+      "managed",
+      "service",
+      "for",
+      "grafana",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/managed-service-for-prometheus",
+    "name": "Managed Service for Prometheus",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 161,
+    "height": 116,
+    "keywords": [
+      "managed",
+      "service",
+      "for",
+      "prometheus",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/distro-for-open-telemetry",
+    "name": "Distro for Open Telemetry",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 151,
+    "height": 116,
+    "keywords": [
+      "distro",
+      "for",
+      "open",
+      "telemetry",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/resilience-hub",
+    "name": "Resilience Hub",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 148,
+    "height": 94,
+    "keywords": [
+      "resilience",
+      "hub",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cognito",
+    "name": "Cognito",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 117,
+    "height": 93,
+    "keywords": [
+      "cognito",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/guardduty",
+    "name": "GuardDuty",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 108,
+    "height": 115,
+    "keywords": [
+      "guardduty",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/inspector",
+    "name": "Inspector",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 93,
+    "height": 94,
+    "keywords": [
+      "inspector",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/macie",
+    "name": "Macie",
+    "library": "aws",
+    "elementCount": 3,
+    "width": 64,
+    "height": 94,
+    "keywords": [
+      "macie",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/artifact",
+    "name": "Artifact",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 88,
+    "height": 111,
+    "keywords": [
+      "artifact",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/certificate-manager",
+    "name": "Certificate Manager",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 118,
+    "height": 118,
+    "keywords": [
+      "certificate",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cloudhsm",
+    "name": "CloudHSM",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 90,
+    "height": 94,
+    "keywords": [
+      "cloudhsm",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/directory-service",
+    "name": "Directory Service",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 125,
+    "height": 118,
+    "keywords": [
+      "directory",
+      "service",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/firewall-manager",
+    "name": "Firewall Manager",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 162,
+    "height": 94,
+    "keywords": [
+      "firewall",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iam",
+    "name": "IAM",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 64,
+    "height": 92,
+    "keywords": [
+      "iam",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/permissions",
+    "name": "Permissions",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 107,
+    "height": 79,
+    "keywords": [
+      "permissions",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/role",
+    "name": "Role",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 54,
+    "height": 59,
+    "keywords": [
+      "role",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/aws-sts",
+    "name": "AWS STS",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 91,
+    "height": 69,
+    "keywords": [
+      "aws",
+      "sts"
+    ]
+  },
+  {
+    "shapeId": "aws/kms",
+    "name": "KMS",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 67,
+    "height": 94,
+    "keywords": [
+      "kms",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/secrets-manager",
+    "name": "Secrets Manager",
+    "library": "aws",
+    "elementCount": 20,
+    "width": 166,
+    "height": 96,
+    "keywords": [
+      "secrets",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/security-hub",
+    "name": "Security Hub",
+    "library": "aws",
+    "elementCount": 19,
+    "width": 121,
+    "height": 94,
+    "keywords": [
+      "security",
+      "hub",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/shield",
+    "name": "Shield",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 64,
+    "height": 96,
+    "keywords": [
+      "shield",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iam-identity-center",
+    "name": "IAM Identity Center",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 130,
+    "height": 118,
+    "keywords": [
+      "iam",
+      "identity",
+      "center",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/waf",
+    "name": "WAF",
+    "library": "aws",
+    "elementCount": 16,
+    "width": 64,
+    "height": 94,
+    "keywords": [
+      "waf",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/detective",
+    "name": "Detective",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 96,
+    "height": 94,
+    "keywords": [
+      "detective",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/resource-access-manager",
+    "name": "Resource Access Manager",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 163,
+    "height": 118,
+    "keywords": [
+      "resource",
+      "access",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/audit-manager",
+    "name": "Audit Manager",
+    "library": "aws",
+    "elementCount": 16,
+    "width": 142,
+    "height": 106,
+    "keywords": [
+      "audit",
+      "manager",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/network-firewall",
+    "name": "Network Firewall",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 158,
+    "height": 94,
+    "keywords": [
+      "network",
+      "firewall",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/private-certificate-authority",
+    "name": "Private Certificate Authority",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 191,
+    "height": 117,
+    "keywords": [
+      "private",
+      "certificate",
+      "authority",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/transit-gateway",
+    "name": "Transit Gateway",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 170,
+    "height": 94,
+    "keywords": [
+      "transit",
+      "gateway",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/attachment",
+    "name": "Attachment",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 113,
+    "height": 84,
+    "keywords": [
+      "attachment",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cloudfront",
+    "name": "CloudFront",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 104,
+    "height": 92,
+    "keywords": [
+      "cloudfront",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/edge-location",
+    "name": "Edge location",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 132,
+    "height": 80,
+    "keywords": [
+      "edge",
+      "location",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/route-53",
+    "name": "Route 53",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 98,
+    "height": 103,
+    "keywords": [
+      "route",
+      "53",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/resolver",
+    "name": "Resolver",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 92,
+    "height": 88,
+    "keywords": [
+      "resolver",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/route-table",
+    "name": "Route table",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 120,
+    "height": 77,
+    "keywords": [
+      "route",
+      "table",
+      "aws",
+      "172",
+      "16"
+    ]
+  },
+  {
+    "shapeId": "aws/vpc",
+    "name": "VPC",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 114,
+    "height": 94,
+    "keywords": [
+      "vpc",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/internet-gateway",
+    "name": "Internet gateway",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 173,
+    "height": 98,
+    "keywords": [
+      "internet",
+      "gateway",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/vpn-gateway",
+    "name": "VPN gateway",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 127,
+    "height": 95,
+    "keywords": [
+      "vpn",
+      "gateway",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/nat-gateway",
+    "name": "NAT gateway",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 133,
+    "height": 95,
+    "keywords": [
+      "nat",
+      "gateway",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/flow-logs",
+    "name": "Flow logs",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 87,
+    "height": 94,
+    "keywords": [
+      "flow",
+      "logs",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/interface-endpoint",
+    "name": "Interface Endpoint",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 105,
+    "height": 119,
+    "keywords": [
+      "interface",
+      "endpoint",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/eni",
+    "name": "ENI",
+    "library": "aws",
+    "elementCount": 6,
+    "width": 63,
+    "height": 94,
+    "keywords": [
+      "eni",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/nacl",
+    "name": "NACL",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 66,
+    "height": 93,
+    "keywords": [
+      "nacl",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/vpn-connection",
+    "name": "VPN Connection",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 100,
+    "height": 114,
+    "keywords": [
+      "vpn",
+      "connection",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/peering-connection",
+    "name": "Peering connection",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 174,
+    "height": 95,
+    "keywords": [
+      "peering",
+      "connection",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/direct-connect",
+    "name": "Direct Connect",
+    "library": "aws",
+    "elementCount": 12,
+    "width": 146,
+    "height": 94,
+    "keywords": [
+      "direct",
+      "connect",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/global-accelerator",
+    "name": "Global Accelerator",
+    "library": "aws",
+    "elementCount": 14,
+    "width": 113,
+    "height": 123,
+    "keywords": [
+      "global",
+      "accelerator",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/client-vpn",
+    "name": "Client VPN",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 101,
+    "height": 94,
+    "keywords": [
+      "client",
+      "vpn",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/site-to-site-vpn",
+    "name": "Site-to-Site VPN",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 126,
+    "height": 118,
+    "keywords": [
+      "site",
+      "to",
+      "vpn",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/elb",
+    "name": "ELB",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 65,
+    "height": 94,
+    "keywords": [
+      "elb",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/alb",
+    "name": "ALB",
+    "library": "aws",
+    "elementCount": 11,
+    "width": 66,
+    "height": 93,
+    "keywords": [
+      "alb",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/nlb",
+    "name": "NLB",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 66,
+    "height": 93,
+    "keywords": [
+      "nlb",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/glb",
+    "name": "GLB",
+    "library": "aws",
+    "elementCount": 13,
+    "width": 66,
+    "height": 93,
+    "keywords": [
+      "glb",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/privatelink",
+    "name": "PrivateLink",
+    "library": "aws",
+    "elementCount": 5,
+    "width": 139,
+    "height": 94,
+    "keywords": [
+      "privatelink",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/api-gateway",
+    "name": "API Gateway",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 134,
+    "height": 92,
+    "keywords": [
+      "api",
+      "gateway",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/endpoint",
+    "name": "Endpoint",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 90,
+    "height": 98,
+    "keywords": [
+      "endpoint",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/budgets",
+    "name": "Budgets",
+    "library": "aws",
+    "elementCount": 8,
+    "width": 80,
+    "height": 94,
+    "keywords": [
+      "budgets",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cost-usage-report",
+    "name": "Cost & Usage Report",
+    "library": "aws",
+    "elementCount": 16,
+    "width": 140,
+    "height": 118,
+    "keywords": [
+      "cost",
+      "usage",
+      "report",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/cost-explorer",
+    "name": "Cost Explorer",
+    "library": "aws",
+    "elementCount": 20,
+    "width": 135,
+    "height": 94,
+    "keywords": [
+      "cost",
+      "explorer",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/saving-plans",
+    "name": "Saving Plans",
+    "library": "aws",
+    "elementCount": 10,
+    "width": 122,
+    "height": 94,
+    "keywords": [
+      "saving",
+      "plans",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/support",
+    "name": "Support",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 83,
+    "height": 105,
+    "keywords": [
+      "support",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/aws-cloud",
+    "name": "AWS Cloud",
+    "library": "aws",
+    "elementCount": 4,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "aws",
+      "cloud"
+    ]
+  },
+  {
+    "shapeId": "aws/region",
+    "name": "Region",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "region",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/auto-scaling-group",
+    "name": "Auto Scaling group",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "auto",
+      "scaling",
+      "group",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/data-center",
+    "name": "Data center",
+    "library": "aws",
+    "elementCount": 15,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "data",
+      "center",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/spot-fleet",
+    "name": "Spot Fleet",
+    "library": "aws",
+    "elementCount": 18,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "spot",
+      "fleet",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/ec2-contents",
+    "name": "EC2 contents",
+    "library": "aws",
+    "elementCount": 24,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "ec2",
+      "contents",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/iot-greengrass-2",
+    "name": "IoT Greengrass",
+    "library": "aws",
+    "elementCount": 9,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "iot",
+      "greengrass",
+      "aws"
+    ]
+  },
+  {
+    "shapeId": "aws/aws-account",
+    "name": "AWS account",
+    "library": "aws",
+    "elementCount": 7,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "aws",
+      "account"
+    ]
+  },
+  {
+    "shapeId": "aws/aws-step-functions-workflow",
+    "name": "AWS Step Functions Workflow",
+    "library": "aws",
+    "elementCount": 17,
+    "width": 270,
+    "height": 165,
+    "keywords": [
+      "aws",
+      "step",
+      "functions",
+      "workflow"
+    ]
+  },
+  {
+    "shapeId": "ux/bulb",
+    "name": "Bulb",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 45,
+    "height": 64,
+    "keywords": [
+      "bulb",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/dropdown-with-options",
+    "name": "Dropdown with options",
+    "library": "ux",
+    "elementCount": 8,
+    "width": 142,
+    "height": 77,
+    "keywords": [
+      "dropdown",
+      "with",
+      "options",
+      "ux",
+      "select",
+      "option"
+    ]
+  },
+  {
+    "shapeId": "ux/image-placeholder-simple",
+    "name": "Image placeholder (simple)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 100,
+    "height": 101,
+    "keywords": [
+      "image",
+      "placeholder",
+      "simple",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/profile-photo",
+    "name": "Profile photo",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 42,
+    "height": 47,
+    "keywords": [
+      "profile",
+      "photo",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/boxed-toggle-with-text-on",
+    "name": "Boxed toggle with text (ON)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 38,
+    "height": 13,
+    "keywords": [
+      "boxed",
+      "toggle",
+      "with",
+      "text",
+      "on",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/boxed-toggle-with-text-off",
+    "name": "Boxed toggle with text (OFF)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 38,
+    "height": 13,
+    "keywords": [
+      "boxed",
+      "toggle",
+      "with",
+      "text",
+      "off",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/boxed-toggle-off",
+    "name": "Boxed toggle (OFF)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 27,
+    "height": 13,
+    "keywords": [
+      "boxed",
+      "toggle",
+      "off",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/boxed-toggle-on",
+    "name": "Boxed toggle (ON)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 27,
+    "height": 13,
+    "keywords": [
+      "boxed",
+      "toggle",
+      "on",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/rounded-toggle-with-text-on",
+    "name": "Rounded toggle with text (ON)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 44,
+    "height": 17,
+    "keywords": [
+      "rounded",
+      "toggle",
+      "with",
+      "text",
+      "on",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/rounded-toggle-with-text-off",
+    "name": "Rounded toggle with text (OFF)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 42,
+    "height": 17,
+    "keywords": [
+      "rounded",
+      "toggle",
+      "with",
+      "text",
+      "off",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/rounded-toggle-on",
+    "name": "Rounded toggle (ON)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 31,
+    "height": 17,
+    "keywords": [
+      "rounded",
+      "toggle",
+      "on",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/rounded-toggle-off",
+    "name": "Rounded toggle (OFF)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 29,
+    "height": 17,
+    "keywords": [
+      "rounded",
+      "toggle",
+      "off",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/filled-help-text-icon",
+    "name": "Filled help (text+icon)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 51,
+    "height": 19,
+    "keywords": [
+      "filled",
+      "help",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/outlined-help-text-icon",
+    "name": "Outlined help (text+icon)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 51,
+    "height": 19,
+    "keywords": [
+      "outlined",
+      "help",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/filled-help-icon-only",
+    "name": "Filled help (icon only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 19,
+    "height": 19,
+    "keywords": [
+      "filled",
+      "help",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/outlined-help-icon-only",
+    "name": "Outlined help (icon only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 19,
+    "height": 19,
+    "keywords": [
+      "outlined",
+      "help",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/horizontal-options",
+    "name": "Horizontal options",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 8,
+    "height": 1,
+    "keywords": [
+      "horizontal",
+      "options",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/horizontal-options-in-the-circle",
+    "name": "Horizontal options in the circle",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 14,
+    "height": 14,
+    "keywords": [
+      "horizontal",
+      "options",
+      "in",
+      "the",
+      "circle",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/vertical-options",
+    "name": "Vertical options",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 1,
+    "height": 8,
+    "keywords": [
+      "vertical",
+      "options",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/vertical-options-in-the-circle",
+    "name": "Vertical options in the circle",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 14,
+    "height": 14,
+    "keywords": [
+      "vertical",
+      "options",
+      "in",
+      "the",
+      "circle",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/hamburger-menu-text-icon",
+    "name": "Hamburger menu (text+icon)",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 35,
+    "height": 11,
+    "keywords": [
+      "hamburger",
+      "menu",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/boxed-hamburger-menu-text-icon",
+    "name": "Boxed hamburger menu (text+icon)",
+    "library": "ux",
+    "elementCount": 5,
+    "width": 40,
+    "height": 13,
+    "keywords": [
+      "boxed",
+      "hamburger",
+      "menu",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/hamburger-menu-icon-only",
+    "name": "Hamburger menu (icon only)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 6,
+    "height": 5,
+    "keywords": [
+      "hamburger",
+      "menu",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/boxed-hamburger-menu-icon-only",
+    "name": "Boxed hamburger menu (icon only)",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 13,
+    "height": 13,
+    "keywords": [
+      "boxed",
+      "hamburger",
+      "menu",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/check-mark",
+    "name": "Check mark",
+    "library": "ux",
+    "elementCount": 1,
+    "width": 9,
+    "height": 7,
+    "keywords": [
+      "check",
+      "mark",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/reject-button-text-icon",
+    "name": "Reject button (text+icon)",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 72,
+    "height": 22,
+    "keywords": [
+      "reject",
+      "button",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/confirm-button-text-icon",
+    "name": "Confirm button (text+icon)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 72,
+    "height": 20,
+    "keywords": [
+      "confirm",
+      "button",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/reject-button-icon-only",
+    "name": "Reject button (icon only)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 25,
+    "height": 25,
+    "keywords": [
+      "reject",
+      "button",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/confirm-button-icon-only",
+    "name": "Confirm button (icon only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 25,
+    "height": 25,
+    "keywords": [
+      "confirm",
+      "button",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/boxed-reject-button-icon-only",
+    "name": "Boxed reject button (icon only)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 23,
+    "height": 23,
+    "keywords": [
+      "boxed",
+      "reject",
+      "button",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/boxed-confirm-button-icon-only",
+    "name": "Boxed confirm button (icon only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 22,
+    "height": 22,
+    "keywords": [
+      "boxed",
+      "confirm",
+      "button",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/filled-slider",
+    "name": "Filled slider",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 108,
+    "height": 11,
+    "keywords": [
+      "filled",
+      "slider",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/outlined-slider",
+    "name": "Outlined slider",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 108,
+    "height": 11,
+    "keywords": [
+      "outlined",
+      "slider",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/go-forward-arrow",
+    "name": "Go forward arrow",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 24,
+    "height": 22,
+    "keywords": [
+      "go",
+      "forward",
+      "arrow",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/go-back-arrow",
+    "name": "Go back arrow",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 22,
+    "height": 22,
+    "keywords": [
+      "go",
+      "back",
+      "arrow",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/modal",
+    "name": "Modal",
+    "library": "ux",
+    "elementCount": 9,
+    "width": 264,
+    "height": 162,
+    "keywords": [
+      "modal",
+      "ux",
+      "button",
+      "lorem",
+      "ipsum",
+      "dolor",
+      "sit",
+      "amet",
+      "consectetur",
+      "adipiscing",
+      "elit",
+      "in",
+      "iaculis",
+      "lacinia",
+      "tellus",
+      "vel",
+      "euismod",
+      "aenean",
+      "eget",
+      "volutpat",
+      "libero",
+      "duis",
+      "ac",
+      "augue",
+      "consequat",
+      "fringilla",
+      "ut",
+      "ullamcorper",
+      "quam",
+      "vestibulum",
+      "ante",
+      "primis",
+      "faucibus",
+      "orci",
+      "luctus",
+      "et",
+      "ultrices",
+      "posuere",
+      "cubilia",
+      "curae",
+      "nam",
+      "nisi",
+      "accumsan",
+      "eleifend",
+      "fermentum",
+      "dui",
+      "non",
+      "neque",
+      "tortor",
+      "convallis",
+      "mauris",
+      "auctor",
+      "maximus"
+    ]
+  },
+  {
+    "shapeId": "ux/tooltip-left",
+    "name": "Tooltip (left)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 36,
+    "height": 51,
+    "keywords": [
+      "tooltip",
+      "left",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/tooltip-right",
+    "name": "Tooltip (right)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 25,
+    "height": 51,
+    "keywords": [
+      "tooltip",
+      "right",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/tooltip-top",
+    "name": "Tooltip (top)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 74,
+    "height": 23,
+    "keywords": [
+      "tooltip",
+      "top",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/tooltip-bottom",
+    "name": "Tooltip (bottom)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 63,
+    "height": 22,
+    "keywords": [
+      "tooltip",
+      "bottom",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/cross",
+    "name": "Cross",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 16,
+    "height": 8,
+    "keywords": [
+      "cross",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/search",
+    "name": "Search",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 11,
+    "height": 11,
+    "keywords": [
+      "search",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/selected-checkbox-icon-only",
+    "name": "Selected checkbox (icon only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 11,
+    "height": 12,
+    "keywords": [
+      "selected",
+      "checkbox",
+      "icon",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/show-more-button-circle",
+    "name": "Show more button (circle)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 14,
+    "height": 14,
+    "keywords": [
+      "show",
+      "more",
+      "button",
+      "circle",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/show-more-button-boxed",
+    "name": "Show more button (boxed)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 14,
+    "height": 14,
+    "keywords": [
+      "show",
+      "more",
+      "button",
+      "boxed",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/upload-image-section",
+    "name": "Upload image section",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 132,
+    "height": 85,
+    "keywords": [
+      "upload",
+      "image",
+      "section",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/image-placeholder",
+    "name": "Image placeholder",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 132,
+    "height": 135,
+    "keywords": [
+      "image",
+      "placeholder",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/disabled-checkbox-text-icon",
+    "name": "Disabled checkbox (text+icon)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 113,
+    "height": 14,
+    "keywords": [
+      "disabled",
+      "checkbox",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/selected-disabled-checkbox-text-icon",
+    "name": "Selected disabled checkbox (text+icon)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 111,
+    "height": 14,
+    "keywords": [
+      "selected",
+      "disabled",
+      "checkbox",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/selected-checkbox-text-icon",
+    "name": "Selected checkbox (text+icon)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 112,
+    "height": 14,
+    "keywords": [
+      "selected",
+      "checkbox",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/checkbox-text-icon",
+    "name": "Checkbox (text+icon)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 65,
+    "height": 14,
+    "keywords": [
+      "checkbox",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/selected-disabled-radio-button-text-icon",
+    "name": "Selected disabled radio button (text+icon)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 113,
+    "height": 14,
+    "keywords": [
+      "selected",
+      "disabled",
+      "radio",
+      "button",
+      "text",
+      "icon",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/disabled-radio-button-text-icon",
+    "name": "Disabled radio button (text+icon)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 100,
+    "height": 14,
+    "keywords": [
+      "disabled",
+      "radio",
+      "button",
+      "text",
+      "icon",
+      "ux",
+      "option"
+    ]
+  },
+  {
+    "shapeId": "ux/selected-radio-button-text-icon",
+    "name": "Selected radio button (text+icon)",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 100,
+    "height": 14,
+    "keywords": [
+      "selected",
+      "radio",
+      "button",
+      "text",
+      "icon",
+      "ux",
+      "option"
+    ]
+  },
+  {
+    "shapeId": "ux/radio-button-text-icon",
+    "name": "Radio button (text+icon)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 51,
+    "height": 13,
+    "keywords": [
+      "radio",
+      "button",
+      "text",
+      "icon",
+      "ux",
+      "option"
+    ]
+  },
+  {
+    "shapeId": "ux/videoplayer",
+    "name": "Videoplayer",
+    "library": "ux",
+    "elementCount": 13,
+    "width": 317,
+    "height": 221,
+    "keywords": [
+      "videoplayer",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/disabled-outlined-button-text-only",
+    "name": "Disabled outlined button (text only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 93,
+    "height": 22,
+    "keywords": [
+      "disabled",
+      "outlined",
+      "button",
+      "text",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/outlined-button-text-only",
+    "name": "Outlined button (text only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 93,
+    "height": 22,
+    "keywords": [
+      "outlined",
+      "button",
+      "text",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/disabled-filled-button-text-only",
+    "name": "Disabled filled button (text only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 93,
+    "height": 22,
+    "keywords": [
+      "disabled",
+      "filled",
+      "button",
+      "text",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/filled-button-text-only",
+    "name": "Filled button (text only)",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 93,
+    "height": 22,
+    "keywords": [
+      "filled",
+      "button",
+      "text",
+      "only",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/text-area",
+    "name": "Text area",
+    "library": "ux",
+    "elementCount": 3,
+    "width": 171,
+    "height": 55,
+    "keywords": [
+      "text",
+      "area",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/text-area-with-placeholder",
+    "name": "Text area with placeholder",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 171,
+    "height": 55,
+    "keywords": [
+      "text",
+      "area",
+      "with",
+      "placeholder",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/disabled-dropdown-menu",
+    "name": "Disabled dropdown menu",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 142,
+    "height": 20,
+    "keywords": [
+      "disabled",
+      "dropdown",
+      "menu",
+      "ux",
+      "select"
+    ]
+  },
+  {
+    "shapeId": "ux/selected-dropdown-menu",
+    "name": "Selected dropdown menu",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 142,
+    "height": 20,
+    "keywords": [
+      "selected",
+      "dropdown",
+      "menu",
+      "ux",
+      "option"
+    ]
+  },
+  {
+    "shapeId": "ux/dropdown-menu",
+    "name": "Dropdown menu",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 142,
+    "height": 20,
+    "keywords": [
+      "dropdown",
+      "menu",
+      "ux",
+      "select"
+    ]
+  },
+  {
+    "shapeId": "ux/search-field",
+    "name": "Search field",
+    "library": "ux",
+    "elementCount": 4,
+    "width": 142,
+    "height": 20,
+    "keywords": [
+      "search",
+      "field",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/disabled-text-field-with-placeholder",
+    "name": "Disabled text field with placeholder",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 142,
+    "height": 20,
+    "keywords": [
+      "disabled",
+      "text",
+      "field",
+      "with",
+      "placeholder",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "ux/text-field-with-text",
+    "name": "Text field with text",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 142,
+    "height": 20,
+    "keywords": [
+      "text",
+      "field",
+      "with",
+      "ux",
+      "filled"
+    ]
+  },
+  {
+    "shapeId": "ux/text-field-with-placeholder",
+    "name": "Text field with placeholder",
+    "library": "ux",
+    "elementCount": 2,
+    "width": 142,
+    "height": 20,
+    "keywords": [
+      "text",
+      "field",
+      "with",
+      "placeholder",
+      "ux"
+    ]
+  },
+  {
+    "shapeId": "data-viz/bar",
+    "name": "Bar",
+    "library": "data-viz",
+    "elementCount": 15,
+    "width": 581,
+    "height": 490,
+    "keywords": [
+      "bar",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/stacked-bar",
+    "name": "Stacked bar",
+    "library": "data-viz",
+    "elementCount": 24,
+    "width": 581,
+    "height": 419,
+    "keywords": [
+      "stacked",
+      "bar",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/100-stacked-bar",
+    "name": "100% stacked bar",
+    "library": "data-viz",
+    "elementCount": 24,
+    "width": 581,
+    "height": 530,
+    "keywords": [
+      "100",
+      "stacked",
+      "bar",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/grouped-bar",
+    "name": "Grouped bar",
+    "library": "data-viz",
+    "elementCount": 12,
+    "width": 581,
+    "height": 507,
+    "keywords": [
+      "grouped",
+      "bar",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/column",
+    "name": "Column",
+    "library": "data-viz",
+    "elementCount": 8,
+    "width": 581,
+    "height": 321,
+    "keywords": [
+      "column",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/stacked-column",
+    "name": "Stacked Column",
+    "library": "data-viz",
+    "elementCount": 21,
+    "width": 581,
+    "height": 322,
+    "keywords": [
+      "stacked",
+      "column",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/100-stacked-column",
+    "name": "100% Stacked Column",
+    "library": "data-viz",
+    "elementCount": 30,
+    "width": 581,
+    "height": 321,
+    "keywords": [
+      "100",
+      "stacked",
+      "column",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/grouped-column",
+    "name": "Grouped Column",
+    "library": "data-viz",
+    "elementCount": 18,
+    "width": 581,
+    "height": 321,
+    "keywords": [
+      "grouped",
+      "column",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/line",
+    "name": "Line",
+    "library": "data-viz",
+    "elementCount": 9,
+    "width": 587,
+    "height": 514,
+    "keywords": [
+      "line",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/line-2",
+    "name": "Line",
+    "library": "data-viz",
+    "elementCount": 19,
+    "width": 581,
+    "height": 354,
+    "keywords": [
+      "line",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/area",
+    "name": "Area",
+    "library": "data-viz",
+    "elementCount": 6,
+    "width": 583,
+    "height": 604,
+    "keywords": [
+      "area",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/stacked-area",
+    "name": "Stacked area",
+    "library": "data-viz",
+    "elementCount": 6,
+    "width": 582,
+    "height": 525,
+    "keywords": [
+      "stacked",
+      "area",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/100-stacked-area",
+    "name": "100 %Stacked area",
+    "library": "data-viz",
+    "elementCount": 7,
+    "width": 582,
+    "height": 525,
+    "keywords": [
+      "100",
+      "stacked",
+      "area",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/themeriver",
+    "name": "ThemeRiver",
+    "library": "data-viz",
+    "elementCount": 7,
+    "width": 581,
+    "height": 346,
+    "keywords": [
+      "themeriver",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/scatter",
+    "name": "Scatter",
+    "library": "data-viz",
+    "elementCount": 31,
+    "width": 581,
+    "height": 321,
+    "keywords": [
+      "scatter",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/bubble",
+    "name": "Bubble",
+    "library": "data-viz",
+    "elementCount": 12,
+    "width": 581,
+    "height": 321,
+    "keywords": [
+      "bubble",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/cartiesan-heatmap",
+    "name": "Cartiesan heatmap",
+    "library": "data-viz",
+    "elementCount": 410,
+    "width": 584,
+    "height": 322,
+    "keywords": [
+      "cartiesan",
+      "heatmap",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/calendar-heatmap",
+    "name": "Calendar heatmap",
+    "library": "data-viz",
+    "elementCount": 199,
+    "width": 584,
+    "height": 329,
+    "keywords": [
+      "calendar",
+      "heatmap",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/tree-map",
+    "name": "Tree Map",
+    "library": "data-viz",
+    "elementCount": 33,
+    "width": 580,
+    "height": 323,
+    "keywords": [
+      "tree",
+      "map",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/waterfall-item-1-item-2-item-3-item-4",
+    "name": "Waterfall item 1 item 2 item 3 item 4",
+    "library": "data-viz",
+    "elementCount": 20,
+    "width": 581,
+    "height": 321,
+    "keywords": [
+      "waterfall",
+      "item",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/dot-strip-plot",
+    "name": "Dot\\strip plot",
+    "library": "data-viz",
+    "elementCount": 15,
+    "width": 581,
+    "height": 322,
+    "keywords": [
+      "dot",
+      "strip",
+      "plot",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/dot-multi-strip-plot",
+    "name": "Dot (multi-strip) plot",
+    "library": "data-viz",
+    "elementCount": 37,
+    "width": 581,
+    "height": 322,
+    "keywords": [
+      "dot",
+      "multi",
+      "strip",
+      "plot",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/dot-multi-strip-with-jitter-plot",
+    "name": "Dot (multi-strip with jitter) plot",
+    "library": "data-viz",
+    "elementCount": 125,
+    "width": 581,
+    "height": 322,
+    "keywords": [
+      "dot",
+      "multi",
+      "strip",
+      "with",
+      "jitter",
+      "plot",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/column-histogram",
+    "name": "Column Histogram",
+    "library": "data-viz",
+    "elementCount": 16,
+    "width": 581,
+    "height": 321,
+    "keywords": [
+      "column",
+      "histogram",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/population-pyrimid",
+    "name": "Population pyrimid",
+    "library": "data-viz",
+    "elementCount": 29,
+    "width": 581,
+    "height": 400,
+    "keywords": [
+      "population",
+      "pyrimid",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/density-plot",
+    "name": "Density plot",
+    "library": "data-viz",
+    "elementCount": 4,
+    "width": 581,
+    "height": 549,
+    "keywords": [
+      "density",
+      "plot",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/box-whisker",
+    "name": "Box & Whisker",
+    "library": "data-viz",
+    "elementCount": 19,
+    "width": 581,
+    "height": 322,
+    "keywords": [
+      "box",
+      "whisker",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/violin",
+    "name": "Violin",
+    "library": "data-viz",
+    "elementCount": 7,
+    "width": 670,
+    "height": 330,
+    "keywords": [
+      "violin",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/pie",
+    "name": "Pie",
+    "library": "data-viz",
+    "elementCount": 5,
+    "width": 370,
+    "height": 376,
+    "keywords": [
+      "pie",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/donut",
+    "name": "Donut",
+    "library": "data-viz",
+    "elementCount": 5,
+    "width": 291,
+    "height": 406,
+    "keywords": [
+      "donut",
+      "data",
+      "viz"
+    ]
+  },
+  {
+    "shapeId": "data-viz/polar-area-coxcomb-the-florence-nightinglae-cha",
+    "name": "Polar - Area\\Coxcomb (The Florence Nightinglae cha...",
+    "library": "data-viz",
+    "elementCount": 21,
+    "width": 548,
+    "height": 414,
+    "keywords": [
+      "polar",
+      "area",
+      "coxcomb",
+      "the",
+      "florence",
+      "nightinglae",
+      "cha",
+      "data",
+      "viz",
+      "chart",
+      "jan",
+      "feb",
+      "mar",
+      "apr",
+      "may"
+    ]
+  },
+  {
+    "shapeId": "data-viz/label-2-label-3-label-4-label-5-label-6-label-1-ra",
+    "name": "label 2 label 3 label 4 label 5 label 6 label 1 Ra...",
+    "library": "data-viz",
+    "elementCount": 47,
+    "width": 445,
+    "height": 338,
+    "keywords": [
+      "label",
+      "ra",
+      "data",
+      "viz",
+      "radar",
+      "spider"
+    ]
+  },
+  {
+    "shapeId": "db-eng/classified-database-empno-ename-sal-smith-allen-wa",
+    "name": "Classified Database EMPNO ENAME SAL SMITH ALLEN WA...",
+    "library": "db-eng",
+    "elementCount": 32,
+    "width": 545,
+    "height": 701,
+    "keywords": [
+      "classified",
+      "database",
+      "empno",
+      "ename",
+      "sal",
+      "smith",
+      "allen",
+      "wa",
+      "db",
+      "eng",
+      "ward",
+      "jones",
+      "martin",
+      "blake",
+      "clark",
+      "scott",
+      "king",
+      "turner",
+      "adams",
+      "james",
+      "ford",
+      "miller",
+      "800",
+      "1600",
+      "1250",
+      "2975",
+      "2850",
+      "2450",
+      "3000",
+      "5000",
+      "1500",
+      "1100",
+      "950",
+      "1300",
+      "7369",
+      "7499",
+      "7521",
+      "7566",
+      "7654",
+      "7698",
+      "7782",
+      "7788",
+      "7839",
+      "7844",
+      "7876",
+      "7900",
+      "7902",
+      "7934",
+      "data",
+      "system",
+      "sysaux",
+      "undo",
+      "secret",
+      "temp"
+    ]
+  },
+  {
+    "shapeId": "db-eng/empno-ename-sal-smith-allen-ward-jones-martin-blak",
+    "name": "EMPNO ENAME SAL SMITH ALLEN WARD JONES MARTIN BLAK...",
+    "library": "db-eng",
+    "elementCount": 14,
+    "width": 359,
+    "height": 485,
+    "keywords": [
+      "empno",
+      "ename",
+      "sal",
+      "smith",
+      "allen",
+      "ward",
+      "jones",
+      "martin",
+      "blak",
+      "db",
+      "eng",
+      "blake",
+      "clark",
+      "scott",
+      "king",
+      "turner",
+      "adams",
+      "james",
+      "ford",
+      "miller",
+      "800",
+      "1600",
+      "1250",
+      "2975",
+      "2850",
+      "2450",
+      "3000",
+      "5000",
+      "1500",
+      "1100",
+      "950",
+      "1300",
+      "7369",
+      "7499",
+      "7521",
+      "7566",
+      "7654",
+      "7698",
+      "7782",
+      "7788",
+      "7839",
+      "7844",
+      "7876",
+      "7900",
+      "7902",
+      "7934",
+      "rdbms",
+      "database"
+    ]
+  },
+  {
+    "shapeId": "db-eng/database",
+    "name": "Database",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 102,
+    "height": 145,
+    "keywords": [
+      "database",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/database-2",
+    "name": "Database",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 102,
+    "height": 145,
+    "keywords": [
+      "database",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/database-3",
+    "name": "Database",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 102,
+    "height": 145,
+    "keywords": [
+      "database",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/database-4",
+    "name": "Database",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 102,
+    "height": 145,
+    "keywords": [
+      "database",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/inc0",
+    "name": "INC0",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 51,
+    "height": 64,
+    "keywords": [
+      "inc0",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/1",
+    "name": "1",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 22,
+    "height": 26,
+    "keywords": [
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/empno-ename-sal-smith-allen-ward-jones-martin-blak-2",
+    "name": "EMPNO ENAME SAL SMITH ALLEN WARD JONES MARTIN BLAK...",
+    "library": "db-eng",
+    "elementCount": 11,
+    "width": 319,
+    "height": 388,
+    "keywords": [
+      "empno",
+      "ename",
+      "sal",
+      "smith",
+      "allen",
+      "ward",
+      "jones",
+      "martin",
+      "blak",
+      "db",
+      "eng",
+      "blake",
+      "clark",
+      "scott",
+      "king",
+      "turner",
+      "adams",
+      "james",
+      "ford",
+      "miller",
+      "800",
+      "1600",
+      "1250",
+      "2975",
+      "2850",
+      "2450",
+      "3000",
+      "5000",
+      "1500",
+      "1100",
+      "950",
+      "1300",
+      "7369",
+      "7499",
+      "7521",
+      "7566",
+      "7654",
+      "7698",
+      "7782",
+      "7788",
+      "7839",
+      "7844",
+      "7876",
+      "7900",
+      "7902",
+      "7934"
+    ]
+  },
+  {
+    "shapeId": "db-eng/oracle-directory",
+    "name": "Oracle Directory",
+    "library": "db-eng",
+    "elementCount": 8,
+    "width": 102,
+    "height": 173,
+    "keywords": [
+      "oracle",
+      "directory",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/openldap-directory",
+    "name": "OpenLDAP Directory",
+    "library": "db-eng",
+    "elementCount": 8,
+    "width": 102,
+    "height": 173,
+    "keywords": [
+      "openldap",
+      "directory",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/active-directory",
+    "name": "Active Directory",
+    "library": "db-eng",
+    "elementCount": 8,
+    "width": 102,
+    "height": 173,
+    "keywords": [
+      "active",
+      "directory",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/system",
+    "name": "SYSTEM",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 151,
+    "height": 36,
+    "keywords": [
+      "system",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/temp",
+    "name": "TEMP",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 121,
+    "height": 36,
+    "keywords": [
+      "temp",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/data",
+    "name": "DATA",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 121,
+    "height": 36,
+    "keywords": [
+      "data",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/secret",
+    "name": "SECRET",
+    "library": "db-eng",
+    "elementCount": 3,
+    "width": 154,
+    "height": 36,
+    "keywords": [
+      "secret",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/load-balancer",
+    "name": "Load Balancer",
+    "library": "db-eng",
+    "elementCount": 5,
+    "width": 100,
+    "height": 163,
+    "keywords": [
+      "load",
+      "balancer",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/db-eng-shape-18",
+    "name": "db-eng-shape-18",
+    "library": "db-eng",
+    "elementCount": 5,
+    "width": 100,
+    "height": 100,
+    "keywords": [
+      "db",
+      "eng",
+      "shape",
+      "18"
+    ]
+  },
+  {
+    "shapeId": "db-eng/firewall",
+    "name": "Firewall",
+    "library": "db-eng",
+    "elementCount": 37,
+    "width": 153,
+    "height": 125,
+    "keywords": [
+      "firewall",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/db-eng-shape-20",
+    "name": "db-eng-shape-20",
+    "library": "db-eng",
+    "elementCount": 21,
+    "width": 182,
+    "height": 266,
+    "keywords": [
+      "db",
+      "eng",
+      "shape",
+      "20"
+    ]
+  },
+  {
+    "shapeId": "db-eng/db-eng-shape-21",
+    "name": "db-eng-shape-21",
+    "library": "db-eng",
+    "elementCount": 11,
+    "width": 150,
+    "height": 239,
+    "keywords": [
+      "db",
+      "eng",
+      "shape",
+      "21"
+    ]
+  },
+  {
+    "shapeId": "db-eng/db-eng-shape-22",
+    "name": "db-eng-shape-22",
+    "library": "db-eng",
+    "elementCount": 15,
+    "width": 150,
+    "height": 239,
+    "keywords": [
+      "db",
+      "eng",
+      "shape",
+      "22"
+    ]
+  },
+  {
+    "shapeId": "db-eng/very-fast-server-server",
+    "name": "Very fast Server Server",
+    "library": "db-eng",
+    "elementCount": 15,
+    "width": 174,
+    "height": 72,
+    "keywords": [
+      "very",
+      "fast",
+      "server",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/cloud",
+    "name": "Cloud",
+    "library": "db-eng",
+    "elementCount": 15,
+    "width": 394,
+    "height": 267,
+    "keywords": [
+      "cloud",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/server-host-very-fast-server",
+    "name": "Server host Very fast Server",
+    "library": "db-eng",
+    "elementCount": 18,
+    "width": 240,
+    "height": 240,
+    "keywords": [
+      "server",
+      "host",
+      "very",
+      "fast",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/bastion-host-jumphost-very-fast-server-firewall",
+    "name": "Bastion Host jumphost Very fast Server Firewall",
+    "library": "db-eng",
+    "elementCount": 61,
+    "width": 239,
+    "height": 240,
+    "keywords": [
+      "bastion",
+      "host",
+      "jumphost",
+      "very",
+      "fast",
+      "server",
+      "firewall",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/database-server-db19-very-fast-server-10-0-1-19",
+    "name": "Database Server db19 Very fast Server 10.0.1.19",
+    "library": "db-eng",
+    "elementCount": 21,
+    "width": 239,
+    "height": 240,
+    "keywords": [
+      "database",
+      "server",
+      "db19",
+      "very",
+      "fast",
+      "10",
+      "19",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/oracle-unified-directory-oud-very-fast-server",
+    "name": "Oracle Unified Directory oud Very fast Server",
+    "library": "db-eng",
+    "elementCount": 34,
+    "width": 240,
+    "height": 240,
+    "keywords": [
+      "oracle",
+      "unified",
+      "directory",
+      "oud",
+      "very",
+      "fast",
+      "server",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/ms-active-directory-winad-very-fast-server",
+    "name": "MS Active Directory winad Very fast Server",
+    "library": "db-eng",
+    "elementCount": 34,
+    "width": 240,
+    "height": 240,
+    "keywords": [
+      "ms",
+      "active",
+      "directory",
+      "winad",
+      "very",
+      "fast",
+      "server",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/oracle-oem-repository-oem2-very-fast-server",
+    "name": "Oracle OEM Repository oem2 Very fast Server",
+    "library": "db-eng",
+    "elementCount": 20,
+    "width": 239,
+    "height": 240,
+    "keywords": [
+      "oracle",
+      "oem",
+      "repository",
+      "oem2",
+      "very",
+      "fast",
+      "server",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/oracle-oem-console-oem1-very-fast-server",
+    "name": "Oracle OEM Console oem1 Very fast Server",
+    "library": "db-eng",
+    "elementCount": 29,
+    "width": 240,
+    "height": 240,
+    "keywords": [
+      "oracle",
+      "oem",
+      "console",
+      "oem1",
+      "very",
+      "fast",
+      "server",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/windows-workstation-win-very-fast-server",
+    "name": "Windows Workstation win Very fast Server",
+    "library": "db-eng",
+    "elementCount": 23,
+    "width": 240,
+    "height": 240,
+    "keywords": [
+      "windows",
+      "workstation",
+      "win",
+      "very",
+      "fast",
+      "server",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/0-1-2-3-sequence",
+    "name": "0 1 2 3 Sequence",
+    "library": "db-eng",
+    "elementCount": 10,
+    "width": 356,
+    "height": 62,
+    "keywords": [
+      "sequence",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/0-1-2-3-4-5-sequence",
+    "name": "0 1 2 3 4 5 Sequence",
+    "library": "db-eng",
+    "elementCount": 14,
+    "width": 509,
+    "height": 62,
+    "keywords": [
+      "sequence",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/10-11-12-13-14-15-16-17-18-19-sequence",
+    "name": "10 11 12 13 14 15 16 17 18 19 Sequence",
+    "library": "db-eng",
+    "elementCount": 22,
+    "width": 829,
+    "height": 62,
+    "keywords": [
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "sequence",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/db-eng-shape-36",
+    "name": "db-eng-shape-36",
+    "library": "db-eng",
+    "elementCount": 2,
+    "width": 453,
+    "height": 79,
+    "keywords": [
+      "db",
+      "eng",
+      "shape",
+      "36"
+    ]
+  },
+  {
+    "shapeId": "db-eng/tde-master-encryption-key-wallet",
+    "name": "TDE Master Encryption Key Wallet",
+    "library": "db-eng",
+    "elementCount": 9,
+    "width": 270,
+    "height": 232,
+    "keywords": [
+      "tde",
+      "master",
+      "encryption",
+      "key",
+      "wallet",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/tde-tablespace-encryption-key-secret",
+    "name": "TDE Tablespace Encryption Key SECRET",
+    "library": "db-eng",
+    "elementCount": 10,
+    "width": 430,
+    "height": 170,
+    "keywords": [
+      "tde",
+      "tablespace",
+      "encryption",
+      "key",
+      "secret",
+      "db",
+      "eng"
+    ]
+  },
+  {
+    "shapeId": "db-eng/tde-table-encryption-key-columns-empno-ename-sal-s",
+    "name": "TDE Table Encryption Key Columns EMPNO ENAME SAL S...",
+    "library": "db-eng",
+    "elementCount": 39,
+    "width": 430,
+    "height": 170,
+    "keywords": [
+      "tde",
+      "table",
+      "encryption",
+      "key",
+      "columns",
+      "empno",
+      "ename",
+      "sal",
+      "db",
+      "eng",
+      "smith",
+      "allen",
+      "ward",
+      "jones",
+      "martin",
+      "blake",
+      "clark",
+      "scott",
+      "king",
+      "turner",
+      "adams",
+      "james",
+      "ford",
+      "miller",
+      "800",
+      "1600",
+      "1250",
+      "2975",
+      "2850",
+      "2450",
+      "3000",
+      "5000",
+      "1500",
+      "1100",
+      "950",
+      "1300",
+      "7369",
+      "7499",
+      "7521",
+      "7566",
+      "7654",
+      "7698",
+      "7782",
+      "7788",
+      "7839",
+      "7844",
+      "7876",
+      "7900",
+      "7902",
+      "7934"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-1",
+    "name": "devops-shape-1",
+    "library": "devops",
+    "elementCount": 6,
+    "width": 249,
+    "height": 130,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-2",
+    "name": "devops-shape-2",
+    "library": "devops",
+    "elementCount": 10,
+    "width": 202,
+    "height": 166,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-3",
+    "name": "devops-shape-3",
+    "library": "devops",
+    "elementCount": 11,
+    "width": 382,
+    "height": 139,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-4",
+    "name": "devops-shape-4",
+    "library": "devops",
+    "elementCount": 19,
+    "width": 315,
+    "height": 308,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-5",
+    "name": "devops-shape-5",
+    "library": "devops",
+    "elementCount": 20,
+    "width": 322,
+    "height": 247,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-6",
+    "name": "devops-shape-6",
+    "library": "devops",
+    "elementCount": 3,
+    "width": 255,
+    "height": 347,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-7",
+    "name": "devops-shape-7",
+    "library": "devops",
+    "elementCount": 4,
+    "width": 183,
+    "height": 333,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-8",
+    "name": "devops-shape-8",
+    "library": "devops",
+    "elementCount": 13,
+    "width": 218,
+    "height": 173,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-9",
+    "name": "devops-shape-9",
+    "library": "devops",
+    "elementCount": 42,
+    "width": 264,
+    "height": 198,
+    "keywords": [
+      "devops",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-10",
+    "name": "devops-shape-10",
+    "library": "devops",
+    "elementCount": 12,
+    "width": 262,
+    "height": 346,
+    "keywords": [
+      "devops",
+      "shape",
+      "10"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-11",
+    "name": "devops-shape-11",
+    "library": "devops",
+    "elementCount": 7,
+    "width": 284,
+    "height": 234,
+    "keywords": [
+      "devops",
+      "shape",
+      "11"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-12",
+    "name": "devops-shape-12",
+    "library": "devops",
+    "elementCount": 14,
+    "width": 291,
+    "height": 167,
+    "keywords": [
+      "devops",
+      "shape",
+      "12"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-13",
+    "name": "devops-shape-13",
+    "library": "devops",
+    "elementCount": 4,
+    "width": 340,
+    "height": 181,
+    "keywords": [
+      "devops",
+      "shape",
+      "13"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-14",
+    "name": "devops-shape-14",
+    "library": "devops",
+    "elementCount": 9,
+    "width": 229,
+    "height": 141,
+    "keywords": [
+      "devops",
+      "shape",
+      "14"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-15",
+    "name": "devops-shape-15",
+    "library": "devops",
+    "elementCount": 8,
+    "width": 365,
+    "height": 244,
+    "keywords": [
+      "devops",
+      "shape",
+      "15"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-16",
+    "name": "devops-shape-16",
+    "library": "devops",
+    "elementCount": 17,
+    "width": 179,
+    "height": 179,
+    "keywords": [
+      "devops",
+      "shape",
+      "16"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-17",
+    "name": "devops-shape-17",
+    "library": "devops",
+    "elementCount": 1,
+    "width": 195,
+    "height": 195,
+    "keywords": [
+      "devops",
+      "shape",
+      "17"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-18",
+    "name": "devops-shape-18",
+    "library": "devops",
+    "elementCount": 3,
+    "width": 212,
+    "height": 173,
+    "keywords": [
+      "devops",
+      "shape",
+      "18"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-19",
+    "name": "devops-shape-19",
+    "library": "devops",
+    "elementCount": 7,
+    "width": 335,
+    "height": 227,
+    "keywords": [
+      "devops",
+      "shape",
+      "19"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-20",
+    "name": "devops-shape-20",
+    "library": "devops",
+    "elementCount": 5,
+    "width": 163,
+    "height": 223,
+    "keywords": [
+      "devops",
+      "shape",
+      "20"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-21",
+    "name": "devops-shape-21",
+    "library": "devops",
+    "elementCount": 3,
+    "width": 575,
+    "height": 186,
+    "keywords": [
+      "devops",
+      "shape",
+      "21"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-22",
+    "name": "devops-shape-22",
+    "library": "devops",
+    "elementCount": 4,
+    "width": 306,
+    "height": 543,
+    "keywords": [
+      "devops",
+      "shape",
+      "22"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-23",
+    "name": "devops-shape-23",
+    "library": "devops",
+    "elementCount": 3,
+    "width": 130,
+    "height": 131,
+    "keywords": [
+      "devops",
+      "shape",
+      "23"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-24",
+    "name": "devops-shape-24",
+    "library": "devops",
+    "elementCount": 3,
+    "width": 103,
+    "height": 309,
+    "keywords": [
+      "devops",
+      "shape",
+      "24"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-25",
+    "name": "devops-shape-25",
+    "library": "devops",
+    "elementCount": 4,
+    "width": 460,
+    "height": 170,
+    "keywords": [
+      "devops",
+      "shape",
+      "25"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-26",
+    "name": "devops-shape-26",
+    "library": "devops",
+    "elementCount": 8,
+    "width": 314,
+    "height": 694,
+    "keywords": [
+      "devops",
+      "shape",
+      "26"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-27",
+    "name": "devops-shape-27",
+    "library": "devops",
+    "elementCount": 11,
+    "width": 138,
+    "height": 137,
+    "keywords": [
+      "devops",
+      "shape",
+      "27"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-28",
+    "name": "devops-shape-28",
+    "library": "devops",
+    "elementCount": 4,
+    "width": 141,
+    "height": 160,
+    "keywords": [
+      "devops",
+      "shape",
+      "28"
+    ]
+  },
+  {
+    "shapeId": "devops/devops-shape-29",
+    "name": "devops-shape-29",
+    "library": "devops",
+    "elementCount": 2,
+    "width": 108,
+    "height": 166,
+    "keywords": [
+      "devops",
+      "shape",
+      "29"
+    ]
+  },
+  {
+    "shapeId": "forms/button",
+    "name": "Button",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 90,
+    "height": 36,
+    "keywords": [
+      "button",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/one-two-three",
+    "name": "One Two Three",
+    "library": "forms",
+    "elementCount": 6,
+    "width": 271,
+    "height": 36,
+    "keywords": [
+      "one",
+      "two",
+      "three",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/combobox",
+    "name": "ComboBox",
+    "library": "forms",
+    "elementCount": 4,
+    "width": 159,
+    "height": 38,
+    "keywords": [
+      "combobox",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/item",
+    "name": "/ /",
+    "library": "forms",
+    "elementCount": 12,
+    "width": 226,
+    "height": 45,
+    "keywords": [
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/42",
+    "name": "42",
+    "library": "forms",
+    "elementCount": 5,
+    "width": 72,
+    "height": 37,
+    "keywords": [
+      "42",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/forms-shape-6",
+    "name": "forms-shape-6",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 55,
+    "height": 33,
+    "keywords": [
+      "forms",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "forms/button-2",
+    "name": "Button",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 112,
+    "height": 36,
+    "keywords": [
+      "button",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/button-3",
+    "name": "Button",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 112,
+    "height": 36,
+    "keywords": [
+      "button",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/button-4",
+    "name": "Button",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 112,
+    "height": 36,
+    "keywords": [
+      "button",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/item-2",
+    "name": "+",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 38,
+    "height": 38,
+    "keywords": [
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/forms-shape-11",
+    "name": "forms-shape-11",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 27,
+    "height": 33,
+    "keywords": [
+      "forms",
+      "shape",
+      "11"
+    ]
+  },
+  {
+    "shapeId": "forms/item-3",
+    "name": "?",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 23,
+    "height": 25,
+    "keywords": [
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/forms-shape-13",
+    "name": "forms-shape-13",
+    "library": "forms",
+    "elementCount": 8,
+    "width": 111,
+    "height": 38,
+    "keywords": [
+      "forms",
+      "shape",
+      "13"
+    ]
+  },
+  {
+    "shapeId": "forms/checkbox",
+    "name": "Checkbox",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 125,
+    "height": 27,
+    "keywords": [
+      "checkbox",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/selected",
+    "name": "Selected",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 117,
+    "height": 33,
+    "keywords": [
+      "selected",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/indeterminate",
+    "name": "Indeterminate",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 170,
+    "height": 27,
+    "keywords": [
+      "indeterminate",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/disabled",
+    "name": "Disabled",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 120,
+    "height": 27,
+    "keywords": [
+      "disabled",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/disabled-selected",
+    "name": "Disabled selected",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 211,
+    "height": 33,
+    "keywords": [
+      "disabled",
+      "selected",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/disabled-indeterminate",
+    "name": "Disabled indeterminate",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 258,
+    "height": 27,
+    "keywords": [
+      "disabled",
+      "indeterminate",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/radio",
+    "name": "Radio",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 92,
+    "height": 30,
+    "keywords": [
+      "radio",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/selected-2",
+    "name": "Selected",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 121,
+    "height": 30,
+    "keywords": [
+      "selected",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/indeterminate-2",
+    "name": "Indeterminate",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 174,
+    "height": 30,
+    "keywords": [
+      "indeterminate",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/disabled-2",
+    "name": "Disabled",
+    "library": "forms",
+    "elementCount": 2,
+    "width": 124,
+    "height": 30,
+    "keywords": [
+      "disabled",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/disabled-selected-2",
+    "name": "Disabled selected",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 215,
+    "height": 30,
+    "keywords": [
+      "disabled",
+      "selected",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/disabled-indeterminate-2",
+    "name": "Disabled indeterminate",
+    "library": "forms",
+    "elementCount": 3,
+    "width": 262,
+    "height": 30,
+    "keywords": [
+      "disabled",
+      "indeterminate",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "forms/b-style-u-s-1-2-3",
+    "name": "B style U S 1 2 3",
+    "library": "forms",
+    "elementCount": 38,
+    "width": 372,
+    "height": 45,
+    "keywords": [
+      "style",
+      "forms"
+    ]
+  },
+  {
+    "shapeId": "google/access-context-manager",
+    "name": "Access Context Manager",
+    "library": "google",
+    "elementCount": 4,
+    "width": 290,
+    "height": 347,
+    "keywords": [
+      "access",
+      "context",
+      "manager",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/access-transparency",
+    "name": "Access Transparency",
+    "library": "google",
+    "elementCount": 7,
+    "width": 402,
+    "height": 220,
+    "keywords": [
+      "access",
+      "transparency",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/anthos",
+    "name": "Anthos",
+    "library": "google",
+    "elementCount": 8,
+    "width": 411,
+    "height": 261,
+    "keywords": [
+      "anthos",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/anthos-service-mesh",
+    "name": "Anthos Service mesh",
+    "library": "google",
+    "elementCount": 8,
+    "width": 381,
+    "height": 258,
+    "keywords": [
+      "anthos",
+      "service",
+      "mesh",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/anthos-service-mesh-ii",
+    "name": "Anthos Service Mesh II",
+    "library": "google",
+    "elementCount": 5,
+    "width": 324,
+    "height": 301,
+    "keywords": [
+      "anthos",
+      "service",
+      "mesh",
+      "ii",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/api-analytics",
+    "name": "API Analytics",
+    "library": "google",
+    "elementCount": 10,
+    "width": 270,
+    "height": 173,
+    "keywords": [
+      "api",
+      "analytics",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/api-gateway",
+    "name": "API Gateway",
+    "library": "google",
+    "elementCount": 6,
+    "width": 320,
+    "height": 183,
+    "keywords": [
+      "api",
+      "gateway",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/api-monetization",
+    "name": "API Monetization",
+    "library": "google",
+    "elementCount": 11,
+    "width": 228,
+    "height": 295,
+    "keywords": [
+      "api",
+      "monetization",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/apigee-api-management",
+    "name": "Apigee API Management",
+    "library": "google",
+    "elementCount": 10,
+    "width": 381,
+    "height": 288,
+    "keywords": [
+      "apigee",
+      "api",
+      "management",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/apigee-sense",
+    "name": "Apigee Sense",
+    "library": "google",
+    "elementCount": 6,
+    "width": 388,
+    "height": 221,
+    "keywords": [
+      "apigee",
+      "sense",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/app-engine",
+    "name": "App Engine",
+    "library": "google",
+    "elementCount": 11,
+    "width": 210,
+    "height": 191,
+    "keywords": [
+      "app",
+      "engine",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/apps-script",
+    "name": "Apps Script",
+    "library": "google",
+    "elementCount": 13,
+    "width": 242,
+    "height": 181,
+    "keywords": [
+      "apps",
+      "script",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/appsheet",
+    "name": "AppSheet",
+    "library": "google",
+    "elementCount": 6,
+    "width": 188,
+    "height": 204,
+    "keywords": [
+      "appsheet",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/artifact-registry",
+    "name": "Artifact Registry",
+    "library": "google",
+    "elementCount": 12,
+    "width": 164,
+    "height": 266,
+    "keywords": [
+      "artifact",
+      "registry",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/assured-workloads",
+    "name": "Assured Workloads",
+    "library": "google",
+    "elementCount": 5,
+    "width": 240,
+    "height": 321,
+    "keywords": [
+      "assured",
+      "workloads",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/automl",
+    "name": "AutoML",
+    "library": "google",
+    "elementCount": 5,
+    "width": 224,
+    "height": 215,
+    "keywords": [
+      "automl",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/bare-metal-solution",
+    "name": "Bare Metal Solution",
+    "library": "google",
+    "elementCount": 6,
+    "width": 296,
+    "height": 265,
+    "keywords": [
+      "bare",
+      "metal",
+      "solution",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/beyondcorp-enterprise",
+    "name": "BeyondCorp Enterprise",
+    "library": "google",
+    "elementCount": 4,
+    "width": 383,
+    "height": 284,
+    "keywords": [
+      "beyondcorp",
+      "enterprise",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/bigquery",
+    "name": "Bigquery",
+    "library": "google",
+    "elementCount": 8,
+    "width": 226,
+    "height": 272,
+    "keywords": [
+      "bigquery",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/billing",
+    "name": "Billing",
+    "library": "google",
+    "elementCount": 12,
+    "width": 345,
+    "height": 276,
+    "keywords": [
+      "billing",
+      "google",
+      "cloud"
+    ]
+  },
+  {
+    "shapeId": "google/binary-authorization",
+    "name": "Binary Authorization",
+    "library": "google",
+    "elementCount": 6,
+    "width": 229,
+    "height": 317,
+    "keywords": [
+      "binary",
+      "authorization",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/calendar-api",
+    "name": "Calendar API",
+    "library": "google",
+    "elementCount": 9,
+    "width": 274,
+    "height": 203,
+    "keywords": [
+      "calendar",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/carrier-peering",
+    "name": "Carrier Peering",
+    "library": "google",
+    "elementCount": 3,
+    "width": 352,
+    "height": 178,
+    "keywords": [
+      "carrier",
+      "peering",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/certificate-authority-service",
+    "name": "Certificate Authority Service",
+    "library": "google",
+    "elementCount": 6,
+    "width": 267,
+    "height": 333,
+    "keywords": [
+      "certificate",
+      "authority",
+      "service",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/classroom-api",
+    "name": "Classroom API",
+    "library": "google",
+    "elementCount": 12,
+    "width": 362,
+    "height": 281,
+    "keywords": [
+      "classroom",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-apis",
+    "name": "Cloud APIs",
+    "library": "google",
+    "elementCount": 12,
+    "width": 237,
+    "height": 251,
+    "keywords": [
+      "cloud",
+      "apis",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-armor",
+    "name": "Cloud Armor",
+    "library": "google",
+    "elementCount": 10,
+    "width": 251,
+    "height": 239,
+    "keywords": [
+      "cloud",
+      "armor",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-asset-inventory",
+    "name": "Cloud Asset Inventory",
+    "library": "google",
+    "elementCount": 4,
+    "width": 311,
+    "height": 282,
+    "keywords": [
+      "cloud",
+      "asset",
+      "inventory",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-audit-logs",
+    "name": "Cloud Audit Logs",
+    "library": "google",
+    "elementCount": 7,
+    "width": 243,
+    "height": 388,
+    "keywords": [
+      "cloud",
+      "audit",
+      "logs",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-bigtable",
+    "name": "Cloud Bigtable",
+    "library": "google",
+    "elementCount": 20,
+    "width": 203,
+    "height": 262,
+    "keywords": [
+      "cloud",
+      "bigtable",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-build",
+    "name": "Cloud Build",
+    "library": "google",
+    "elementCount": 6,
+    "width": 238,
+    "height": 264,
+    "keywords": [
+      "cloud",
+      "build",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-cdn",
+    "name": "Cloud CDN",
+    "library": "google",
+    "elementCount": 12,
+    "width": 224,
+    "height": 265,
+    "keywords": [
+      "cloud",
+      "cdn",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-code",
+    "name": "Cloud Code",
+    "library": "google",
+    "elementCount": 7,
+    "width": 220,
+    "height": 158,
+    "keywords": [
+      "cloud",
+      "code",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/composer",
+    "name": "Composer",
+    "library": "google",
+    "elementCount": 5,
+    "width": 214,
+    "height": 217,
+    "keywords": [
+      "composer",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-data-fusion",
+    "name": "Cloud Data Fusion",
+    "library": "google",
+    "elementCount": 6,
+    "width": 205,
+    "height": 243,
+    "keywords": [
+      "cloud",
+      "data",
+      "fusion",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-data-loss-prevention",
+    "name": "Cloud Data Loss Prevention",
+    "library": "google",
+    "elementCount": 18,
+    "width": 373,
+    "height": 301,
+    "keywords": [
+      "cloud",
+      "data",
+      "loss",
+      "prevention",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-data-transfer",
+    "name": "Cloud Data Transfer",
+    "library": "google",
+    "elementCount": 4,
+    "width": 282,
+    "height": 259,
+    "keywords": [
+      "cloud",
+      "data",
+      "transfer",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-debugger",
+    "name": "Cloud Debugger",
+    "library": "google",
+    "elementCount": 10,
+    "width": 274,
+    "height": 238,
+    "keywords": [
+      "cloud",
+      "debugger",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-deploy",
+    "name": "Cloud Deploy",
+    "library": "google",
+    "elementCount": 4,
+    "width": 322,
+    "height": 197,
+    "keywords": [
+      "cloud",
+      "deploy",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-dns",
+    "name": "Cloud DNS",
+    "library": "google",
+    "elementCount": 10,
+    "width": 176,
+    "height": 229,
+    "keywords": [
+      "cloud",
+      "dns",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-domains",
+    "name": "Cloud Domains",
+    "library": "google",
+    "elementCount": 9,
+    "width": 318,
+    "height": 217,
+    "keywords": [
+      "cloud",
+      "domains",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-endpoints",
+    "name": "Cloud Endpoints",
+    "library": "google",
+    "elementCount": 7,
+    "width": 292,
+    "height": 220,
+    "keywords": [
+      "cloud",
+      "endpoints",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-filestore",
+    "name": "Cloud Filestore",
+    "library": "google",
+    "elementCount": 5,
+    "width": 312,
+    "height": 212,
+    "keywords": [
+      "cloud",
+      "filestore",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-firestore",
+    "name": "Cloud Firestore",
+    "library": "google",
+    "elementCount": 6,
+    "width": 245,
+    "height": 229,
+    "keywords": [
+      "cloud",
+      "firestore",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-function",
+    "name": "Cloud Function",
+    "library": "google",
+    "elementCount": 14,
+    "width": 181,
+    "height": 244,
+    "keywords": [
+      "cloud",
+      "function",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-healthcare-api",
+    "name": "Cloud Healthcare API",
+    "library": "google",
+    "elementCount": 11,
+    "width": 364,
+    "height": 329,
+    "keywords": [
+      "cloud",
+      "healthcare",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-iam",
+    "name": "Cloud IAM",
+    "library": "google",
+    "elementCount": 7,
+    "width": 273,
+    "height": 273,
+    "keywords": [
+      "cloud",
+      "iam",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-identity-aware-proxy",
+    "name": "Cloud Identity Aware Proxy",
+    "library": "google",
+    "elementCount": 10,
+    "width": 346,
+    "height": 278,
+    "keywords": [
+      "cloud",
+      "identity",
+      "aware",
+      "proxy",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-ids",
+    "name": "Cloud IDS",
+    "library": "google",
+    "elementCount": 28,
+    "width": 225,
+    "height": 235,
+    "keywords": [
+      "cloud",
+      "ids",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-iot-core",
+    "name": "Cloud IoT Core",
+    "library": "google",
+    "elementCount": 14,
+    "width": 282,
+    "height": 188,
+    "keywords": [
+      "cloud",
+      "iot",
+      "core",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-kms",
+    "name": "Cloud KMS",
+    "library": "google",
+    "elementCount": 8,
+    "width": 287,
+    "height": 433,
+    "keywords": [
+      "cloud",
+      "kms",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-load-balancing",
+    "name": "Cloud Load Balancing",
+    "library": "google",
+    "elementCount": 11,
+    "width": 202,
+    "height": 288,
+    "keywords": [
+      "cloud",
+      "load",
+      "balancing",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-logging",
+    "name": "Cloud Logging",
+    "library": "google",
+    "elementCount": 6,
+    "width": 228,
+    "height": 182,
+    "keywords": [
+      "cloud",
+      "logging",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-memorystore",
+    "name": "Cloud Memorystore",
+    "library": "google",
+    "elementCount": 17,
+    "width": 199,
+    "height": 326,
+    "keywords": [
+      "cloud",
+      "memorystore",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-monitoring",
+    "name": "Cloud Monitoring",
+    "library": "google",
+    "elementCount": 5,
+    "width": 364,
+    "height": 150,
+    "keywords": [
+      "cloud",
+      "monitoring",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-nat",
+    "name": "Cloud NAT",
+    "library": "google",
+    "elementCount": 15,
+    "width": 260,
+    "height": 384,
+    "keywords": [
+      "cloud",
+      "nat",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-profiler",
+    "name": "Cloud Profiler",
+    "library": "google",
+    "elementCount": 9,
+    "width": 348,
+    "height": 327,
+    "keywords": [
+      "cloud",
+      "profiler",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-router",
+    "name": "Cloud Router",
+    "library": "google",
+    "elementCount": 5,
+    "width": 244,
+    "height": 190,
+    "keywords": [
+      "cloud",
+      "router",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-run",
+    "name": "Cloud Run",
+    "library": "google",
+    "elementCount": 5,
+    "width": 282,
+    "height": 258,
+    "keywords": [
+      "cloud",
+      "run",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-run-for-anthos",
+    "name": "Cloud Run for Anthos",
+    "library": "google",
+    "elementCount": 10,
+    "width": 358,
+    "height": 319,
+    "keywords": [
+      "cloud",
+      "run",
+      "for",
+      "anthos",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-scheduler",
+    "name": "Cloud Scheduler",
+    "library": "google",
+    "elementCount": 11,
+    "width": 312,
+    "height": 326,
+    "keywords": [
+      "cloud",
+      "scheduler",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-sdk",
+    "name": "Cloud SDK",
+    "library": "google",
+    "elementCount": 7,
+    "width": 252,
+    "height": 238,
+    "keywords": [
+      "cloud",
+      "sdk",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-shell",
+    "name": "Cloud Shell",
+    "library": "google",
+    "elementCount": 6,
+    "width": 376,
+    "height": 240,
+    "keywords": [
+      "cloud",
+      "shell",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-spanner",
+    "name": "Cloud Spanner",
+    "library": "google",
+    "elementCount": 9,
+    "width": 253,
+    "height": 252,
+    "keywords": [
+      "cloud",
+      "spanner",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-sql",
+    "name": "Cloud SQL",
+    "library": "google",
+    "elementCount": 9,
+    "width": 241,
+    "height": 281,
+    "keywords": [
+      "cloud",
+      "sql",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-storage",
+    "name": "Cloud Storage",
+    "library": "google",
+    "elementCount": 13,
+    "width": 177,
+    "height": 213,
+    "keywords": [
+      "cloud",
+      "storage",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-storage-for-firebase",
+    "name": "Cloud Storage for Firebase",
+    "library": "google",
+    "elementCount": 4,
+    "width": 328,
+    "height": 257,
+    "keywords": [
+      "cloud",
+      "storage",
+      "for",
+      "firebase",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-tasks",
+    "name": "Cloud Tasks",
+    "library": "google",
+    "elementCount": 6,
+    "width": 238,
+    "height": 243,
+    "keywords": [
+      "cloud",
+      "tasks",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-tpu",
+    "name": "Cloud TPU",
+    "library": "google",
+    "elementCount": 7,
+    "width": 360,
+    "height": 181,
+    "keywords": [
+      "cloud",
+      "tpu",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-trace",
+    "name": "Cloud Trace",
+    "library": "google",
+    "elementCount": 6,
+    "width": 198,
+    "height": 245,
+    "keywords": [
+      "cloud",
+      "trace",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-translation",
+    "name": "Cloud Translation",
+    "library": "google",
+    "elementCount": 5,
+    "width": 248,
+    "height": 200,
+    "keywords": [
+      "cloud",
+      "translation",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-vision",
+    "name": "Cloud Vision",
+    "library": "google",
+    "elementCount": 6,
+    "width": 216,
+    "height": 194,
+    "keywords": [
+      "cloud",
+      "vision",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/cloud-vpn",
+    "name": "Cloud VPN",
+    "library": "google",
+    "elementCount": 9,
+    "width": 183,
+    "height": 236,
+    "keywords": [
+      "cloud",
+      "vpn",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/compute-engine",
+    "name": "Compute Engine",
+    "library": "google",
+    "elementCount": 19,
+    "width": 196,
+    "height": 243,
+    "keywords": [
+      "compute",
+      "engine",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/console",
+    "name": "Console",
+    "library": "google",
+    "elementCount": 4,
+    "width": 327,
+    "height": 220,
+    "keywords": [
+      "console",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/contact-center-api",
+    "name": "Contact Center API",
+    "library": "google",
+    "elementCount": 4,
+    "width": 274,
+    "height": 279,
+    "keywords": [
+      "contact",
+      "center",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/container-analysis",
+    "name": "Container Analysis",
+    "library": "google",
+    "elementCount": 5,
+    "width": 371,
+    "height": 310,
+    "keywords": [
+      "container",
+      "analysis",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/container-registry",
+    "name": "Container Registry",
+    "library": "google",
+    "elementCount": 18,
+    "width": 215,
+    "height": 276,
+    "keywords": [
+      "container",
+      "registry",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/data-catalog",
+    "name": "Data Catalog",
+    "library": "google",
+    "elementCount": 10,
+    "width": 212,
+    "height": 218,
+    "keywords": [
+      "data",
+      "catalog",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/data-studio",
+    "name": "Data Studio",
+    "library": "google",
+    "elementCount": 7,
+    "width": 247,
+    "height": 213,
+    "keywords": [
+      "data",
+      "studio",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/database-migration-service",
+    "name": "Database Migration Service",
+    "library": "google",
+    "elementCount": 9,
+    "width": 197,
+    "height": 235,
+    "keywords": [
+      "database",
+      "migration",
+      "service",
+      "google",
+      "db"
+    ]
+  },
+  {
+    "shapeId": "google/dataflow",
+    "name": "Dataflow",
+    "library": "google",
+    "elementCount": 12,
+    "width": 217,
+    "height": 227,
+    "keywords": [
+      "dataflow",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/dataplex",
+    "name": "Dataplex",
+    "library": "google",
+    "elementCount": 8,
+    "width": 189,
+    "height": 232,
+    "keywords": [
+      "dataplex",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/dataprep",
+    "name": "Dataprep",
+    "library": "google",
+    "elementCount": 17,
+    "width": 228,
+    "height": 221,
+    "keywords": [
+      "dataprep",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/dataproc",
+    "name": "Dataproc",
+    "library": "google",
+    "elementCount": 16,
+    "width": 267,
+    "height": 192,
+    "keywords": [
+      "dataproc",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/datastream",
+    "name": "Datastream",
+    "library": "google",
+    "elementCount": 8,
+    "width": 185,
+    "height": 202,
+    "keywords": [
+      "datastream",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/dedicated-interconnect",
+    "name": "Dedicated Interconnect",
+    "library": "google",
+    "elementCount": 6,
+    "width": 223,
+    "height": 261,
+    "keywords": [
+      "dedicated",
+      "interconnect",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/deployment-manager",
+    "name": "Deployment Manager",
+    "library": "google",
+    "elementCount": 12,
+    "width": 384,
+    "height": 260,
+    "keywords": [
+      "deployment",
+      "manager",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/dialogflow",
+    "name": "Dialogflow",
+    "library": "google",
+    "elementCount": 3,
+    "width": 227,
+    "height": 154,
+    "keywords": [
+      "dialogflow",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/docs-api",
+    "name": "Docs API",
+    "library": "google",
+    "elementCount": 8,
+    "width": 207,
+    "height": 175,
+    "keywords": [
+      "docs",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/document-ai",
+    "name": "Document AI",
+    "library": "google",
+    "elementCount": 8,
+    "width": 241,
+    "height": 242,
+    "keywords": [
+      "document",
+      "ai",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/drive-api",
+    "name": "Drive API",
+    "library": "google",
+    "elementCount": 8,
+    "width": 230,
+    "height": 216,
+    "keywords": [
+      "drive",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/error-reporting",
+    "name": "Error Reporting",
+    "library": "google",
+    "elementCount": 5,
+    "width": 239,
+    "height": 250,
+    "keywords": [
+      "error",
+      "reporting",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/event-threat-detection",
+    "name": "Event Threat Detection",
+    "library": "google",
+    "elementCount": 6,
+    "width": 201,
+    "height": 217,
+    "keywords": [
+      "event",
+      "threat",
+      "detection",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/eventarc",
+    "name": "Eventarc",
+    "library": "google",
+    "elementCount": 18,
+    "width": 212,
+    "height": 242,
+    "keywords": [
+      "eventarc",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/firebase",
+    "name": "Firebase",
+    "library": "google",
+    "elementCount": 9,
+    "width": 359,
+    "height": 363,
+    "keywords": [
+      "firebase",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/gke",
+    "name": "GKE",
+    "library": "google",
+    "elementCount": 9,
+    "width": 183,
+    "height": 207,
+    "keywords": [
+      "gke",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/gmail-api",
+    "name": "Gmail API",
+    "library": "google",
+    "elementCount": 2,
+    "width": 332,
+    "height": 160,
+    "keywords": [
+      "gmail",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/google-chats-api",
+    "name": "Google Chats API",
+    "library": "google",
+    "elementCount": 6,
+    "width": 285,
+    "height": 283,
+    "keywords": [
+      "google",
+      "chats",
+      "api"
+    ]
+  },
+  {
+    "shapeId": "google/google-cloud-game-servers",
+    "name": "Google Cloud Game Servers",
+    "library": "google",
+    "elementCount": 22,
+    "width": 338,
+    "height": 274,
+    "keywords": [
+      "google",
+      "cloud",
+      "game",
+      "servers"
+    ]
+  },
+  {
+    "shapeId": "google/healthcare-natural-language-ai",
+    "name": "Healthcare Natural Language AI",
+    "library": "google",
+    "elementCount": 11,
+    "width": 391,
+    "height": 294,
+    "keywords": [
+      "healthcare",
+      "natural",
+      "language",
+      "ai",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/identity-platform",
+    "name": "Identity Platform",
+    "library": "google",
+    "elementCount": 8,
+    "width": 195,
+    "height": 225,
+    "keywords": [
+      "identity",
+      "platform",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/local-ssd",
+    "name": "Local SSD",
+    "library": "google",
+    "elementCount": 3,
+    "width": 277,
+    "height": 267,
+    "keywords": [
+      "local",
+      "ssd",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/managed-service-for-microsoft",
+    "name": "Managed Service for Microsoft",
+    "library": "google",
+    "elementCount": 11,
+    "width": 260,
+    "height": 422,
+    "keywords": [
+      "managed",
+      "service",
+      "for",
+      "microsoft",
+      "google",
+      "active",
+      "directory"
+    ]
+  },
+  {
+    "shapeId": "google/maps-sdk",
+    "name": "Maps SDK",
+    "library": "google",
+    "elementCount": 6,
+    "width": 201,
+    "height": 321,
+    "keywords": [
+      "maps",
+      "sdk",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/marketplace",
+    "name": "Marketplace",
+    "library": "google",
+    "elementCount": 8,
+    "width": 286,
+    "height": 323,
+    "keywords": [
+      "marketplace",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/migrate-for-compute-engine",
+    "name": "Migrate for Compute Engine",
+    "library": "google",
+    "elementCount": 7,
+    "width": 293,
+    "height": 267,
+    "keywords": [
+      "migrate",
+      "for",
+      "compute",
+      "engine",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/network-connectivity-center",
+    "name": "Network Connectivity Center",
+    "library": "google",
+    "elementCount": 43,
+    "width": 319,
+    "height": 292,
+    "keywords": [
+      "network",
+      "connectivity",
+      "center",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/network-intelligence-center",
+    "name": "Network Intelligence Center",
+    "library": "google",
+    "elementCount": 4,
+    "width": 394,
+    "height": 278,
+    "keywords": [
+      "network",
+      "intelligence",
+      "center",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/network-service-tiers",
+    "name": "Network Service Tiers",
+    "library": "google",
+    "elementCount": 9,
+    "width": 247,
+    "height": 203,
+    "keywords": [
+      "network",
+      "service",
+      "tiers",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/operations-suite",
+    "name": "Operations Suite",
+    "library": "google",
+    "elementCount": 7,
+    "width": 450,
+    "height": 308,
+    "keywords": [
+      "operations",
+      "suite",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/packet-mirroring",
+    "name": "Packet Mirroring",
+    "library": "google",
+    "elementCount": 17,
+    "width": 178,
+    "height": 262,
+    "keywords": [
+      "packet",
+      "mirroring",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/partner-interconnect",
+    "name": "Partner Interconnect",
+    "library": "google",
+    "elementCount": 6,
+    "width": 192,
+    "height": 185,
+    "keywords": [
+      "partner",
+      "interconnect",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/people-api",
+    "name": "People API",
+    "library": "google",
+    "elementCount": 6,
+    "width": 170,
+    "height": 208,
+    "keywords": [
+      "people",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/persistent-disk",
+    "name": "Persistent Disk",
+    "library": "google",
+    "elementCount": 4,
+    "width": 258,
+    "height": 214,
+    "keywords": [
+      "persistent",
+      "disk",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/private-service-connect",
+    "name": "Private Service Connect",
+    "library": "google",
+    "elementCount": 12,
+    "width": 228,
+    "height": 207,
+    "keywords": [
+      "private",
+      "service",
+      "connect",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/pub-sub",
+    "name": "Pub Sub",
+    "library": "google",
+    "elementCount": 11,
+    "width": 161,
+    "height": 219,
+    "keywords": [
+      "pub",
+      "sub",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/recaptcha-enterprise",
+    "name": "reCAPTCHA Enterprise",
+    "library": "google",
+    "elementCount": 10,
+    "width": 396,
+    "height": 332,
+    "keywords": [
+      "recaptcha",
+      "enterprise",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/recommendations-ai",
+    "name": "Recommendations AI",
+    "library": "google",
+    "elementCount": 17,
+    "width": 319,
+    "height": 275,
+    "keywords": [
+      "recommendations",
+      "ai",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/risk-manager",
+    "name": "Risk Manager",
+    "library": "google",
+    "elementCount": 24,
+    "width": 277,
+    "height": 225,
+    "keywords": [
+      "risk",
+      "manager",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/secret-manager",
+    "name": "Secret Manager",
+    "library": "google",
+    "elementCount": 6,
+    "width": 280,
+    "height": 182,
+    "keywords": [
+      "secret",
+      "manager",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/security-key-enforcement",
+    "name": "Security Key Enforcement",
+    "library": "google",
+    "elementCount": 4,
+    "width": 218,
+    "height": 257,
+    "keywords": [
+      "security",
+      "key",
+      "enforcement",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/service-directory",
+    "name": "Service Directory",
+    "library": "google",
+    "elementCount": 13,
+    "width": 274,
+    "height": 196,
+    "keywords": [
+      "service",
+      "directory",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/sheets-api",
+    "name": "Sheets API",
+    "library": "google",
+    "elementCount": 17,
+    "width": 264,
+    "height": 275,
+    "keywords": [
+      "sheets",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/shielded-vms",
+    "name": "Shielded VMs",
+    "library": "google",
+    "elementCount": 11,
+    "width": 242,
+    "height": 206,
+    "keywords": [
+      "shielded",
+      "vms",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/slides-api",
+    "name": "Slides API",
+    "library": "google",
+    "elementCount": 7,
+    "width": 264,
+    "height": 170,
+    "keywords": [
+      "slides",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/speech-to-text",
+    "name": "Speech to Text",
+    "library": "google",
+    "elementCount": 6,
+    "width": 243,
+    "height": 248,
+    "keywords": [
+      "speech",
+      "to",
+      "text",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/text-to-speech",
+    "name": "Text to Speech",
+    "library": "google",
+    "elementCount": 5,
+    "width": 251,
+    "height": 176,
+    "keywords": [
+      "text",
+      "to",
+      "speech",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/traffic-director",
+    "name": "Traffic Director",
+    "library": "google",
+    "elementCount": 6,
+    "width": 281,
+    "height": 265,
+    "keywords": [
+      "traffic",
+      "director",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/transfer-appliance",
+    "name": "Transfer Appliance",
+    "library": "google",
+    "elementCount": 13,
+    "width": 333,
+    "height": 207,
+    "keywords": [
+      "transfer",
+      "appliance",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/vault-api",
+    "name": "Vault API",
+    "library": "google",
+    "elementCount": 12,
+    "width": 333,
+    "height": 272,
+    "keywords": [
+      "vault",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/vertex-ai",
+    "name": "Vertex AI",
+    "library": "google",
+    "elementCount": 26,
+    "width": 226,
+    "height": 233,
+    "keywords": [
+      "vertex",
+      "ai",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/video-intelligence-api",
+    "name": "Video Intelligence API",
+    "library": "google",
+    "elementCount": 3,
+    "width": 306,
+    "height": 224,
+    "keywords": [
+      "video",
+      "intelligence",
+      "api",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/virtual-private-cloud",
+    "name": "Virtual Private Cloud",
+    "library": "google",
+    "elementCount": 17,
+    "width": 211,
+    "height": 241,
+    "keywords": [
+      "virtual",
+      "private",
+      "cloud",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/vision-product-search",
+    "name": "Vision Product Search",
+    "library": "google",
+    "elementCount": 5,
+    "width": 345,
+    "height": 273,
+    "keywords": [
+      "vision",
+      "product",
+      "search",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/vm-manager",
+    "name": "VM Manager",
+    "library": "google",
+    "elementCount": 6,
+    "width": 368,
+    "height": 244,
+    "keywords": [
+      "vm",
+      "manager",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/vmware-engine",
+    "name": "VMware Engine",
+    "library": "google",
+    "elementCount": 6,
+    "width": 281,
+    "height": 255,
+    "keywords": [
+      "vmware",
+      "engine",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/web-security-scanner",
+    "name": "Web Security Scanner",
+    "library": "google",
+    "elementCount": 8,
+    "width": 394,
+    "height": 286,
+    "keywords": [
+      "web",
+      "security",
+      "scanner",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "google/workflows",
+    "name": "Workflows",
+    "library": "google",
+    "elementCount": 23,
+    "width": 209,
+    "height": 224,
+    "keywords": [
+      "workflows",
+      "google"
+    ]
+  },
+  {
+    "shapeId": "network/computer-w-keyboard-3d",
+    "name": "Computer w/ keyboard (3D)",
+    "library": "network",
+    "elementCount": 11,
+    "width": 74,
+    "height": 91,
+    "keywords": [
+      "computer",
+      "keyboard",
+      "3d",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/computer-w-keyboard-and-mouse-3d",
+    "name": "Computer w/ keyboard and mouse (3D)",
+    "library": "network",
+    "elementCount": 14,
+    "width": 83,
+    "height": 94,
+    "keywords": [
+      "computer",
+      "keyboard",
+      "and",
+      "mouse",
+      "3d",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/computer-3d",
+    "name": "Computer (3D)",
+    "library": "network",
+    "elementCount": 8,
+    "width": 63,
+    "height": 85,
+    "keywords": [
+      "computer",
+      "3d",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/vpn",
+    "name": "VPN",
+    "library": "network",
+    "elementCount": 6,
+    "width": 229,
+    "height": 38,
+    "keywords": [
+      "vpn",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/firewall",
+    "name": "Firewall",
+    "library": "network",
+    "elementCount": 20,
+    "width": 54,
+    "height": 154,
+    "keywords": [
+      "firewall",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/server",
+    "name": "Server",
+    "library": "network",
+    "elementCount": 16,
+    "width": 69,
+    "height": 107,
+    "keywords": [
+      "server",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/switch",
+    "name": "Switch",
+    "library": "network",
+    "elementCount": 8,
+    "width": 78,
+    "height": 77,
+    "keywords": [
+      "switch",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/hub",
+    "name": "Hub",
+    "library": "network",
+    "elementCount": 5,
+    "width": 82,
+    "height": 79,
+    "keywords": [
+      "hub",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/router",
+    "name": "Router",
+    "library": "network",
+    "elementCount": 6,
+    "width": 72,
+    "height": 60,
+    "keywords": [
+      "router",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "network/client",
+    "name": "Client",
+    "library": "network",
+    "elementCount": 5,
+    "width": 68,
+    "height": 52,
+    "keywords": [
+      "client",
+      "network"
+    ]
+  },
+  {
+    "shapeId": "software-arch/software-arch-shape-1",
+    "name": "software-arch-shape-1",
+    "library": "software-arch",
+    "elementCount": 1,
+    "width": 116,
+    "height": 104,
+    "keywords": [
+      "software",
+      "arch",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "software-arch/software-arch-shape-2",
+    "name": "software-arch-shape-2",
+    "library": "software-arch",
+    "elementCount": 7,
+    "width": 91,
+    "height": 165,
+    "keywords": [
+      "software",
+      "arch",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "software-arch/software-arch-shape-3",
+    "name": "software-arch-shape-3",
+    "library": "software-arch",
+    "elementCount": 4,
+    "width": 113,
+    "height": 71,
+    "keywords": [
+      "software",
+      "arch",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "software-arch/software-arch-shape-4",
+    "name": "software-arch-shape-4",
+    "library": "software-arch",
+    "elementCount": 4,
+    "width": 143,
+    "height": 155,
+    "keywords": [
+      "software",
+      "arch",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "software-arch/software-arch-shape-5",
+    "name": "software-arch-shape-5",
+    "library": "software-arch",
+    "elementCount": 9,
+    "width": 88,
+    "height": 123,
+    "keywords": [
+      "software",
+      "arch",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "software-arch/software-arch-shape-6",
+    "name": "software-arch-shape-6",
+    "library": "software-arch",
+    "elementCount": 11,
+    "width": 129,
+    "height": 77,
+    "keywords": [
+      "software",
+      "arch",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "software-arch/software-arch-shape-7",
+    "name": "software-arch-shape-7",
+    "library": "software-arch",
+    "elementCount": 5,
+    "width": 71,
+    "height": 108,
+    "keywords": [
+      "software",
+      "arch",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/stick-man",
+    "name": "Stick man",
+    "library": "stick-figures",
+    "elementCount": 6,
+    "width": 65,
+    "height": 152,
+    "keywords": [
+      "stick",
+      "man",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/moustache-man",
+    "name": "Moustache man",
+    "library": "stick-figures",
+    "elementCount": 12,
+    "width": 83,
+    "height": 159,
+    "keywords": [
+      "moustache",
+      "man",
+      "stick",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/girl",
+    "name": "Girl",
+    "library": "stick-figures",
+    "elementCount": 9,
+    "width": 96,
+    "height": 154,
+    "keywords": [
+      "girl",
+      "stick",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/guy",
+    "name": "Guy",
+    "library": "stick-figures",
+    "elementCount": 8,
+    "width": 82,
+    "height": 163,
+    "keywords": [
+      "guy",
+      "stick",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/grandma",
+    "name": "Grandma",
+    "library": "stick-figures",
+    "elementCount": 17,
+    "width": 104,
+    "height": 233,
+    "keywords": [
+      "grandma",
+      "stick",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/child",
+    "name": "Child",
+    "library": "stick-figures",
+    "elementCount": 8,
+    "width": 42,
+    "height": 77,
+    "keywords": [
+      "child",
+      "stick",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/shrug",
+    "name": "Shrug",
+    "library": "stick-figures",
+    "elementCount": 6,
+    "width": 80,
+    "height": 155,
+    "keywords": [
+      "shrug",
+      "stick",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/happy",
+    "name": "Happy",
+    "library": "stick-figures",
+    "elementCount": 7,
+    "width": 65,
+    "height": 152,
+    "keywords": [
+      "happy",
+      "stick",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "stick-figures/sad",
+    "name": "Sad",
+    "library": "stick-figures",
+    "elementCount": 7,
+    "width": 65,
+    "height": 152,
+    "keywords": [
+      "sad",
+      "stick",
+      "figures"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-1",
+    "name": "storytelling-shape-1",
+    "library": "storytelling",
+    "elementCount": 26,
+    "width": 518,
+    "height": 563,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-2",
+    "name": "storytelling-shape-2",
+    "library": "storytelling",
+    "elementCount": 22,
+    "width": 422,
+    "height": 587,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-3",
+    "name": "storytelling-shape-3",
+    "library": "storytelling",
+    "elementCount": 21,
+    "width": 409,
+    "height": 560,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-4",
+    "name": "storytelling-shape-4",
+    "library": "storytelling",
+    "elementCount": 18,
+    "width": 449,
+    "height": 501,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-5",
+    "name": "storytelling-shape-5",
+    "library": "storytelling",
+    "elementCount": 27,
+    "width": 466,
+    "height": 465,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-6",
+    "name": "storytelling-shape-6",
+    "library": "storytelling",
+    "elementCount": 18,
+    "width": 604,
+    "height": 471,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-7",
+    "name": "storytelling-shape-7",
+    "library": "storytelling",
+    "elementCount": 19,
+    "width": 567,
+    "height": 521,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-8",
+    "name": "storytelling-shape-8",
+    "library": "storytelling",
+    "elementCount": 14,
+    "width": 450,
+    "height": 490,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-9",
+    "name": "storytelling-shape-9",
+    "library": "storytelling",
+    "elementCount": 19,
+    "width": 567,
+    "height": 521,
+    "keywords": [
+      "storytelling",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-10",
+    "name": "storytelling-shape-10",
+    "library": "storytelling",
+    "elementCount": 14,
+    "width": 383,
+    "height": 458,
+    "keywords": [
+      "storytelling",
+      "shape",
+      "10"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-11",
+    "name": "storytelling-shape-11",
+    "library": "storytelling",
+    "elementCount": 15,
+    "width": 434,
+    "height": 588,
+    "keywords": [
+      "storytelling",
+      "shape",
+      "11"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-12",
+    "name": "storytelling-shape-12",
+    "library": "storytelling",
+    "elementCount": 12,
+    "width": 384,
+    "height": 460,
+    "keywords": [
+      "storytelling",
+      "shape",
+      "12"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-13",
+    "name": "storytelling-shape-13",
+    "library": "storytelling",
+    "elementCount": 17,
+    "width": 535,
+    "height": 596,
+    "keywords": [
+      "storytelling",
+      "shape",
+      "13"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-14",
+    "name": "storytelling-shape-14",
+    "library": "storytelling",
+    "elementCount": 16,
+    "width": 604,
+    "height": 628,
+    "keywords": [
+      "storytelling",
+      "shape",
+      "14"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-15",
+    "name": "storytelling-shape-15",
+    "library": "storytelling",
+    "elementCount": 11,
+    "width": 383,
+    "height": 503,
+    "keywords": [
+      "storytelling",
+      "shape",
+      "15"
+    ]
+  },
+  {
+    "shapeId": "storytelling/storytelling-shape-16",
+    "name": "storytelling-shape-16",
+    "library": "storytelling",
+    "elementCount": 22,
+    "width": 391,
+    "height": 467,
+    "keywords": [
+      "storytelling",
+      "shape",
+      "16"
+    ]
+  },
+  {
+    "shapeId": "system-design/system-design-shape-1",
+    "name": "system-design-shape-1",
+    "library": "system-design",
+    "elementCount": 1,
+    "width": 97,
+    "height": 99,
+    "keywords": [
+      "system",
+      "design",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "system-design/application-server",
+    "name": "Application server",
+    "library": "system-design",
+    "elementCount": 2,
+    "width": 96,
+    "height": 94,
+    "keywords": [
+      "application",
+      "server",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/multi-instance-server",
+    "name": "Multi Instance server",
+    "library": "system-design",
+    "elementCount": 4,
+    "width": 109,
+    "height": 107,
+    "keywords": [
+      "multi",
+      "instance",
+      "server",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/server",
+    "name": "server",
+    "library": "system-design",
+    "elementCount": 2,
+    "width": 176,
+    "height": 37,
+    "keywords": [
+      "server",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/multi-instance",
+    "name": "Multi Instance",
+    "library": "system-design",
+    "elementCount": 4,
+    "width": 189,
+    "height": 50,
+    "keywords": [
+      "multi",
+      "instance",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/system-design-shape-6",
+    "name": "system-design-shape-6",
+    "library": "system-design",
+    "elementCount": 2,
+    "width": 75,
+    "height": 106,
+    "keywords": [
+      "system",
+      "design",
+      "shape"
+    ]
+  },
+  {
+    "shapeId": "system-design/relational-db",
+    "name": "Relational DB",
+    "library": "system-design",
+    "elementCount": 8,
+    "width": 121,
+    "height": 125,
+    "keywords": [
+      "relational",
+      "db",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/object-storage",
+    "name": "Object Storage",
+    "library": "system-design",
+    "elementCount": 6,
+    "width": 132,
+    "height": 120,
+    "keywords": [
+      "object",
+      "storage",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/cold-storage",
+    "name": "Cold Storage",
+    "library": "system-design",
+    "elementCount": 23,
+    "width": 112,
+    "height": 125,
+    "keywords": [
+      "cold",
+      "storage",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/document-db",
+    "name": "{ } Document DB",
+    "library": "system-design",
+    "elementCount": 5,
+    "width": 119,
+    "height": 127,
+    "keywords": [
+      "document",
+      "db",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/columnar-db",
+    "name": "Columnar DB",
+    "library": "system-design",
+    "elementCount": 8,
+    "width": 112,
+    "height": 124,
+    "keywords": [
+      "columnar",
+      "db",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/graph-db",
+    "name": "Graph DB",
+    "library": "system-design",
+    "elementCount": 18,
+    "width": 88,
+    "height": 126,
+    "keywords": [
+      "graph",
+      "db",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/stack-storage",
+    "name": "Stack Storage",
+    "library": "system-design",
+    "elementCount": 9,
+    "width": 89,
+    "height": 136,
+    "keywords": [
+      "stack",
+      "storage",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/key-key-value-value-cache",
+    "name": "Key Key Value Value Cache",
+    "library": "system-design",
+    "elementCount": 17,
+    "width": 120,
+    "height": 88,
+    "keywords": [
+      "key",
+      "value",
+      "cache",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/auth-iam",
+    "name": "Auth & IAM",
+    "library": "system-design",
+    "elementCount": 17,
+    "width": 98,
+    "height": 98,
+    "keywords": [
+      "auth",
+      "iam",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/dns-www-127-0-0-1",
+    "name": "DNS www 127.0.0.1",
+    "library": "system-design",
+    "elementCount": 13,
+    "width": 101,
+    "height": 59,
+    "keywords": [
+      "dns",
+      "www",
+      "127",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/load-balancer",
+    "name": "Load Balancer",
+    "library": "system-design",
+    "elementCount": 9,
+    "width": 70,
+    "height": 202,
+    "keywords": [
+      "load",
+      "balancer",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/message-q",
+    "name": "Message Q",
+    "library": "system-design",
+    "elementCount": 9,
+    "width": 120,
+    "height": 132,
+    "keywords": [
+      "message",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/pipeline",
+    "name": "Pipeline",
+    "library": "system-design",
+    "elementCount": 6,
+    "width": 140,
+    "height": 37,
+    "keywords": [
+      "pipeline",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/cloud",
+    "name": "cloud",
+    "library": "system-design",
+    "elementCount": 11,
+    "width": 133,
+    "height": 78,
+    "keywords": [
+      "cloud",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/cdn",
+    "name": "CDN",
+    "library": "system-design",
+    "elementCount": 14,
+    "width": 123,
+    "height": 61,
+    "keywords": [
+      "cdn",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/7-archive",
+    "name": "7 Archive",
+    "library": "system-design",
+    "elementCount": 18,
+    "width": 125,
+    "height": 137,
+    "keywords": [
+      "archive",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design/mobile-lorem-ipsum-dolor-sit-amet-consectetur-adi",
+    "name": "Mobile Lorem ipsum dolor sit amet, consectetur adi...",
+    "library": "system-design",
+    "elementCount": 10,
+    "width": 85,
+    "height": 152,
+    "keywords": [
+      "mobile",
+      "lorem",
+      "ipsum",
+      "dolor",
+      "sit",
+      "amet",
+      "consectetur",
+      "adi",
+      "system",
+      "design",
+      "adipiscing",
+      "elit",
+      "sed",
+      "do",
+      "eiusmod",
+      "tempor",
+      "incididunt",
+      "ut",
+      "labore",
+      "et",
+      "dolore",
+      "magna",
+      "aliqua",
+      "enim",
+      "ad",
+      "miveniam",
+      "quis",
+      "nostrud",
+      "exercitaullamco",
+      "laboris",
+      "nisi",
+      "aliquip",
+      "ex",
+      "ea",
+      "ommodo",
+      "consequat",
+      "duis",
+      "aute",
+      "irure",
+      "in",
+      "reprehenderit",
+      "adipng",
+      "eiusmopor"
+    ]
+  },
+  {
+    "shapeId": "system-design/web-application-g-o-o-g-l-e",
+    "name": "Web Application G o o g l e",
+    "library": "system-design",
+    "elementCount": 15,
+    "width": 130,
+    "height": 102,
+    "keywords": [
+      "web",
+      "application",
+      "system",
+      "design"
+    ]
+  },
+  {
+    "shapeId": "system-design-components/cloud-infra-starter-kit",
+    "name": "Cloud Infra Starter Kit",
+    "library": "system-design-components",
+    "elementCount": 75,
+    "width": 1023,
+    "height": 466,
+    "keywords": [
+      "cloud",
+      "infra",
+      "starter",
+      "kit",
+      "system",
+      "design",
+      "components",
+      "db",
+      "main",
+      "api",
+      "lb",
+      "read",
+      "users",
+      "admin",
+      "private",
+      "web",
+      "exposed",
+      "stream",
+      "batch",
+      "worker",
+      "app",
+      "servers",
+      "s3",
+      "cdn"
+    ]
+  },
+  {
+    "shapeId": "system-design-components/cloud",
+    "name": "Cloud",
+    "library": "system-design-components",
+    "elementCount": 12,
+    "width": 309,
+    "height": 139,
+    "keywords": [
+      "cloud",
+      "system",
+      "design",
+      "components"
+    ]
+  },
+  {
+    "shapeId": "system-design-components/stream",
+    "name": "Stream",
+    "library": "system-design-components",
+    "elementCount": 5,
+    "width": 247,
+    "height": 247,
+    "keywords": [
+      "stream",
+      "system",
+      "design",
+      "components"
+    ]
+  },
+  {
+    "shapeId": "system-design-components/servers",
+    "name": "Servers",
+    "library": "system-design-components",
+    "elementCount": 3,
+    "width": 135,
+    "height": 138,
+    "keywords": [
+      "servers",
+      "system",
+      "design",
+      "components"
+    ]
+  },
+  {
+    "shapeId": "system-design-components/db",
+    "name": "DB",
+    "library": "system-design-components",
+    "elementCount": 5,
+    "width": 57,
+    "height": 42,
+    "keywords": [
+      "db",
+      "system",
+      "design",
+      "components"
+    ]
+  },
+  {
+    "shapeId": "system-design-components/db-2",
+    "name": "db",
+    "library": "system-design-components",
+    "elementCount": 5,
+    "width": 131,
+    "height": 97,
+    "keywords": [
+      "db",
+      "system",
+      "design",
+      "components"
+    ]
+  }
+]

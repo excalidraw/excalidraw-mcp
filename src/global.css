@@ -42,32 +42,33 @@ html, body, #root {
   overflow: hidden;
 }
 
-/* Light theme (default) */
+/* Dark Blueprint Theme (fixed to #121212) */
 :root {
-  --text-color: #1a1a1a;
-  --text-muted: #666666;
-  --border-color: #e5e5e5;
-  --bg-color: #ffffff;
+  --text-color: #f8f9fa;
+  --text-muted: #adb5bd;
+  --border-color: #343a40;
+  --bg-color: #121212;
 }
 
-/* Dark theme */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-color: #e5e5e5;
-    --text-muted: #a0a0a0;
-    --border-color: #444444;
-    --bg-color: #1a1a1a;
-  }
+html, body, #root {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #121212;
+  color: #f8f9fa;
 }
 
 body {
-  background: transparent;
+  background-color: #121212;
   color: var(--text-color);
 }
 
 .main {
   outline: none;
   position: relative;
+  background-color: #121212;
 }
 
 /* Fullscreen mode. Mobile safe-area insets are applied via Excalidraw's native
@@ -76,18 +77,15 @@ body {
 .main.fullscreen {
   position: fixed;
   inset: 0;
-  background: var(--bg-color, #ffffff);
+  background: #121212;
   z-index: 9999;
 }
 
 .main.fullscreen .excalidraw-container {
   height: 100%;
+  background: #121212;
 }
 
-/* Hide library button in fullscreen editor */
-.main.fullscreen .default-sidebar-trigger {
-  display: none !important;
-}
 
 /* Mobile: export button moves below the toolbar row (narrow viewports can't
    fit it in top-right alongside lock/hand icons). */
@@ -192,7 +190,7 @@ body {
 }
 
 .svg-wrapper > svg {
-  background: #ffffff;
+  background: #121212;
 }
 
 /* Fade-in animation for new SVG elements (opacity only, no transform) */

@@ -39,3 +39,10 @@ run('bun build "src/server.ts" --outdir dist --target node');
 run(
   'bun build "src/main.ts" --outfile "dist/index.js" --target node --banner "#!/usr/bin/env node"',
 );
+
+// 6. Copy library data to dist
+import { cpSync, existsSync } from "fs";
+if (existsSync(join(root, "data"))) {
+  cpSync(join(root, "data"), join(root, "dist", "data"), { recursive: true });
+}
+

@@ -352,7 +352,7 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
 
       const svg = await exportToSvg({
         elements: excalidrawEls as any,
-        appState: { viewBackgroundColor: "transparent", exportBackground: false } as any,
+        appState: { viewBackgroundColor: "#121212", exportBackground: true, theme: "dark" } as any,
         files: null,
         exportPadding: EXPORT_PADDING,
         skipInliningFonts: true,
@@ -537,7 +537,7 @@ function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElemen
         await ensureFontsLoaded();
         const svg = await exportToSvg({
           elements: editedElements as any,
-          appState: { viewBackgroundColor: "transparent", exportBackground: false } as any,
+          appState: { viewBackgroundColor: "#121212", exportBackground: true, theme: "dark" } as any,
           files: null,
           exportPadding: EXPORT_PADDING,
           skipInliningFonts: true,
@@ -896,8 +896,8 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
         }}>
           <Excalidraw
             excalidrawAPI={(api) => { setExcalidrawApi(api); fsLog(`excalidrawAPI set`); }}
-            initialData={{ elements: elements as any, scrollToContent: true }}
-            theme="light"
+            initialData={{ elements: elements as any, scrollToContent: true, appState: { viewBackgroundColor: "#121212", theme: "dark" } }}
+            theme="dark"
             onChange={(els) => onEditorChange(app, els)}
             renderTopRightUI={isNarrow ? undefined : () => (
               <ShareButton
