@@ -1,6 +1,7 @@
 import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { runtimeAssetsPlugin } from "./runtime-assets";
 
 /**
  * Dev-only vite config — serves the widget standalone (no MCP host).
@@ -8,7 +9,7 @@ import react from "@vitejs/plugin-react";
  * Entry: index-dev.html (not the default index.html).
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [runtimeAssetsPlugin(), react()],
   server: { port: 5173, open: "/index-dev.html" },
   build: {
     rollupOptions: {

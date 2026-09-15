@@ -7,7 +7,7 @@
  * Future: add a control panel to stream elements, test checkpoints, etc.
  */
 import { createRoot } from "react-dom/client";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { ExcalidrawAppCore } from "./mcp-app";
 import { createMockApp, type MockAppControls } from "./dev-mock";
 import "./global.css";
@@ -101,6 +101,8 @@ function DevControls({ mock }: { mock: MockAppControls }) {
         right: 12,
         zIndex: 10000,
         display: "flex",
+        flexWrap: "wrap",
+        maxWidth: "calc(100% - 24px)",
         gap: 6,
         padding: "8px 10px",
         background: "rgba(0,0,0,0.75)",
@@ -111,7 +113,7 @@ function DevControls({ mock }: { mock: MockAppControls }) {
       }}
     >
       <button
-        onClick={() => mock.sendToolInput(SAMPLE_ELEMENTS)}
+        onClick={() => { mock.sendToolInput(SAMPLE_ELEMENTS); mock.sendToolResult(); }}
         style={btnStyle}
       >
         Load (instant)
@@ -125,6 +127,26 @@ function DevControls({ mock }: { mock: MockAppControls }) {
       <button onClick={() => mock.sendToolResult("dev-cp-1")} style={btnStyle}>
         Send Result
       </button>
+      <button onClick={() => mock.sendCancelled()} style={btnStyle}>Cancel stream</button>
+      <button onClick={() => mock.sendInvalidInput("[null]")} style={btnStyle}>Invalid final input</button>
+      <button onClick={() => { mock.sendToolInput([]); mock.sendToolResult(); }} style={btnStyle}>Empty scene</button>
+      <button onClick={() => {
+        mock.sendSceneInput({
+          schemaVersion: 1,
+          elements: [{ id: "sample-image", type: "image", version: 1, x: 0, y: 0, width: 240, height: 160, fileId: "sample-image-file", scale: [1, 1], status: "saved" }],
+          files: {
+            "sample-image-file": {
+              id: "sample-image-file", mimeType: "image/svg+xml", created: 1,
+              dataURL: `data:image/svg+xml;base64,${btoa('<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="240" height="160" rx="16" fill="#a5d8ff"/><circle cx="120" cy="80" r="40" fill="#1971c2"/></svg>')}`,
+            },
+          },
+          appState: { viewBackgroundColor: "#ffffff" },
+        });
+        mock.sendToolResult();
+      }} style={btnStyle}>Load image scene</button>
+      <button onClick={() => mock.failNextSave("error")} style={btnStyle}>Fail next save</button>
+      <button onClick={() => mock.failNextSave("conflict")} style={btnStyle}>Conflict next save</button>
+      <button onClick={() => mock.setHostContext({ availableDisplayModes: ["inline"] })} style={btnStyle}>Disable fullscreen</button>
     </div>
   );
 }
@@ -137,29 +159,23 @@ const btnStyle: React.CSSProperties = {
   color: "#fff",
   cursor: "pointer",
   fontSize: 12,
+  minHeight: 44,
 };
 
 // ── App ──────────────────────────────────────────────────────────────────
 
 function DevApp() {
-  const mock = useMemo(() => createMockApp(), []);
-  const initialized = useRef(false);
-
-  // Wait one frame for ExcalidrawAppCore's useEffect to attach handlers,
-  // then fire initial tool input with sample data.
-  useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-    // Use requestAnimationFrame to ensure handlers are attached
-    requestAnimationFrame(() => {
-      mock.sendToolInput(SAMPLE_ELEMENTS);
-      mock.sendToolResult("dev-checkpoint");
-    });
-  }, [mock]);
+  const mock = useMemo(() => {
+    const created = createMockApp();
+    // Deliberately deliver before child mount to exercise startup buffering.
+    created.sendToolInput(SAMPLE_ELEMENTS);
+    created.sendToolResult("dev-checkpoint");
+    return created;
+  }, []);
 
   return (
     <>
-      <ExcalidrawAppCore app={mock.app} />
+      <ExcalidrawAppCore app={mock.app} events={mock.events} />
       <DevControls mock={mock} />
     </>
   );

@@ -1,0 +1,23 @@
+{
+  "skill_name": "excalidraw",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Draw a hand-drawn client-to-service diagram using the connected Excalidraw MCP.",
+      "expected_output": "Discover the real tools, read read_me, send one serialized elements array with a camera and labeled shapes, then report the actual checkpoint/revision without claiming an unseen UI rendered.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Use the previous checkpoint to replace the service node, keeping the rest of the diagram and any saved manual edits.",
+      "expected_output": "Use the actual returned handle first, delete existing IDs in order, use new IDs for replacements, respect acknowledged revisions and recovery warnings, and do not call invented or app-only model tools.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Export a diagram containing an image for use in an internal document.",
+      "expected_output": "Preserve native elements/files/appState in a local .excalidraw file; do not use database serialization or public image sharing; obey the personal approved-editor policy.",
+      "files": []
+    }
+  ]
+}

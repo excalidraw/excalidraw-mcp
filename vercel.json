@@ -6,18 +6,6 @@
     { "source": "/", "destination": "/mcp", "statusCode": 308 }
   ],
   "rewrites": [
-    { "source": "/mcp", "destination": "/api/mcp" },
-    { "source": "/sse", "destination": "/api/mcp" },
-    { "source": "/message", "destination": "/api/mcp" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Accept, Authorization, Mcp-Session-Id" }
-      ]
-    }
+    { "source": "/mcp", "destination": "/api/mcp" }
   ]
 }

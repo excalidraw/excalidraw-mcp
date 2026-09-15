@@ -1,123 +1,322 @@
-import type { App } from "@modelcontextprotocol/ext-apps";
+import { parseSceneData, recoverLegacySceneData, type SceneData } from "./scene.js";
 
-const DEBOUNCE_MS = 2000;
-let timer: ReturnType<typeof setTimeout> | null = null;
-let initialSnapshot: string | null = null;
-let initialElementsById: Map<string, any> = new Map();
-let storageKey: string | null = null;
-let checkpointId: string | null = null;
-
-/**
- * Set the localStorage key for this widget instance (use viewUUID or tool-call-derived ID).
- */
-export function setStorageKey(key: string) {
-  storageKey = `excalidraw:${key}`;
+export type SaveStatus = "saved" | "dirty" | "saving" | "error" | "conflict";
+export interface SaveResult {
+  isError?: boolean;
+  _meta?: Record<string, unknown>;
+  structuredContent?: Record<string, unknown>;
+  content?: readonly { type: string; text?: string }[];
+}
+export interface EditState {
+  status: SaveStatus;
+  revision: number;
+  error?: string;
+  recovery?: { scene: SceneData; revision: number; message?: string };
+}
+export interface EditController {
+  initialize(checkpointId: string | null, revision: number, scene: SceneData): SceneData;
+  change(scene: SceneData): void;
+  attach(checkpointId: string, revision: number): void;
+  getScene(): SceneData | null;
+  getState(): EditState;
+  hasChanges(): boolean;
+  flush(): Promise<void>;
+  retry(): Promise<void>;
+  restoreRecovery(): SceneData | null;
+  dispose(): Promise<void>;
 }
 
-/**
- * Set the checkpoint key for saving state snapshots.
- * Called when ontoolresult delivers the checkpointId from the server.
- */
-export function setCheckpointId(id: string) {
-  checkpointId = id;
+interface CachedScene {
+  scene: SceneData;
+  revision: number;
+  dirty: boolean;
+  recovery?: EditState["recovery"];
 }
 
-/**
- * Call once after final render to capture the baseline element state.
- */
-export function captureInitialElements(elements: readonly any[]) {
-  initialSnapshot = JSON.stringify(elements.map((el: any) => el.id + ":" + (el.version ?? 0)));
-  initialElementsById = new Map(elements.map((el: any) => [el.id, el]));
+function readCache(value: unknown): CachedScene {
+  if (!value || typeof value !== "object" || Array.isArray(value) ||
+    !("revision" in value) || typeof value.revision !== "number" ||
+    !Number.isSafeInteger(value.revision) || value.revision < 0 ||
+    !("dirty" in value) || typeof value.dirty !== "boolean" || !("scene" in value)) {
+    throw new Error("Invalid cached checkpoint.");
+  }
+  let recovery: EditState["recovery"];
+  if ("recovery" in value && value.recovery !== undefined) {
+    const saved = value.recovery;
+    if (!saved || typeof saved !== "object" || !("scene" in saved) ||
+      !("revision" in saved) || typeof saved.revision !== "number" ||
+      !Number.isSafeInteger(saved.revision) || saved.revision < -1 ||
+      ("message" in saved && saved.message !== undefined && typeof saved.message !== "string")) {
+      throw new Error("Invalid cached recovery revision.");
+    }
+    recovery = {
+      scene: parseSceneData(saved.scene), revision: saved.revision,
+      ...("message" in saved && typeof saved.message === "string" ? { message: saved.message.slice(0, 500) } : {}),
+    };
+  }
+  return { scene: parseSceneData(value.scene), revision: value.revision, dirty: value.dirty, recovery };
+}
+interface ControllerOptions {
+  save: (args: { id: string; data: string; expectedRevision: number }) => Promise<SaveResult>;
+  storage?: Pick<Storage, "getItem" | "setItem">;
+  onState?: (state: EditState) => void;
+  onSaved?: (scene: SceneData, revision: number, summary: string, checkpointId: string) => void;
+  debounceMs?: number;
+  retryDelays?: number[];
 }
 
-/** Compute a compact diff between initial and current elements. */
-function computeDiff(current: any[]): string {
-  const added: string[] = [];
-  const removed: string[] = [];
-  const moved: string[] = [];
-  const currentIds = new Set<string>();
+export function resultError(result: SaveResult): string {
+  return result.content?.filter((item) => item.type === "text").map((item) => item.text ?? "").join("\n") || "The server could not complete this request.";
+}
 
-  for (const el of current) {
-    currentIds.add(el.id);
-    const orig = initialElementsById.get(el.id);
-    if (!orig) {
-      // New element — include type, position, and text if any
-      const desc = `${el.type} "${el.text ?? el.label?.text ?? ""}" at (${Math.round(el.x)},${Math.round(el.y)})`;
-      added.push(desc);
-    } else if (Math.round(orig.x) !== Math.round(el.x) || Math.round(orig.y) !== Math.round(el.y) ||
-               Math.round(orig.width) !== Math.round(el.width) || Math.round(orig.height) !== Math.round(el.height)) {
-      moved.push(`${el.id} → (${Math.round(el.x)},${Math.round(el.y)}) ${Math.round(el.width)}x${Math.round(el.height)}`);
+function saveResultFailure(result: SaveResult): Error {
+  const message = resultError(result);
+  const code = String(result._meta?.code ?? result.structuredContent?.code ?? "");
+  const conflict = /conflict|revision/i.test(code) || /revision conflict|stale revision/i.test(message);
+  const transient = result._meta?.retryable === true || result.structuredContent?.retryable === true || /unavailable|timeout|temporar|rate.?limit/i.test(code);
+  return Object.assign(new Error(message), { conflict, transient });
+}
+
+function saveFailureDetails(failure: unknown): { message: string; conflict: boolean; transient: boolean } {
+  const details = failure !== null && typeof failure === "object" ? failure : undefined;
+  let message = "";
+  if (typeof failure === "string") {
+    message = failure;
+  } else if (details && "message" in details && typeof details.message === "string") {
+    message = details.message;
+  }
+  return {
+    message: message.trim() ? message : "Unable to save. Download your edits, then reload the checkpoint.",
+    conflict: !!details && "conflict" in details && details.conflict === true,
+    transient: failure instanceof TypeError || (!!details && "transient" in details && details.transient === true),
+  };
+}
+
+function stable(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stable(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+function meaningfulElement(element: Record<string, unknown>): Record<string, unknown> {
+  const { version: _version, versionNonce: _nonce, updated: _updated, ...content } = element;
+  return content;
+}
+
+export function summarizeSceneChanges(before: SceneData, after: SceneData): string {
+  const previous = new Map(before.elements.map((element) => [element.id, element]));
+  const current = new Map(after.elements.map((element) => [element.id, element]));
+  const changes: string[] = [];
+  for (const element of after.elements) {
+    const original = previous.get(element.id);
+    const name = `${element.type} ${element.id}`;
+    if (!original) changes.push(`Added ${name}`);
+    else if (stable(meaningfulElement(original)) !== stable(meaningfulElement(element))) {
+      const text = typeof element.text === "string" ? `: ${element.text.slice(0, 160)}` : "";
+      changes.push(`Changed ${name}${text}`);
+    }
+  }
+  for (const element of before.elements) if (!current.has(element.id)) changes.push(`Removed ${element.type} ${element.id}`);
+  if (stable(before.files) !== stable(after.files)) changes.push("Updated image files");
+  if (stable(before.appState) !== stable(after.appState)) changes.push("Updated scene settings");
+  if (stable(before.viewport) !== stable(after.viewport)) changes.push("Updated viewport");
+  return changes.slice(0, 25).join("; ") + (changes.length > 25 ? `; and ${changes.length - 25} more changes` : "");
+}
+
+/** One controller per widget. Acknowledgements, not timers, advance the saved baseline. */
+export function createEditController(options: ControllerOptions): EditController {
+  let id: string | null = null;
+  let revision = 0;
+  let scene: SceneData | null = null;
+  let baseline: SceneData | null = null;
+  let savedSignature = "";
+  let status: SaveStatus = "saved";
+  let error: string | undefined;
+  let recovery: EditState["recovery"];
+  let cacheError: string | undefined;
+  let preserveUnreadCache = false;
+  let generation = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let inFlight: Promise<void> | undefined;
+  const delays = options.retryDelays ?? [250, 750];
+
+  function dirty(): boolean {
+    return !!scene && stable(scene) !== savedSignature;
+  }
+
+  function getState(): EditState {
+    return { status, revision, error: error ?? cacheError, recovery };
+  }
+
+  function emit(): void {
+    options.onState?.(getState());
+  }
+
+  function cache(): void {
+    if (!id || !scene) return;
+    if (preserveUnreadCache) return;
+    if (!options.storage) {
+      if (dirty()) cacheError = "Local recovery storage is unavailable. Download the diagram to keep a copy.";
+      return;
+    }
+    try {
+      options.storage.setItem(`excalidraw:${id}`, JSON.stringify({ scene, revision, dirty: dirty(), recovery }));
+      cacheError = undefined;
+    } catch {
+      cacheError = "Local recovery storage is unavailable. Download the diagram to keep a copy.";
     }
   }
 
-  for (const id of initialElementsById.keys()) {
-    if (!currentIds.has(id)) removed.push(id);
+  function cancelTimer(): void {
+    if (timer) clearTimeout(timer);
+    timer = undefined;
   }
 
-  const parts: string[] = [];
-  if (added.length) parts.push(`Added: ${added.join("; ")}`);
-  if (removed.length) parts.push(`Removed: ${removed.join(", ")}`);
-  if (moved.length) parts.push(`Moved/resized: ${moved.join("; ")}`);
-  if (!parts.length) return "";
-  const cpRef = checkpointId ? ` (checkpoint: ${checkpointId})` : "";
-  return `User edited diagram${cpRef}. ${parts.join(". ")}`;
-}
-
-/**
- * Load persisted elements from localStorage (if any).
- */
-export function loadPersistedElements(): any[] | null {
-  if (!storageKey) return null;
-  try {
-    const stored = localStorage.getItem(storageKey);
-    if (!stored) return null;
-    return JSON.parse(stored);
-  } catch {
-    return null;
+  function schedule(): void {
+    cancelTimer();
+    if (status !== "conflict" && status !== "error" && id && dirty()) {
+      timer = setTimeout(() => { void flush(); }, options.debounceMs ?? 1000);
+    }
   }
-}
 
-/** Latest edited elements (kept in sync without triggering React re-renders). */
-let latestEditedElements: any[] | null = null;
-
-/**
- * Get the latest user-edited elements (or null if no edits were made).
- * Call this when exiting fullscreen to sync edits back to React state.
- */
-export function getLatestEditedElements(): any[] | null {
-  return latestEditedElements;
-}
-
-/**
- * Excalidraw onChange handler. Persists to localStorage and sends updated
- * elements JSON to model context — only when user actually changed something
- * (debounced). Does NOT call setState to avoid infinite re-render loops.
- */
-export function onEditorChange(app: App, elements: readonly any[]) {
-  const currentSnapshot = JSON.stringify(elements.map((el: any) => el.id + ":" + (el.version ?? 0)));
-  if (currentSnapshot === initialSnapshot) return;
-
-  const live = [...elements].filter((el: any) => !el.isDeleted);
-  latestEditedElements = live;
-
-  if (timer) clearTimeout(timer);
-  timer = setTimeout(() => {
-    if (storageKey) {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(live));
-      } catch {}
+  async function flush(): Promise<void> {
+    cancelTimer();
+    if (inFlight) {
+      await inFlight;
+      return;
     }
-    if (checkpointId) {
-      app.callServerTool({
-        name: "save_checkpoint",
-        arguments: { id: checkpointId, data: JSON.stringify({ elements: live }) },
-      }).catch(() => {});
+    if (!id || !scene || !dirty() || status === "conflict" || status === "error") return;
+    const epoch = generation;
+    const checkpointId = id;
+    async function run(): Promise<void> {
+      while (epoch === generation && scene && dirty()) {
+        const submitted = scene;
+        const expectedRevision = revision;
+        status = "saving";
+        error = undefined;
+        emit();
+        let attempt = 0;
+        while (true) {
+          try {
+            const result = await options.save({ id: checkpointId, data: JSON.stringify(submitted), expectedRevision });
+            if (epoch !== generation) return;
+            if (result.isError) throw saveResultFailure(result);
+            const nextRevision = result.structuredContent?.revision;
+            if (result.structuredContent?.checkpointId !== checkpointId || !Number.isSafeInteger(nextRevision) || Number(nextRevision) <= expectedRevision) {
+              throw new Error("Save acknowledgement was incomplete. Reload the checkpoint before retrying; your edits are kept locally.");
+            }
+            revision = Number(nextRevision);
+            const summary = baseline ? summarizeSceneChanges(baseline, submitted) : "";
+            baseline = submitted;
+            savedSignature = stable(submitted);
+            cache();
+            status = dirty() ? "dirty" : "saved";
+            emit();
+            try { options.onSaved?.(submitted, revision, summary, checkpointId); }
+            catch {
+              error = "The diagram is saved, but its feedback could not be delivered.";
+              emit();
+            }
+            break;
+          } catch (failure) {
+            if (epoch !== generation) return;
+            const problem = saveFailureDetails(failure);
+            if (!problem.conflict && problem.transient && attempt < delays.length) {
+              await new Promise((resolve) => setTimeout(resolve, delays[attempt++]));
+              if (epoch !== generation) return;
+              continue;
+            }
+            status = problem.conflict ? "conflict" : "error";
+            error = problem.message;
+            cache();
+            emit();
+            return;
+          }
+        }
+      }
     }
-    const diff = computeDiff(live);
-    if (diff) {
-      app.updateModelContext({
-        content: [{ type: "text", text: diff }],
-      }).catch(() => {});
+    const pending = run();
+    inFlight = pending;
+    try {
+      await pending;
+    } finally {
+      if (inFlight === pending) inFlight = undefined;
     }
-  }, DEBOUNCE_MS);
+  }
+
+  return {
+    initialize(checkpointId: string | null, nextRevision: number, value: SceneData): SceneData {
+      if (!Number.isSafeInteger(nextRevision) || nextRevision < 0) throw new Error("Invalid checkpoint revision.");
+      cancelTimer();
+      generation++;
+      inFlight = undefined;
+      id = checkpointId;
+      revision = nextRevision;
+      scene = parseSceneData(value);
+      baseline = scene;
+      savedSignature = stable(scene);
+      status = "saved"; error = undefined; recovery = undefined; cacheError = undefined; preserveUnreadCache = false;
+      if (id && options.storage) {
+        try {
+          const raw = options.storage.getItem(`excalidraw:${id}`);
+          if (raw) {
+            const decoded: unknown = JSON.parse(raw);
+            if (Array.isArray(decoded)) {
+              // Keep the original bytes before replacing the old element-array cache format.
+              options.storage.setItem(`excalidraw:${id}:legacy`, raw);
+              const recovered = recoverLegacySceneData({ elements: decoded });
+              recovery = {
+                scene: recovered.scene, revision: -1,
+                message: `A legacy local copy has an unknown revision and is download-only.${recovered.recovery ? " Some image bytes were never cached; only recoverable content can be downloaded." : ""}`,
+              };
+            } else {
+              const cached = readCache(decoded);
+              if (cached.dirty && stable(cached.scene) !== savedSignature) {
+                recovery = { scene: cached.scene, revision: cached.revision };
+              }
+              if (!recovery && cached.recovery) recovery = cached.recovery;
+            }
+          }
+        } catch {
+          preserveUnreadCache = true;
+          cacheError = "The previous local recovery copy was left untouched because it could not be read or archived. New edits cannot be cached; download a copy before closing.";
+        }
+      }
+      cache(); emit();
+      return scene;
+    },
+    change(value: SceneData) {
+      const next = parseSceneData(value);
+      if (scene && stable(next) === stable(scene)) return;
+      scene = next;
+      if (status !== "error" && status !== "conflict" && status !== "saving") status = dirty() ? "dirty" : "saved";
+      cache(); emit(); schedule();
+    },
+    attach(checkpointId: string, nextRevision: number) {
+      id = checkpointId; revision = nextRevision;
+      cache(); emit(); schedule();
+    },
+    getScene: () => scene,
+    getState,
+    hasChanges: dirty,
+    flush,
+    retry() {
+      if (status === "conflict") return Promise.resolve();
+      status = dirty() ? "dirty" : "saved"; error = undefined; emit();
+      return flush();
+    },
+    restoreRecovery() {
+      if (!recovery || recovery.revision !== revision) return null;
+      const recovered = recovery.scene;
+      recovery = undefined;
+      scene = recovered;
+      status = "dirty"; error = undefined;
+      cache(); emit(); schedule();
+      return scene;
+    },
+    dispose() { cancelTimer(); return flush(); },
+  };
 }
