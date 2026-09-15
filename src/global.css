@@ -66,7 +66,6 @@ body {
 }
 
 .main {
-  outline: none;
   position: relative;
 }
 
@@ -74,6 +73,8 @@ body {
    --sat/--sar/--sab/--sal vars (set from hostContext.safeAreaInsets in JS),
    which offset only the floating toolbar/menus — canvas stays full-bleed. */
 .main.fullscreen {
+  display: flex;
+  flex-direction: column;
   position: fixed;
   inset: 0;
   background: var(--bg-color, #ffffff);
@@ -103,20 +104,28 @@ body {
   max-height: 100%;
 }
 
-/* Toolbar - appears on hover */
+/* Keep actions in the tab order and reveal them for keyboard and touch users. */
 .toolbar {
   display: flex;
-  gap: 1rem;
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px;
+  min-height: 56px;
   z-index: 100;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  opacity: 1;
+  transition: opacity 150ms ease;
 }
 
-.main:hover .toolbar {
+.main:focus-within .toolbar,
+.toolbar.fullscreen-actions {
   opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .main:not(:hover):not(:focus-within) .toolbar:not(.fullscreen-actions) {
+    opacity: 0;
+  }
 }
 
 /* Fullscreen button */
@@ -125,24 +134,112 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  height: 28px;
+  min-height: 40px;
+  min-width: 40px;
   color: rgba(0, 0, 0, 0.95);
   padding: 2px 8px;
-  background: rgba(255, 255, 255, 0.6);
+  background: #ffffff;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
   pointer-events: auto;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.app-button:hover {
-  color: rgba(0, 0, 0, 0.7);
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+@media (hover: hover) {
+  .app-button:hover {
+    background: #f3f3f3;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.app-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.app-button[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+.app-button:focus-visible,
+.excalidraw-container:focus-visible {
+  outline: auto;
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .app-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+.diagram-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
+.diagram-preview.diagram-fullscreen {
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.diagram-preview .excalidraw-container {
+  height: 100%;
+}
+
+.editor-container {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.empty-diagram {
+  position: absolute;
+  inset: 35% 1rem auto;
+  text-align: center;
+  pointer-events: none;
+}
+
+.diagram-status {
+  padding: 0 12px;
+  background: var(--bg-color);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.diagram-status p {
+  margin: 4px 0;
+}
+
+.diagram-status p:empty {
+  margin: 0;
+}
+
+.recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.fullscreen .toolbar {
+  padding-top: max(8px, var(--sat, 0px));
+  padding-right: max(8px, var(--sar, 0px));
+  padding-left: max(8px, var(--sal, 0px));
+}
+
+.fullscreen .diagram-status {
+  max-height: 35vh;
+  overflow: auto;
 }
 
 .excalidraw-container {
@@ -195,8 +292,9 @@ body {
   background: #ffffff;
 }
 
-/* Fade-in animation for new SVG elements (opacity only, no transform) */
-.excalidraw-container svg :where(g, rect, circle, ellipse, text, image) {
+/* Fade-in animation for new SVG elements (opacity only, no transform). */
+@media (prefers-reduced-motion: no-preference) {
+.main:not(.reduce-motion) .excalidraw-container svg :where(g, rect, circle, ellipse, text, image) {
   animation: svgFadeIn 0.5s ease-out;
 }
 
@@ -206,7 +304,7 @@ body {
 }
 
 /* Stroke draw-on animation for line elements */
-.excalidraw-container svg :where(path, line, polyline, polygon) {
+.main:not(.reduce-motion) .excalidraw-container svg :where(path, line, polyline, polygon) {
   animation: strokeDraw 0.6s ease-out forwards;
 }
 
@@ -221,8 +319,21 @@ body {
 }
 
 /* Smooth transitions for property changes on existing elements */
-.excalidraw-container svg :where(rect, circle, ellipse, path, line, polyline, polygon, text, g) {
+.main:not(.reduce-motion) .excalidraw-container svg :where(rect, circle, ellipse, path, line, polyline, polygon, text, g) {
   transition: fill 0.4s ease-out, stroke 0.4s ease-out, opacity 0.4s ease-out;
+}
+}
+
+.reduce-motion .excalidraw-container svg * {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .excalidraw-container svg *, .toolbar, .app-button {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* Chart container */
@@ -271,27 +382,37 @@ body {
 }
 
 .export-modal {
-  min-width: 320px;
-  max-width: 400px;
+  width: min(400px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-color);
+  background: var(--bg-color);
   padding: 24px !important;
+  overscroll-behavior: contain;
+}
+
+.export-modal::backdrop {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .export-modal-title {
   margin: 0 0 8px;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary-color, #1a1a1a);
+  color: var(--text-color);
 }
 
 .export-modal-text {
   margin: 0 0 20px;
   font-size: 0.875rem;
-  color: var(--color-gray-60, #666);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
 .export-modal-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
 }

@@ -1,12 +1,20 @@
-import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { CallToolResult, ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
+import { McpServer, type CallToolResult, type ReadResourceResult } from "@modelcontextprotocol/server";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { deflateSync } from "node:zlib";
 import { z } from "zod/v4";
 import type { CheckpointStore } from "./checkpoint-store.js";
+import { APP_INFO, RESOURCE_URI, RESOURCE_MIME_TYPE } from "./metadata.js";
+import {
+  parseElementsInput,
+  parseSceneData,
+  reduceSceneOperations,
+  findRestoreCheckpoint,
+  type SceneData,
+  type LegacySceneRecovery,
+} from "./scene.js";
+import { hasLiveImages } from "./sharing.js";
 
 /** Maximum allowed size for element/data input strings (5 MB). */
 const MAX_INPUT_BYTES = 5 * 1024 * 1024;
@@ -15,6 +23,57 @@ const MAX_INPUT_BYTES = 5 * 1024 * 1024;
 const DIST_DIR = import.meta.filename.endsWith(".ts")
   ? path.join(import.meta.dirname, "..", "dist")
   : import.meta.dirname;
+
+function parseData(json: string): unknown {
+  if (Buffer.byteLength(json, "utf8") > MAX_INPUT_BYTES) {
+    throw new Error(`Scene input exceeds ${MAX_INPUT_BYTES} bytes. Use smaller incremental checkpoints.`);
+  }
+  try {
+    return JSON.parse(json);
+  } catch (error) {
+    if (error instanceof SyntaxError) throw new Error("Scene data must be valid JSON.", { cause: error });
+    throw error;
+  }
+}
+
+function toolFailure(error: unknown): CallToolResult {
+  const message = error instanceof Error ? error.message : "The operation failed.";
+  const result: CallToolResult = { isError: true, content: [{ type: "text", text: message }] };
+  if (error instanceof Error && "currentRevision" in error) {
+    const revision = error.currentRevision;
+    if (revision === null || typeof revision === "number") {
+      result._meta = { code: "revision_conflict", currentRevision: revision };
+    }
+  }
+  return result;
+}
+
+function describeScene(scene: SceneData): string {
+  const labels = scene.elements.flatMap((element) => {
+    if (typeof element.text === "string") return [element.text];
+    const label = element.label;
+    return label && typeof label === "object" && "text" in label && typeof label.text === "string"
+      ? [label.text] : [];
+  }).slice(0, 8).map((label) => label.slice(0, 100));
+  return `${scene.elements.length} drawable elements${labels.length ? `. Labels: ${labels.join("; ")}` : ""}.`;
+}
+
+/** Excalidraw framing: big-endian version 1, then a byte length before each buffer. */
+function concatBuffers(...buffers: Uint8Array[]): Uint8Array {
+  let total = 4;
+  for (const buffer of buffers) total += 4 + buffer.length;
+  const output = new Uint8Array(total);
+  const view = new DataView(output.buffer);
+  view.setUint32(0, 1);
+  let offset = 4;
+  for (const buffer of buffers) {
+    view.setUint32(offset, buffer.length);
+    offset += 4;
+    output.set(buffer, offset);
+    offset += buffer.length;
+  }
+  return output;
+}
 
 // ============================================================
 // RECALL: shared knowledge for the agent
@@ -288,7 +347,9 @@ Every create_view call returns a \`checkpointId\` in its response. To continue f
 
 \`[{"type":"restoreCheckpoint","id":"<checkpointId>"}, ...additional new elements...]\`
 
-The saved state (including any user edits made in fullscreen) is loaded from the client, and your new elements are appended on top. This saves tokens — you don't need to re-send the entire diagram.
+The last acknowledged saved state is resolved on the server, and your new elements are applied on top. Check the widget's saved revision and edit context before continuing. Unsaved or conflicting edits are not part of a checkpoint.
+
+For native scene import, create_view also accepts \`scene\` instead of \`elements\`: a JSON string containing elements, files, and persistent appState. Image bytes must accompany image elements. Use exactly one input field.
 
 ## Deleting Elements
 
@@ -399,7 +460,7 @@ Use the Primary Colors from above — they're bright enough on dark backgrounds.
  * Shared between local (main.ts) and Vercel (api/mcp.ts) entry points.
  */
 export function registerTools(server: McpServer, distDir: string, store: CheckpointStore): void {
-  const resourceUri = "ui://excalidraw/mcp-app.html";
+  const resourceUri = RESOURCE_URI;
 
   // ============================================================
   // Tool 1: read_me (call before drawing)
@@ -418,7 +479,7 @@ export function registerTools(server: McpServer, distDir: string, store: Checkpo
   // ============================================================
   // Tool 2: create_view (Excalidraw SVG)
   // ============================================================
-  registerAppTool(server,
+  server.registerTool(
     "create_view",
     {
       title: "Draw Diagram",
@@ -426,85 +487,52 @@ export function registerTools(server: McpServer, distDir: string, store: Checkpo
 Elements stream in one by one with draw-on animations.
 Call read_me first to learn the element format.`,
       inputSchema: z.object({
-        elements: z.string().describe(
+        elements: z.string().optional().describe(
           "JSON array string of Excalidraw elements. Must be valid JSON — no comments, no trailing commas. Keep compact. Call read_me first for format reference."
         ),
+        scene: z.string().optional().describe("A complete native scene JSON object, including elements, files and appState. Use instead of elements."),
+      }).refine((input) => (input.elements !== undefined) !== (input.scene !== undefined), {
+        message: "Provide exactly one of elements or scene.",
       }),
-      annotations: { readOnlyHint: true },
-      _meta: { ui: { resourceUri } },
+      outputSchema: z.object({
+        checkpointId: z.string(), revision: z.number().int().nonnegative(),
+        warnings: z.array(z.string()).optional(),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+      _meta: { ui: { resourceUri }, "ui/resourceUri": resourceUri },
     },
-    async ({ elements }): Promise<CallToolResult> => {
-      if (elements.length > MAX_INPUT_BYTES) {
-        return {
-          content: [{ type: "text", text: `Elements input exceeds ${MAX_INPUT_BYTES} byte limit. Reduce the number of elements or use checkpoints to build incrementally.` }],
-          isError: true,
-        };
-      }
-      let parsed: any[];
+    async ({ elements, scene }): Promise<CallToolResult> => {
       try {
-        parsed = JSON.parse(elements);
-      } catch (e) {
-        return {
-          content: [{ type: "text", text: `Invalid JSON in elements: ${(e as Error).message}. Ensure no comments, no trailing commas, and proper quoting.` }],
-          isError: true,
-        };
-      }
-
-      // Resolve restoreCheckpoint references and save fully resolved state
-      const restoreEl = parsed.find((el: any) => el.type === "restoreCheckpoint");
-      let resolvedElements: any[];
-
-      if (restoreEl?.id) {
-        const base = await store.load(restoreEl.id);
-        if (!base) {
-          return {
-            content: [{ type: "text", text: `Checkpoint "${restoreEl.id}" not found — it may have expired or never existed. Please recreate the diagram from scratch.` }],
-            isError: true,
-          };
-        }
-
-        const deleteIds = new Set<string>();
-        for (const el of parsed) {
-          if (el.type === "delete") {
-            for (const id of String(el.ids ?? el.id).split(",")) deleteIds.add(id.trim());
+        let resolved: SceneData;
+        let recovery: LegacySceneRecovery | undefined;
+        if (scene !== undefined) {
+          resolved = parseSceneData(parseData(scene));
+        } else {
+          const operations = parseElementsInput(elements ?? "");
+          const restoreId = findRestoreCheckpoint(operations);
+          const base = restoreId ? await store.load(restoreId) : undefined;
+          if (restoreId && !base) {
+            throw new Error(`Checkpoint "${restoreId}" was not found. It may have expired; restore a local download or recreate the diagram.`);
           }
+          recovery = base?.recovery;
+          resolved = reduceSceneOperations(operations, base ?? undefined);
         }
-
-        const baseFiltered = base.elements.filter((el: any) =>
-          !deleteIds.has(el.id) && !deleteIds.has(el.containerId)
-        );
-        const newEls = parsed.filter((el: any) =>
-          el.type !== "restoreCheckpoint" && el.type !== "delete"
-        );
-        resolvedElements = [...baseFiltered, ...newEls];
-      } else {
-        resolvedElements = parsed.filter((el: any) => el.type !== "delete");
+        const checkpointId = crypto.randomUUID().replace(/-/g, "").slice(0, 18);
+        const saved = await store.save(checkpointId, resolved);
+        const warning = recovery
+          ? `Legacy images are unavailable (${recovery.missingFileIds.join(", ")}). This new checkpoint contains only recoverable elements; the original checkpoint is unchanged.`
+          : undefined;
+        const output = { checkpointId, revision: saved.revision, ...(warning ? { warnings: [warning] } : {}) };
+        return {
+          content: [
+            { type: "text", text: `Diagram checkpoint saved. ${describeScene(saved)}${warning ? `\nWarning: ${warning}` : ""}\nTo continue, use [{"type":"restoreCheckpoint","id":"${checkpointId}"}, ...new elements or delete operations]. This restores the last saved revision, including acknowledged manual edits. Read the widget's supplied edit context; do not assume unsaved edits are included. Start from scratch for an unrelated diagram.` },
+            { type: "text", text: JSON.stringify(output) },
+          ],
+          structuredContent: output,
+        };
+      } catch (error) {
+        return toolFailure(error);
       }
-
-      // Check camera aspect ratios — nudge toward 4:3
-      const cameras = parsed.filter((el: any) => el.type === "cameraUpdate");
-      const badRatio = cameras.find((c: any) => {
-        if (!c.width || !c.height) return false;
-        const ratio = c.width / c.height;
-        return Math.abs(ratio - 4 / 3) > 0.15;
-      });
-      const ratioHint = badRatio
-        ? `\nTip: your cameraUpdate used ${badRatio.width}x${badRatio.height} — try to stick with 4:3 aspect ratio (e.g. 400x300, 800x600) in future.`
-        : "";
-
-      const checkpointId = crypto.randomUUID().replace(/-/g, "").slice(0, 18);
-      await store.save(checkpointId, { elements: resolvedElements });
-      return {
-        content: [{ type: "text", text: `Diagram displayed! Checkpoint id: "${checkpointId}".
-If user asks to create a new diagram - simply create a new one from scratch.
-However, if the user wants to edit something on this diagram "${checkpointId}", take these steps:
-1) read widget context (using read_widget_context tool) to check if user made any manual edits first
-2) decide whether you want to make new diagram from scratch OR - use this one as starting checkpoint:
-  simply start from the first element [{"type":"restoreCheckpoint","id":"${checkpointId}"}, ...your new elements...]
-  this will use same diagram state as the user currently sees, including any manual edits they made in fullscreen, allowing you to add elements on top.
-  To remove elements, use: {"type":"delete","ids":"<id1>,<id2>"}${ratioHint}` }],
-        structuredContent: { checkpointId },
-      };
     },
   );
 
@@ -512,39 +540,31 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
   // Tool 3: export_to_excalidraw (server-side proxy for CORS)
   // Called by widget via app.callServerTool(), not by the model.
   // ============================================================
-  registerAppTool(server,
+  server.registerTool(
     "export_to_excalidraw",
     {
       description: "Upload diagram to excalidraw.com and return shareable URL.",
-      inputSchema: { json: z.string().describe("Serialized Excalidraw JSON") },
+      inputSchema: z.object({ json: z.string().describe("Serialized Excalidraw JSON including its files map") }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
       _meta: { ui: { visibility: ["app"] } },
     },
-    async ({ json }): Promise<CallToolResult> => {
-      if (json.length > MAX_INPUT_BYTES) {
+    async ({ json }, ctx): Promise<CallToolResult> => {
+      if (Buffer.byteLength(json, "utf8") > MAX_INPUT_BYTES) {
         return {
           content: [{ type: "text", text: `Export data exceeds ${MAX_INPUT_BYTES} byte limit.` }],
           isError: true,
         };
       }
       try {
+        const scene = parseSceneData(parseData(json));
+        if (hasLiveImages(scene.elements)) {
+          throw new Error("Image diagrams cannot be shared through this endpoint. Download the .excalidraw file to preserve images, then open that file in Excalidraw.");
+        }
         // --- Excalidraw v2 binary format ---
-        const remappedJson = json;
-        // concatBuffers: [version=1 (4B)] [len₁ (4B)] [data₁] [len₂ (4B)] [data₂] ...
-        const concatBuffers = (...bufs: Uint8Array[]): Uint8Array => {
-          let total = 4; // version header
-          for (const b of bufs) total += 4 + b.length;
-          const out = new Uint8Array(total);
-          const dv = new DataView(out.buffer);
-          dv.setUint32(0, 1); // CONCAT_BUFFERS_VERSION = 1
-          let off = 4;
-          for (const b of bufs) {
-            dv.setUint32(off, b.length);
-            off += 4;
-            out.set(b, off);
-            off += b.length;
-          }
-          return out;
-        };
+        const remappedJson = JSON.stringify({
+          type: "excalidraw", version: 2, source: "https://excalidraw.com",
+          elements: scene.elements, appState: scene.appState,
+        });
         const te = new TextEncoder();
 
         // 1. Inner payload: concatBuffers(fileMetadata, data)
@@ -582,9 +602,10 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
         const res = await fetch("https://json.excalidraw.com/api/v2/post/", {
           method: "POST",
           body: payload,
+          signal: AbortSignal.any([ctx.mcpReq.signal, AbortSignal.timeout(30_000)]),
         });
         if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
-        const { id } = (await res.json()) as { id: string };
+        const { id } = z.object({ id: z.string().regex(/^[a-zA-Z0-9_-]+$/) }).parse(await res.json());
 
         // 6. Export key as base64url string
         const jwk = await globalThis.crypto.subtle.exportKey("jwk", cryptoKey);
@@ -603,25 +624,36 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
   // ============================================================
   // Tool 4: save_checkpoint (private — widget only, for user edits)
   // ============================================================
-  registerAppTool(server,
+  server.registerTool(
     "save_checkpoint",
     {
       description: "Update checkpoint with user-edited state.",
-      inputSchema: { id: z.string(), data: z.string() },
+      inputSchema: z.object({
+        id: z.string(),
+        data: z.string(),
+        expectedRevision: z.number().int().nonnegative().optional(),
+      }),
+      outputSchema: z.object({ checkpointId: z.string(), revision: z.number().int().nonnegative() }),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       _meta: { ui: { visibility: ["app"] } },
     },
-    async ({ id, data }): Promise<CallToolResult> => {
-      if (data.length > MAX_INPUT_BYTES) {
-        return {
-          content: [{ type: "text", text: `Checkpoint data exceeds ${MAX_INPUT_BYTES} byte limit.` }],
-          isError: true,
-        };
-      }
+    async ({ id, data, expectedRevision }): Promise<CallToolResult> => {
       try {
-        await store.save(id, JSON.parse(data));
-        return { content: [{ type: "text", text: "ok" }] };
-      } catch (err) {
-        return { content: [{ type: "text", text: `save failed: ${(err as Error).message}` }], isError: true };
+        if (expectedRevision === undefined) {
+          throw new Error("A checkpoint revision is required to save safely. Reload the updated diagram before saving.");
+        }
+        const value = parseData(data);
+        if (!value || typeof value !== "object" || !("schemaVersion" in value) || value.schemaVersion !== 1) {
+          throw new Error("Saving requires the complete versioned scene, including files and appState. Reload the updated diagram.");
+        }
+        const dataScene = parseSceneData(value);
+        const saved = expectedRevision === 0
+          ? await store.migrate(id, dataScene)
+          : await store.save(id, dataScene, expectedRevision);
+        const output = { checkpointId: id, revision: saved.revision };
+        return { content: [{ type: "text", text: JSON.stringify(output) }], structuredContent: output };
+      } catch (error) {
+        return toolFailure(error);
       }
     },
   );
@@ -629,20 +661,21 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
   // ============================================================
   // Tool 5: read_checkpoint (private — widget only)
   // ============================================================
-  registerAppTool(server,
+  server.registerTool(
     "read_checkpoint",
     {
       description: "Read checkpoint state for restore.",
-      inputSchema: { id: z.string() },
+      inputSchema: z.object({ id: z.string() }),
+      annotations: { readOnlyHint: true, openWorldHint: false },
       _meta: { ui: { visibility: ["app"] } },
     },
     async ({ id }): Promise<CallToolResult> => {
       try {
         const data = await store.load(id);
-        if (!data) return { content: [{ type: "text", text: "" }] };
-        return { content: [{ type: "text", text: JSON.stringify(data) }] };
-      } catch (err) {
-        return { content: [{ type: "text", text: `read failed: ${(err as Error).message}` }], isError: true };
+        if (!data) throw new Error(`Checkpoint "${id}" was not found.`);
+        return { content: [{ type: "text", text: JSON.stringify(data) }], structuredContent: data };
+      } catch (error) {
+        return toolFailure(error);
       }
     },
   );
@@ -658,7 +691,7 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
   };
 
   // Register the single shared resource for all UI tools
-  registerAppResource(server,
+  server.registerResource(
     resourceUri,
     resourceUri,
     { mimeType: RESOURCE_MIME_TYPE },
@@ -686,11 +719,10 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
  * Creates a new MCP server instance with Excalidraw drawing tools.
  * Used by local entry point (main.ts) and Docker deployments.
  */
-export function createServer(store: CheckpointStore): McpServer {
-  const server = new McpServer({
-    name: "Excalidraw",
-    version: "1.0.0",
-  });
-  registerTools(server, DIST_DIR, store);
+export function createServer(store: CheckpointStore, distDir = DIST_DIR): McpServer {
+  const server = new McpServer(APP_INFO);
+  registerTools(server, distDir, store);
+  // This catalog is fixed for the lifetime of the deployment; no change subscriptions are offered.
+  server.server.registerCapabilities({ tools: { listChanged: false }, resources: { listChanged: false } });
   return server;
 }

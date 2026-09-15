@@ -1,1006 +1,748 @@
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
-import type { App } from "@modelcontextprotocol/ext-apps";
-import {  Excalidraw, exportToSvg, convertToExcalidrawElements, restore, CaptureUpdateAction, FONT_FAMILY, serializeAsJSON, MainMenu } from "@excalidraw/excalidraw";
+import type { App, McpUiHostContext } from "@modelcontextprotocol/ext-apps";
+import { Excalidraw, exportToSvg, exportToBlob, getCommonBounds, MainMenu, serializeAsJSON } from "@excalidraw/excalidraw";
+import type { AppState, ExcalidrawProps } from "@excalidraw/excalidraw/types";
 import morphdom from "morphdom";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { initPencilAudio, playStroke } from "./pencil-audio";
-import { captureInitialElements, onEditorChange, setStorageKey, loadPersistedElements, getLatestEditedElements, setCheckpointId } from "./edit-context";
+import { useCallback, useEffect, useId, useRef, useState, type ReactElement } from "react";
+import { initPencilAudio, playStroke, stopPencilAudio } from "./pencil-audio.js";
+import { APP_INFO } from "./metadata.js";
+import { hasLiveImages, IMAGE_SHARING_MESSAGE } from "./sharing.js";
+import { createRenderQueue } from "./render-queue.js";
+import { createEditController, resultError, type EditState } from "./edit-context.js";
+import { createAppEventBuffer, type AppEventBuffer, type WidgetEvent } from "./app-events.js";
+import { findRestoreCheckpoint, parseElementsInput, parseSceneData, reduceSceneOperations, type SceneData, type SceneOperation, type ViewportRect } from "./scene.js";
+import { loadSceneFonts, nativeAppState, nativeElements, nativeFiles, serializeScene, toNativeScene } from "./widget-scene.js";
 import "./global.css";
 
-// ============================================================
-// Debug logging (routes through SDK → host log file)
-// ============================================================
-
-let _logFn: ((msg: string) => void) | null = null;
-function fsLog(msg: string) {
-  if (_logFn) _logFn(msg);
+function log(app: App, message: string): void {
+  try { void app.sendLog({ level: "info", logger: "Excalidraw", data: message }).catch(() => {}); } catch { /* The bridge may already be closed. */ }
 }
 
-// ============================================================
-// Shared helpers
-// ============================================================
-
-function parsePartialElements(str: string | undefined): any[] {
-  if (!str?.trim().startsWith("[")) return [];
-  try { return JSON.parse(str); } catch { /* partial */ }
-  const last = str.lastIndexOf("}");
-  if (last < 0) return [];
-  try { return JSON.parse(str.substring(0, last + 1) + "]"); } catch { /* incomplete */ }
-  return [];
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
-function excludeIncompleteLastItem<T>(arr: T[]): T[] {
-  if (!arr || arr.length === 0) return [];
-  if (arr.length <= 1) return [];
-  return arr.slice(0, -1);
-}
-
-interface ViewportRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-/** Convert raw shorthand elements → Excalidraw format (labels → bound text, font fix).
- *  Preserves pseudo-elements like cameraUpdate (not valid Excalidraw types). */
-function convertRawElements(els: any[]): any[] {
-  const pseudoTypes = new Set(["cameraUpdate", "delete", "restoreCheckpoint"]);
-  const pseudos = els.filter((el: any) => pseudoTypes.has(el.type));
-  const real = els.filter((el: any) => !pseudoTypes.has(el.type));
-  const withDefaults = real.map((el: any) =>
-    el.label ? { ...el, label: { textAlign: "center", verticalAlign: "middle", ...el.label } } : el
-  );
-  const converted = convertToExcalidrawElements(withDefaults, { regenerateIds: false })
-    .map((el: any) => el.type === "text" ? { ...el, fontFamily: (FONT_FAMILY as any).Excalifont ?? 1 } : el);
-  return [...converted, ...pseudos];
-}
-
-/** Fix SVG viewBox to 4:3 by expanding the smaller dimension and centering. */
-function fixViewBox4x3(svg: SVGSVGElement): void {
-  const vb = svg.getAttribute("viewBox")?.split(" ").map(Number);
-  if (!vb || vb.length !== 4) return;
-  const [vx, vy, vw, vh] = vb;
-  const r = vw / vh;
-  if (Math.abs(r - 4 / 3) < 0.01) return;
-  if (r > 4 / 3) {
-    const h2 = Math.round(vw * 3 / 4);
-    svg.setAttribute("viewBox", `${vx} ${vy - Math.round((h2 - vh) / 2)} ${vw} ${h2}`);
-  } else {
-    const w2 = Math.round(vh * 4 / 3);
-    svg.setAttribute("viewBox", `${vx - Math.round((w2 - vw) / 2)} ${vy} ${w2} ${vh}`);
-  }
-}
-
-function extractViewportAndElements(elements: any[]): {
-  viewport: ViewportRect | null;
-  drawElements: any[];
-  restoreId: string | null;
-  deleteIds: Set<string>;
-} {
-  let viewport: ViewportRect | null = null;
-  let restoreId: string | null = null;
-  const deleteIds = new Set<string>();
-  const drawElements: any[] = [];
-
-  for (const el of elements) {
-    if (el.type === "cameraUpdate") {
-      viewport = { x: el.x, y: el.y, width: el.width, height: el.height };
-    } else if (el.type === "restoreCheckpoint") {
-      restoreId = el.id;
-    } else if (el.type === "delete") {
-      for (const id of String(el.ids ?? el.id).split(",")) deleteIds.add(id.trim());
-    } else {
-      drawElements.push(el);
-    }
-  }
-
-  // Hide deleted elements via near-zero opacity instead of removing — preserves SVG
-  // group count/order so morphdom matches by position correctly (no cascade re-animations).
-  // Using 1 (not 0) because Excalidraw treats opacity:0 as "unset" → defaults to 100.
-  const processedDraw = deleteIds.size > 0
-    ? drawElements.map((el: any) => (deleteIds.has(el.id) || deleteIds.has(el.containerId)) ? { ...el, opacity: 1 } : el)
-    : drawElements;
-
-  return { viewport, drawElements: processedDraw, restoreId, deleteIds };
-}
-
-const ExpandIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8.5 1.5H12.5V5.5" />
-    <path d="M5.5 12.5H1.5V8.5" />
-    <path d="M12.5 1.5L8 6" />
-    <path d="M1.5 12.5L6 8" />
-  </svg>
-);
-
-const ExternalLinkIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 8.667V12.667C12 13.035 11.702 13.333 11.333 13.333H3.333C2.965 13.333 2.667 13.035 2.667 12.667V4.667C2.667 4.298 2.965 4 3.333 4H7.333" />
-    <path d="M10 2.667H13.333V6" />
-    <path d="M6.667 9.333L13.333 2.667" />
-  </svg>
-);
-
-async function shareToExcalidraw(data: {elements: any[], appState: any, files: any}, app: App) {
+async function withDeadline<T>(operation: Promise<T>, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    if (!data.elements?.length) return;
+    return await Promise.race([operation, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(message)), 8000); })]);
+  } finally { clearTimeout(timer); }
+}
 
-    // Serialize to Excalidraw JSON
-    const json = serializeAsJSON(data.elements, data.appState, data.files, "database");
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 
-    // Proxy through server tool (avoids CORS on json.excalidraw.com)
-    const result = await app.callServerTool({
-      name: "export_to_excalidraw",
-      arguments: { json },
-    });
+function inputArguments(input: unknown): Record<string, unknown> {
+  if (!isObject(input)) throw new Error("Diagram input must be an object.");
+  return input.arguments && isObject(input.arguments) ? input.arguments : input;
+}
 
-    if (result.isError) {
-      fsLog(`export failed: ${JSON.stringify(result.content)}`);
-      return;
+/** Extract only fully closed top-level items, including camera/delete-only updates. */
+function previewOperations(json: string): SceneOperation[] {
+  try { return parseElementsInput(json); } catch { /* The last object may still be streaming. */ }
+  let depth = 0, end = -1;
+  let quoted = false, escaped = false;
+  for (let index = 0; index < json.length; index++) {
+    const char = json[index];
+    if (quoted) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') quoted = false;
+    } else if (char === '"') quoted = true;
+    else if (char === "{" || char === "[") depth++;
+    else if (char === "}" || char === "]") {
+      depth--;
+      if (char === "}" && depth === 1) end = index;
     }
-
-    const url = (result.content[0] as any).text;
-    await app.openLink({ url });
-  } catch (err) {
-    fsLog(`shareToExcalidraw error: ${err}`);
   }
+  return end < 0 ? [] : parseElementsInput(`${json.slice(0, end + 1)}]`);
 }
 
-function ShareButton({ onConfirm, compact }: { onConfirm: () => Promise<void>; compact?: boolean }) {
-  const [state, setState] = useState<"idle" | "confirm" | "uploading">("idle");
-
-  const handleConfirm = async () => {
-    setState("uploading");
-    try {
-      await onConfirm();
-    } finally {
-      setState("idle");
-    }
-  };
-
-  return (
-    <>
-      <button
-        className=" app-button"
-        style={{ display: "flex", alignItems: "center", gap: 5, width: "auto", padding: "0 10px", marginRight: compact ? 0 : -8 }}
-        title="Export to Excalidraw"
-        disabled={state === "uploading"}
-        onClick={() => setState("confirm")}
-      >
-        <ExternalLinkIcon />
-        {!compact && <span style={{ fontSize: "0.75rem", fontWeight: 400 }}>{state === "uploading" ? "Exporting…" : "Open in Excalidraw"}</span>}
-      </button>
-
-      {state === "confirm" && (
-        <div className="excalidraw export-modal-overlay" onClick={() => setState("idle")}>
-          <div className="Island export-modal" onClick={(e) => e.stopPropagation()}>
-            <h3 className="export-modal-title">Export to Excalidraw</h3>
-            <p className="export-modal-text">
-              This will upload your diagram to excalidraw.com and open it in a new tab.
-            </p>
-            <div className="export-modal-actions">
-              <button className="standalone" onClick={() => setState("idle")}>
-                Cancel
-              </button>
-              <button className="standalone export-modal-confirm" onClick={handleConfirm}>
-                Open in Excalidraw
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
+async function readCheckpoint(app: App, id: string): Promise<{ scene: SceneData; revision: number; warning: string }> {
+  const result = await app.callServerTool({ name: "read_checkpoint", arguments: { id } });
+  if (result.isError) throw new Error(resultError(result));
+  const text = result.content.find((item) => item.type === "text");
+  const value: unknown = result.structuredContent ?? (text?.type === "text" ? JSON.parse(text.text) : null);
+  const revision = isObject(value) ? value.revision : undefined;
+  if (!Number.isSafeInteger(revision) || Number(revision) < 0) throw new Error("The checkpoint has no valid revision. Download the diagram and reload.");
+  const recovery = isObject(value) ? value.recovery : undefined;
+  const missingImages = isObject(recovery) ? recovery.missingFileIds : undefined;
+  const warning = Array.isArray(missingImages) && missingImages.length
+    ? "Some images in this legacy checkpoint are unavailable. Import the original .excalidraw file to recover them. The original checkpoint has not been overwritten."
+    : "";
+  return { scene: parseSceneData(value), revision: Number(revision), warning };
 }
 
-// ============================================================
-// Diagram component (Excalidraw SVG)
-// ============================================================
+function downloadScene(scene: SceneData, recovery = false): void {
+  const url = URL.createObjectURL(new Blob([serializeScene(scene)], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = recovery ? "diagram-recovery.excalidraw" : "diagram.excalidraw";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
-const LERP_SPEED = 0.03; // 0–1, higher = faster snap
+interface ShareButtonProps {
+  onConfirm: () => Promise<void>;
+  onError: (error: unknown) => void;
+  compact?: boolean;
+  imageRestricted?: boolean;
+  descriptionId?: string;
+  disabled?: boolean;
+}
+
+function ShareButton({
+  onConfirm, onError, compact = false, imageRestricted = false, descriptionId, disabled = false,
+}: ShareButtonProps): ReactElement {
+  const [uploading, setUploading] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const dialogDescriptionId = useId();
+  return <>
+    <button type="button" ref={trigger} className="app-button" aria-label="Open in Excalidraw" disabled={disabled || uploading || imageRestricted}
+      aria-describedby={imageRestricted ? descriptionId : undefined} title={imageRestricted ? IMAGE_SHARING_MESSAGE : undefined}
+      onClick={() => dialog.current?.showModal()}>
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M9 2h5v5M14 2 6 10M7 3H2v11h11V9" />
+      </svg>
+      {!compact && (uploading ? "Exporting…" : "Open in Excalidraw")}
+    </button>
+    <dialog ref={dialog} className="export-modal" aria-labelledby={titleId} aria-describedby={dialogDescriptionId}
+      onCancel={(event) => { event.stopPropagation(); }}
+      onClose={() => { if (!uploading) trigger.current?.focus(); }}>
+      <h2 id={titleId} className="export-modal-title">Upload to Excalidraw?</h2>
+      <p id={dialogDescriptionId} className="export-modal-text">This uploads your diagram to excalidraw.com and opens it in a new tab. Download a local copy instead to keep it private.</p>
+      <div className="export-modal-actions">
+        <button type="button" className="app-button" autoFocus onClick={() => dialog.current?.close()}>Cancel</button>
+        <button type="button" className="app-button" disabled={disabled || imageRestricted || uploading} onClick={async () => {
+          setUploading(true); dialog.current?.close();
+          try { await onConfirm(); } catch (error) { onError(error); }
+          finally { setUploading(false); requestAnimationFrame(() => trigger.current?.focus()); }
+        }}>Upload and open</button>
+      </div>
+    </dialog>
+  </>;
+}
+
 const EXPORT_PADDING = 20;
 
-/**
- * Compute the min x/y of all draw elements in scene coordinates.
- * This matches the offset Excalidraw's exportToSvg applies internally:
- *   SVG_x = scene_x - sceneMinX + exportPadding
- */
-function computeSceneBounds(elements: any[]): { minX: number; minY: number } {
-  let minX = Infinity;
-  let minY = Infinity;
-  for (const el of elements) {
-    if (el.x != null) {
-      minX = Math.min(minX, el.x);
-      minY = Math.min(minY, el.y);
-      // Arrow points are offsets from el.x/y
-      if (el.points && Array.isArray(el.points)) {
-        for (const pt of el.points) {
-          minX = Math.min(minX, el.x + pt[0]);
-          minY = Math.min(minY, el.y + pt[1]);
-        }
-      }
-    }
-  }
-  return { minX: isFinite(minX) ? minX : 0, minY: isFinite(minY) ? minY : 0 };
+interface DiagramViewProps {
+  scene: SceneData | null;
+  fullscreen: boolean;
+  animate: boolean;
+  audio: boolean;
+  onError: (error: unknown) => void;
 }
 
-/**
- * Convert a scene-space viewport rect to an SVG-space viewBox.
- */
-function sceneToSvgViewBox(
-  vp: ViewportRect,
-  sceneMinX: number,
-  sceneMinY: number,
-): { x: number; y: number; w: number; h: number } {
-  return {
-    x: vp.x - sceneMinX + EXPORT_PADDING,
-    y: vp.y - sceneMinY + EXPORT_PADDING,
-    w: vp.width,
-    h: vp.height,
-  };
-}
+function DiagramView({ scene, fullscreen, animate, audio, onError }: DiagramViewProps): ReactElement {
+  const container = useRef<HTMLDivElement>(null);
+  const generation = useRef(0);
+  const frame = useRef(0);
+  const previousIds = useRef(new Set<string>());
+  const viewBox = useRef<ViewportRect | null>(null);
+  const zoom = useRef({ scale: 1, x: 0, y: 0 });
+  const [renderQueue] = useState(() => createRenderQueue(onError));
+  const applyViewBox = useCallback(() => {
+    const svg = container.current?.querySelector("svg");
+    const box = viewBox.current;
+    if (!svg || !box) return;
+    const width = box.width / zoom.current.scale, height = box.height / zoom.current.scale;
+    svg.setAttribute("viewBox", `${box.x + (box.width - width) / 2 + zoom.current.x} ${box.y + (box.height - height) / 2 + zoom.current.y} ${width} ${height}`);
+  }, []);
 
-function DiagramView({ toolInput, isFinal, displayMode, onElements, editedElements, onViewport, loadCheckpoint }: { toolInput: any; isFinal: boolean; displayMode: string; onElements?: (els: any[]) => void; editedElements?: any[]; onViewport?: (vp: ViewportRect) => void; loadCheckpoint?: (id: string) => Promise<{ elements: any[] } | null> }) {
-  const svgRef = useRef<HTMLDivElement | null>(null);
-  const latestRef = useRef<any[]>([]);
-  const restoredRef = useRef<{ id: string; elements: any[] } | null>(null);
-  const [, setCount] = useState(0);
-
-  // Init pencil audio on first mount
-  useEffect(() => { initPencilAudio(); }, []);
-
-  // Set container height: 4:3 in inline, full viewport in fullscreen
   useEffect(() => {
-    if (!svgRef.current) return;
-    if (displayMode === "fullscreen") {
-      svgRef.current.style.height = "100%";
+    const epoch = ++generation.current;
+    cancelAnimationFrame(frame.current);
+    if (!scene || !container.current) return;
+    if (!scene.elements.length) {
+      container.current.replaceChildren();
+      previousIds.current.clear();
+      viewBox.current = null;
       return;
     }
-    const observer = new ResizeObserver(([entry]) => {
-      const w = entry.contentRect.width;
-      if (w > 0 && svgRef.current) {
-        svgRef.current.style.height = `${Math.round(w * 3 / 4)}px`;
-      }
+    void renderQueue.enqueue(async () => {
+      if (epoch !== generation.current) return;
+      try {
+        const svg = await withDeadline<SVGSVGElement>(exportToSvg({
+          elements: nativeElements(scene), files: nativeFiles(scene),
+          appState: { ...nativeAppState(scene), exportBackground: true }, exportPadding: EXPORT_PADDING,
+        }), "The diagram preview timed out. Try reloading the diagram.");
+        if (epoch !== generation.current || !container.current) return;
+        const bounds = getCommonBounds(nativeElements(scene));
+        const [x, y, width, height] = svg.getAttribute("viewBox")!.split(" ").map(Number);
+        const target = scene.viewport ? {
+          x: scene.viewport.x - bounds[0] + EXPORT_PADDING,
+          y: scene.viewport.y - bounds[1] + EXPORT_PADDING,
+          width: scene.viewport.width, height: scene.viewport.height,
+        } : { x, y, width, height };
+        if (target.width / target.height > 4 / 3) {
+          const expanded = target.width * 3 / 4;
+          target.y -= (expanded - target.height) / 2; target.height = expanded;
+        } else {
+          const expanded = target.height * 4 / 3;
+          target.x -= (expanded - target.width) / 2; target.width = expanded;
+        }
+        svg.removeAttribute("width"); svg.removeAttribute("height");
+        svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Excalidraw diagram");
+        svg.style.width = "100%"; svg.style.height = "100%";
+        const existing = container.current.querySelector("svg");
+        if (existing) morphdom(existing, svg);
+        else container.current.append(svg);
+        if (audio) {
+          for (const element of scene.elements.filter((item) => !previousIds.current.has(item.id)).slice(0, 4)) playStroke(element.type);
+        }
+        previousIds.current = new Set(scene.elements.map((element) => element.id));
+        const start = viewBox.current;
+        if (!animate || !start || !scene.viewport) { viewBox.current = target; applyViewBox(); return; }
+        const began = performance.now();
+        const tick = () => {
+          if (epoch !== generation.current) return;
+          const amount = Math.min(1, (performance.now() - began) / 300);
+          const eased = 1 - (1 - amount) ** 3;
+          viewBox.current = {
+            x: start.x + (target.x - start.x) * eased, y: start.y + (target.y - start.y) * eased,
+            width: start.width + (target.width - start.width) * eased, height: start.height + (target.height - start.height) * eased,
+          };
+          applyViewBox();
+          if (amount < 1) frame.current = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch (error) { if (epoch === generation.current) onError(error); }
     });
-    observer.observe(svgRef.current);
-    return () => observer.disconnect();
-  }, [displayMode]);
+    return () => { generation.current++; renderQueue.clear(); cancelAnimationFrame(frame.current); };
+  }, [scene, animate, audio, onError, applyViewBox, renderQueue]);
 
-  // Font preloading — ensure Virgil is loaded before first export
-  const fontsReady = useRef<Promise<void> | null>(null);
-  const ensureFontsLoaded = useCallback(() => {
-    if (!fontsReady.current) {
-      fontsReady.current = document.fonts.load('20px Excalifont').then(() => {});
-    }
-    return fontsReady.current;
-  }, []);
-
-  // Animated viewport in SCENE coordinates (stable across re-exports)
-  const animatedVP = useRef<ViewportRect | null>(null);
-  const targetVP = useRef<ViewportRect | null>(null);
-  const sceneBoundsRef = useRef<{ minX: number; minY: number }>({ minX: 0, minY: 0 });
-  const animFrameRef = useRef<number>(0);
-
-  // User-controlled zoom during streaming (scale + pan offset in viewBox units)
-  const zoomRef = useRef({ scale: 1, panX: 0, panY: 0 });
-  const baseViewBoxRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
-
-  /** Apply user zoom on top of the stored base viewBox. */
-  const applyZoom = useCallback(() => {
-    if (!svgRef.current || !baseViewBoxRef.current) return;
-    const svg = svgRef.current.querySelector("svg");
-    if (!svg) return;
-    const { x, y, w, h } = baseViewBoxRef.current;
-    const { scale, panX, panY } = zoomRef.current;
-    const zw = w / scale;
-    const zh = h / scale;
-    svg.setAttribute("viewBox", `${x + (w - zw) / 2 + panX} ${y + (h - zh) / 2 + panY} ${zw} ${zh}`);
-  }, []);
-
-  /** Apply current animated scene-space viewport to the SVG, then user zoom. */
-  const applyViewBox = useCallback(() => {
-    if (!animatedVP.current || !svgRef.current) return;
-    const svg = svgRef.current.querySelector("svg");
-    if (!svg) return;
-    const { minX, minY } = sceneBoundsRef.current;
-    const { x, y, width: w, height: h } = animatedVP.current;
-    const ratio = w / h;
-    const vp4x3: ViewportRect = Math.abs(ratio - 4 / 3) < 0.01 ? animatedVP.current
-      : ratio > 4 / 3 ? { x, y, width: w, height: Math.round(w * 3 / 4) }
-      : { x, y, width: Math.round(h * 4 / 3), height: h };
-    const vb = sceneToSvgViewBox(vp4x3, minX, minY);
-    baseViewBoxRef.current = { x: vb.x, y: vb.y, w: vb.w, h: vb.h };
-    applyZoom();
-  }, [applyZoom]);
-
-  /** Lerp scene-space viewport toward target each frame. */
-  const animateViewBox = useCallback(() => {
-    if (!animatedVP.current || !targetVP.current) return;
-    const a = animatedVP.current;
-    const t = targetVP.current;
-    a.x += (t.x - a.x) * LERP_SPEED;
-    a.y += (t.y - a.y) * LERP_SPEED;
-    a.width += (t.width - a.width) * LERP_SPEED;
-    a.height += (t.height - a.height) * LERP_SPEED;
-    applyViewBox();
-    const delta = Math.abs(t.x - a.x) + Math.abs(t.y - a.y)
-      + Math.abs(t.width - a.width) + Math.abs(t.height - a.height);
-    if (delta > 0.5) {
-      animFrameRef.current = requestAnimationFrame(animateViewBox);
-    }
+  useEffect(() => {
+    const element = container.current;
+    if (!element) return;
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey && zoom.current.scale === 1) return;
+      event.preventDefault();
+      if (event.ctrlKey || event.metaKey) zoom.current.scale = Math.max(0.25, Math.min(8, zoom.current.scale * (event.deltaY > 0 ? 0.97 : 1.03)));
+      else if (viewBox.current) {
+        zoom.current.x += event.deltaX / Math.max(1, element.clientWidth) * viewBox.current.width / zoom.current.scale;
+        zoom.current.y += event.deltaY / Math.max(1, element.clientHeight) * viewBox.current.height / zoom.current.scale;
+      }
+      applyViewBox();
+    };
+    element.addEventListener("wheel", onWheel, { passive: false });
+    return () => element.removeEventListener("wheel", onWheel);
   }, [applyViewBox]);
 
-  // Cleanup animation on unmount
-  useEffect(() => {
-    return () => { if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current); };
-  }, []);
-
-  const renderSvgPreview = useCallback(async (els: any[], viewport: ViewportRect | null, baseElements?: any[]) => {
-    if ((els.length === 0 && !baseElements?.length) || !svgRef.current) return;
-    try {
-      // Wait for Virgil font to load before computing text metrics
-      await ensureFontsLoaded();
-
-      // Convert new elements (raw → Excalidraw format)
-      const convertedNew = convertRawElements(els);
-      const baseReal = baseElements?.filter((el: any) => el.type !== "cameraUpdate") ?? [];
-      const excalidrawEls = [...baseReal, ...convertedNew];
-
-      // Update scene bounds from all elements
-      sceneBoundsRef.current = computeSceneBounds(excalidrawEls);
-
-      const svg = await exportToSvg({
-        elements: excalidrawEls as any,
-        appState: { viewBackgroundColor: "transparent", exportBackground: false } as any,
-        files: null,
-        exportPadding: EXPORT_PADDING,
-        skipInliningFonts: true,
-      });
-      if (!svgRef.current) return;
-
-      let wrapper = svgRef.current.querySelector(".svg-wrapper") as HTMLDivElement | null;
-      if (!wrapper) {
-        wrapper = document.createElement("div");
-        wrapper.className = "svg-wrapper";
-        svgRef.current.appendChild(wrapper);
-      }
-
-      // Fill the container (height set by ResizeObserver to maintain 4:3)
-      svg.style.width = "100%";
-      svg.style.height = "100%";
-      svg.removeAttribute("width");
-      svg.removeAttribute("height");
-
-      const existing = wrapper.querySelector("svg");
-      if (existing) {
-        morphdom(existing, svg, { childrenOnly: false });
-      } else {
-        wrapper.appendChild(svg);
-      }
-
-      // Always fix SVG viewBox to 4:3, then store as base for user zoom
-      const renderedSvg = wrapper.querySelector("svg");
-      if (renderedSvg) {
-        fixViewBox4x3(renderedSvg as SVGSVGElement);
-        const vbAttr = (renderedSvg as SVGSVGElement).getAttribute("viewBox")?.split(" ").map(Number);
-        if (vbAttr && vbAttr.length === 4) {
-          baseViewBoxRef.current = { x: vbAttr[0], y: vbAttr[1], w: vbAttr[2], h: vbAttr[3] };
-        }
-      }
-
-      // Animate viewport in scene space, convert to SVG space at apply time
-      if (viewport) {
-        targetVP.current = { ...viewport };
-        onViewport?.(viewport);
-        if (!animatedVP.current) {
-          // First viewport — snap immediately
-          animatedVP.current = { ...viewport };
-        }
-        // Re-apply immediately after morphdom to prevent flicker
-        applyViewBox();
-        // Start/restart animation toward new target
-        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-        animFrameRef.current = requestAnimationFrame(animateViewBox);
-      } else {
-        // No explicit viewport — use default
-        const defaultVP: ViewportRect = { x: 0, y: 0, width: 1024, height: 768 };
-        onViewport?.(defaultVP);
-        targetVP.current = defaultVP;
-        if (!animatedVP.current) {
-          animatedVP.current = { ...defaultVP };
-        }
-        applyViewBox();
-        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-        animFrameRef.current = requestAnimationFrame(animateViewBox);
-        targetVP.current = null;
-        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-        // Apply user zoom on top of the fixed viewBox
-        applyZoom();
-      }
-    } catch {
-      // export can fail on partial/malformed elements
-    }
-  }, [applyViewBox, animateViewBox, applyZoom]);
-
-  useEffect(() => {
-    if (!toolInput) return;
-    const raw = toolInput.elements;
-    if (!raw) return;
-
-    // Parse elements from string or array
-    const str = typeof raw === "string" ? raw : JSON.stringify(raw);
-
-    if (isFinal) {
-      // Final input — parse complete JSON, render ALL elements
-      const parsed = parsePartialElements(str);
-      let { viewport, drawElements, restoreId, deleteIds } = extractViewportAndElements(parsed);
-
-      // Load checkpoint base if restoring (async — from server)
-      let base: any[] | undefined;
-      const doFinal = async () => {
-        if (restoreId && loadCheckpoint) {
-          const saved = await loadCheckpoint(restoreId);
-          if (saved) {
-            base = saved.elements;
-            // Extract camera from base as fallback
-            if (!viewport) {
-              const cam = base.find((el: any) => el.type === "cameraUpdate");
-              if (cam) viewport = { x: cam.x, y: cam.y, width: cam.width, height: cam.height };
-            }
-            // Convert base with convertRawElements (handles both raw and already-converted)
-            base = convertRawElements(base);
-          }
-          if (base && deleteIds.size > 0) {
-            base = base.filter((el: any) => !deleteIds.has(el.id) && !deleteIds.has(el.containerId));
-          }
-        }
-
-        latestRef.current = drawElements;
-        // Convert new elements for fullscreen editor
-        const convertedNew = convertRawElements(drawElements);
-
-        // Merge base (converted) + new converted
-        const allConverted = base ? [...base, ...convertedNew] : convertedNew;
-        captureInitialElements(allConverted);
-        // Only set elements if user hasn't edited yet (editedElements means user edits exist)
-        if (!editedElements) onElements?.(allConverted);
-        if (!editedElements) renderSvgPreview(drawElements, viewport, base);
-      };
-      doFinal();
-      return;
-    }
-
-    // Partial input — drop last (potentially incomplete) element
-    const parsed = parsePartialElements(str);
-
-    // Extract restoreCheckpoint and delete before dropping last (they're small, won't be incomplete)
-    let streamRestoreId: string | null = null;
-    const streamDeleteIds = new Set<string>();
-    for (const el of parsed) {
-      if (el.type === "restoreCheckpoint") streamRestoreId = el.id;
-      else if (el.type === "delete") {
-        for (const id of String(el.ids ?? el.id).split(",")) streamDeleteIds.add(id.trim());
-      }
-    }
-
-    const safe = excludeIncompleteLastItem(parsed);
-    let { viewport, drawElements } = extractViewportAndElements(safe);
-
-    const doStream = async () => {
-      // Load checkpoint base (once per restoreId) — from server via callServerTool
-      let base: any[] | undefined;
-      if (streamRestoreId) {
-        if (!restoredRef.current || restoredRef.current.id !== streamRestoreId) {
-          if (loadCheckpoint) {
-            const saved = await loadCheckpoint(streamRestoreId);
-            if (saved) {
-              const converted = convertRawElements(saved.elements);
-              restoredRef.current = { id: streamRestoreId, elements: converted };
-            }
-          }
-        }
-        base = restoredRef.current?.elements;
-        // Extract camera from base as fallback
-        if (!viewport && base) {
-          const cam = base.find((el: any) => el.type === "cameraUpdate");
-          if (cam) viewport = { x: cam.x, y: cam.y, width: cam.width, height: cam.height };
-        }
-        if (base && streamDeleteIds.size > 0) {
-          base = base.filter((el: any) => !streamDeleteIds.has(el.id) && !streamDeleteIds.has(el.containerId));
-        }
-      }
-
-      if (drawElements.length > 0 && drawElements.length !== latestRef.current.length) {
-        // Play pencil sound for each new element
-        const prevCount = latestRef.current.length;
-        for (let i = prevCount; i < drawElements.length; i++) {
-          playStroke(drawElements[i].type ?? "rectangle");
-        }
-        latestRef.current = drawElements;
-        setCount(drawElements.length);
-        const jittered = drawElements.map((el: any) => ({ ...el, seed: Math.floor(Math.random() * 1e9) }));
-        renderSvgPreview(jittered, viewport, base);
-      } else if (base && base.length > 0 && latestRef.current.length === 0) {
-        // First render: show restored base before new elements stream in
-        renderSvgPreview([], viewport, base);
-      }
-    };
-    doStream();
-  }, [toolInput, isFinal, renderSvgPreview]);
-
-  // Render already-converted elements directly (skip convertToExcalidrawElements)
-  useEffect(() => {
-    if (!editedElements || editedElements.length === 0 || !svgRef.current) return;
-    (async () => {
-      try {
-        await ensureFontsLoaded();
-        const svg = await exportToSvg({
-          elements: editedElements as any,
-          appState: { viewBackgroundColor: "transparent", exportBackground: false } as any,
-          files: null,
-          exportPadding: EXPORT_PADDING,
-          skipInliningFonts: true,
-        });
-        if (!svgRef.current) return;
-        let wrapper = svgRef.current.querySelector(".svg-wrapper") as HTMLDivElement | null;
-        if (!wrapper) {
-          wrapper = document.createElement("div");
-          wrapper.className = "svg-wrapper";
-          svgRef.current.appendChild(wrapper);
-        }
-        svg.style.width = "100%";
-        svg.style.height = "100%";
-        svg.removeAttribute("width");
-        svg.removeAttribute("height");
-        const existing = wrapper.querySelector("svg");
-        if (existing) {
-          morphdom(existing, svg, { childrenOnly: false });
-        } else {
-          wrapper.appendChild(svg);
-        }
-        const final = wrapper.querySelector("svg");
-        if (final) {
-          fixViewBox4x3(final as SVGSVGElement);
-          const vbAttr = (final as SVGSVGElement).getAttribute("viewBox")?.split(" ").map(Number);
-          if (vbAttr && vbAttr.length === 4) {
-            baseViewBoxRef.current = { x: vbAttr[0], y: vbAttr[1], w: vbAttr[2], h: vbAttr[3] };
-            applyZoom();
-          }
-        }
-      } catch {}
-    })();
-  }, [editedElements, applyZoom]);
-
-  // Zoom: pinch-to-zoom / Ctrl+scroll, pan when zoomed, double-click to reset
-  useEffect(() => {
-    const container = svgRef.current;
-    if (!container) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      const isZoomGesture = e.ctrlKey || e.metaKey;
-      const isZoomedIn = Math.abs(zoomRef.current.scale - 1) > 0.01;
-
-      if (!isZoomGesture && !isZoomedIn) return;
-      e.preventDefault();
-
-      const zoom = zoomRef.current;
-      if (isZoomGesture) {
-        const factor = e.deltaY > 0 ? 0.97 : 1.03;
-        const newScale = Math.max(0.25, Math.min(8, zoom.scale * factor));
-        if (baseViewBoxRef.current) {
-          const rect = container.getBoundingClientRect();
-          const mx = (e.clientX - rect.left) / rect.width;
-          const my = (e.clientY - rect.top) / rect.height;
-          const { w, h } = baseViewBoxRef.current;
-          zoom.panX += w * (1 / newScale - 1 / zoom.scale) * (0.5 - mx);
-          zoom.panY += h * (1 / newScale - 1 / zoom.scale) * (0.5 - my);
-        }
-        zoom.scale = newScale;
-      } else if (baseViewBoxRef.current) {
-        const { w, h } = baseViewBoxRef.current;
-        zoom.panX += (e.deltaX / container.clientWidth) * (w / zoom.scale);
-        zoom.panY += (e.deltaY / container.clientHeight) * (h / zoom.scale);
-      }
-      applyZoom();
-    };
-
-    const handleDblClick = () => {
-      zoomRef.current = { scale: 1, panX: 0, panY: 0 };
-      applyZoom();
-    };
-
-    container.addEventListener("wheel", handleWheel, { passive: false });
-    container.addEventListener("dblclick", handleDblClick);
-    return () => {
-      container.removeEventListener("wheel", handleWheel);
-      container.removeEventListener("dblclick", handleDblClick);
-    };
-  }, [applyZoom]);
-
-  return (
-    <div
-      ref={svgRef}
-      className="excalidraw-container"
-      style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
-    />
-  );
+  const resetZoom = () => { zoom.current = { scale: 1, x: 0, y: 0 }; applyViewBox(); };
+  return <div className={`diagram-preview${fullscreen ? " diagram-fullscreen" : ""}`}>
+    <div ref={container} className="excalidraw-container svg-wrapper" tabIndex={0}
+      role="region" aria-label="Diagram preview. Use plus and minus to zoom, arrow keys to pan, and zero to reset."
+      onDoubleClick={resetZoom}
+      onKeyDown={(event) => {
+        if (event.key === "+" || event.key === "=") zoom.current.scale = Math.min(8, zoom.current.scale * 1.2);
+        else if (event.key === "-") zoom.current.scale = Math.max(0.25, zoom.current.scale / 1.2);
+        else if (event.key === "0") { resetZoom(); return; }
+        else if (event.key === "ArrowLeft") zoom.current.x -= 20 / zoom.current.scale;
+        else if (event.key === "ArrowRight") zoom.current.x += 20 / zoom.current.scale;
+        else if (event.key === "ArrowUp") zoom.current.y -= 20 / zoom.current.scale;
+        else if (event.key === "ArrowDown") zoom.current.y += 20 / zoom.current.scale;
+        else return;
+        event.preventDefault(); applyViewBox();
+      }} />
+    {scene && !scene.elements.length && <p className="empty-diagram">The diagram is empty. Choose Edit to start drawing.</p>}
+  </div>;
 }
 
-// ============================================================
-// Main app — Excalidraw only
-// ============================================================
+function useMedia(query: string): boolean {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const change = () => setMatches(media.matches);
+    media.addEventListener("change", change);
+    change();
+    return () => media.removeEventListener("change", change);
+  }, [query]);
+  return matches;
+}
 
-const excalidrawLogo = <svg
-      focusable="false"
-      role="img"
-      viewBox="0 0 40 40"
-      fill="none"
-    >
-    <g fill="currentColor">
-    <path
-      d="M39.9 32.889a.326.326 0 0 0-.279-.056c-2.094-3.083-4.774-6-7.343-8.833l-.419-.472a.212.212 0 0 0-.056-.139.586.586 0 0 0-.167-.111l-.084-.083-.056-.056c-.084-.167-.28-.278-.475-.167-.782.39-1.507.973-2.206 1.528-.92.722-1.842 1.445-2.708 2.25a8.405 8.405 0 0 0-.977 1.028c-.14.194-.028.361.14.444-.615.611-1.23 1.223-1.843 1.861a.315.315 0 0 0-.084.223c0 .083.056.166.111.194l1.09.833v.028c1.535 1.528 4.244 3.611 7.12 5.861.418.334.865.667 1.284 1 .195.223.39.473.558.695.084.11.28.139.391.055.056.056.14.111.196.167a.398.398 0 0 0 .167.056.255.255 0 0 0 .224-.111.394.394 0 0 0 .055-.167c.029 0 .028.028.056.028a.318.318 0 0 0 .224-.084l5.082-5.528a.309.309 0 0 0 0-.444Zm-14.63-1.917a.485.485 0 0 0 .111.14c.586.5 1.2 1 1.843 1.555l-2.569-1.945-.251-.166c-.056-.028-.112-.084-.168-.111l-.195-.167.056-.056.055-.055.112-.111c.866-.861 2.346-2.306 3.1-3.028-.81.805-2.43 3.167-2.095 3.944Zm8.767 6.89-2.122-1.612a44.713 44.713 0 0 0-2.625-2.5c1.145.861 2.122 1.611 2.262 1.75 1.117.972 1.06.806 1.815 1.445l.921.666a1.06 1.06 0 0 1-.251.25Zm.558.416-.056-.028c.084-.055.168-.111.252-.194l-.196.222ZM1.089 5.75c.055.361.14.722.195 1.056.335 1.833.67 3.5 1.284 4.75l.252.944c.084.361.223.806.363.917 1.424 1.25 3.602 3.11 5.947 4.889a.295.295 0 0 0 .363 0s0 .027.028.027a.254.254 0 0 0 .196.084.318.318 0 0 0 .223-.084c2.988-3.305 5.221-6.027 6.813-8.305.112-.111.14-.278.14-.417.111-.111.195-.25.307-.333.111-.111.111-.306 0-.39l-.028-.027c0-.055-.028-.139-.084-.167-.698-.666-1.2-1.138-1.731-1.638-.922-.862-1.871-1.75-3.881-3.75l-.028-.028c-.028-.028-.056-.056-.112-.056-.558-.194-1.703-.389-3.127-.639C6.087 2.223 3.21 1.723.614.944c0 0-.168 0-.196.028l-.083.084c-.028.027-.056.055-.224.11h.056-.056c.028.167.028.278.084.473 0 .055.112.5.112.555l.782 3.556Zm15.496 3.278-.335-.334c.084.112.196.195.335.334Zm-3.546 4.666-.056.056c0-.028.028-.056.056-.056Zm-2.038-10c.168.167.866.834 1.033.973-.726-.334-2.54-1.167-3.379-1.445.838.167 1.983.334 2.346.472ZM1.424 2.306c.419.722.754 3.222 1.089 5.666-.196-.778-.335-1.555-.503-2.278-.251-1.277-.503-2.416-.838-3.416.056 0 .14 0 .252.028Zm-.168-.584c-.112 0-.223-.028-.307-.028 0-.027 0-.055-.028-.055.14 0 .223.028.335.083Zm-1.089.222c0-.027 0-.027 0 0ZM39.453 1.333c.028-.11-.558-.61-.363-.639.42-.027.42-.666 0-.666-.558.028-1.144.166-1.675.25-.977.194-1.982.389-2.96.61-2.205.473-4.383.973-6.561 1.557-.67.194-1.424.333-2.066.666-.224.111-.196.333-.084.472-.056.028-.084.028-.14.056-.195.028-.363.056-.558.083-.168.028-.252.167-.224.334 0 .027.028.083.028.11-1.173 1.556-2.485 3.195-3.909 4.945-1.396 1.611-2.876 3.306-4.356 5.056-4.719 5.5-10.052 11.75-15.943 17.25a.268.268 0 0 0 0 .389c.028.027.056.055.084.055-.084.084-.168.14-.252.222-.056.056-.084.111-.084.167a.605.605 0 0 0-.111.139c-.112.111-.112.305.028.389.111.11.307.11.39-.028.029-.028.029-.056.056-.056a.44.44 0 0 1 .615 0c.335.362.67.723.977 1.028l-.698-.583c-.112-.111-.307-.083-.39.028-.113.11-.085.305.027.389l7.427 6.194c.056.056.112.056.196.056s.14-.028.195-.084l.168-.166c.028.027.083.027.111.027.084 0 .14-.027.196-.083 10.052-10.055 18.15-17.639 27.42-24.417.083-.055.111-.166.111-.25.112 0 .196-.083.251-.194 1.704-5.194 2.039-9.806 2.15-12.083v-.028c0-.028.028-.056.028-.083.028-.056.028-.084.028-.084a1.626 1.626 0 0 0-.111-1.028ZM21.472 9.5c.446-.5.893-1.028 1.34-1.5-2.876 3.778-7.65 9.583-14.408 16.5 4.607-5.083 9.242-10.333 13.068-15ZM5.193 35.778h.084-.084Zm3.462 3.194c-.027-.028-.027-.028 0-.028v.028Zm4.16-3.583c.224-.25.448-.472.699-.722 0 0 0 .027.028.027-.252.223-.475.445-.726.695Zm1.146-1.111c.14-.14.279-.334.446-.5l.028-.028c1.648-1.694 3.351-3.389 5.082-5.111l.028-.028c.419-.333.921-.694 1.368-1.028a379.003 379.003 0 0 0-6.952 6.695ZM24.794 6.472c-.921 1.195-1.954 2.778-2.82 4.028-2.736 3.944-11.532 13.583-11.727 13.75a1976.983 1976.983 0 0 1-8.042 7.639l-.167.167c-.14-.167-.14-.417.028-.556C14.49 19.861 22.03 10.167 25.074 5.917c-.084.194-.14.36-.28.555Zm4.83 5.695c-1.116-.64-1.646-1.64-1.34-2.611l.084-.334c.028-.083.084-.194.14-.277.307-.5.754-.917 1.257-1.167.027 0 .055 0 .083-.028-.028-.056-.028-.139-.028-.222.028-.167.14-.278.335-.278.335 0 1.369.306 1.76.639.111.083.223.194.335.305.14.167.363.445.474.667.056.028.112.306.196.445.056.222.111.472.084.694-.028.028 0 .194-.028.194a2.668 2.668 0 0 1-.363 1.028c-.028.028-.028.056-.056.084l-.028.027c-.14.223-.335.417-.53.556-.643.444-1.369.583-2.095.389 0 0-.195-.084-.28-.111Zm8.154-.834a39.098 39.098 0 0 1-.893 3.167c0 .028-.028.083 0 .111-.056 0-.084.028-.14.056-2.206 1.61-4.356 3.305-6.506 5.028 1.843-1.64 3.686-3.306 5.613-4.945.558-.5.949-1.139 1.06-1.861l.28-1.667v-.055c.14-.334.67-.195.586.166Z"
-      fill="currentColor"
-    />
-  </g>
-    </svg>
+interface ExcalidrawAppCoreProps {
+  app: App;
+  events: AppEventBuffer;
+}
 
-  const githubIcon = <svg focusable="false" role="img" viewBox="0 0 20 20"  fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 15.833c-3.583 1.167-3.583-2.083-5-2.5m10 4.167v-2.917c0-.833.083-1.166-.417-1.666 2.334-.25 4.584-1.167 4.584-5a3.833 3.833 0 0 0-1.084-2.667 3.5 3.5 0 0 0-.083-2.667s-.917-.25-2.917 1.084a10.25 10.25 0 0 0-5.166 0C5.417 2.333 4.5 2.583 4.5 2.583a3.5 3.5 0 0 0-.083 2.667 3.833 3.833 0 0 0-1.084 2.667c0 3.833 2.25 4.75 4.584 5-.5.5-.5 1-.417 1.666V17.5" stroke-width="1.25"></path></svg>
+interface CheckpointReference {
+  id: string;
+  revision: number;
+  warning?: string;
+}
 
-  const twitterIcon = <svg focusable="false" role="img" viewBox="0 0 24 24"  fill="none" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="1.25"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 4l11.733 16h4.267l-11.733 -16z"></path><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path></g></svg>
-
-  const discordIcon = <svg focusable="false" role="img" viewBox="0 0 20 20"  fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="1.25"><path d="M7.5 10.833a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666ZM12.5 10.833a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666ZM6.25 6.25c2.917-.833 4.583-.833 7.5 0M5.833 13.75c2.917.833 5.417.833 8.334 0"></path><path d="M12.917 14.167c0 .833 1.25 2.5 1.666 2.5 1.25 0 2.361-1.39 2.917-2.5.556-1.39.417-4.861-1.25-9.584-1.214-.846-2.5-1.116-3.75-1.25l-.833 2.084M7.083 14.167c0 .833-1.13 2.5-1.526 2.5-1.191 0-2.249-1.39-2.778-2.5-.529-1.39-.397-4.861 1.19-9.584 1.157-.846 2.318-1.116 3.531-1.25l.833 2.084"></path></g></svg>
-
-
-export function ExcalidrawAppCore({ app }: { app: App }) {
-  const [toolInput, setToolInput] = useState<any>(null);
-  const [inputIsFinal, setInputIsFinal] = useState(false);
-  const [displayMode, setDisplayMode] = useState<"inline" | "fullscreen">("inline");
-  const [elements, setElements] = useState<any[]>([]);
-  const [userEdits, setUserEdits] = useState<any[] | null>(null);
-  const [containerHeight, setContainerHeight] = useState<number | null>(null);
-  const [safeAreaInsets, setSafeAreaInsets] = useState<{ top: number; right: number; bottom: number; left: number } | null>(null);
-  const [isNarrow, setIsNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches);
+export function ExcalidrawAppCore({ app, events }: ExcalidrawAppCoreProps): ReactElement {
+  const [scene, setScene] = useState<SceneData | null>(null);
+  const [isFinal, setIsFinal] = useState(false);
+  const [checkpointReady, setCheckpointReady] = useState(false);
+  const [hostContext, setHostContext] = useState<McpUiHostContext>(() => app.getHostContext() ?? {});
+  const [saveState, setSaveState] = useState<EditState>({ status: "saved", revision: 0 });
+  const [error, setError] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
+  const [checkpointWarning, setCheckpointWarning] = useState("");
+  const [audio, setAudio] = useState(false);
+  const [motion, setMotion] = useState(true);
+  const [editorKey, setEditorKey] = useState(0);
   const [editorReady, setEditorReady] = useState(false);
-  const [excalidrawApi, setExcalidrawApi] = useState<any>(null);
-  const [editorSettled, setEditorSettled] = useState(false);
-  const appRef = useRef<App | null>(null);
-  const svgViewportRef = useRef<ViewportRect | null>(null);
-  const elementsRef = useRef<any[]>([]);
-  const checkpointIdRef = useRef<string | null>(null);
-
-  const toggleFullscreen = useCallback(async () => {
-    if (!appRef.current) return;
-    const newMode = displayMode === "fullscreen" ? "inline" : "fullscreen";
-    fsLog(`toggle: ${displayMode}→${newMode}`);
-    // Sync edited elements before leaving fullscreen
-    if (newMode === "inline") {
-      const edited = getLatestEditedElements();
-      if (edited) {
-            setElements(edited);
-        setUserEdits(edited);
-      }
-    }
-    try {
-      const result = await appRef.current.requestDisplayMode({ mode: newMode });
-      fsLog(`requestDisplayMode result: ${result.mode}`);
-      setDisplayMode(result.mode as "inline" | "fullscreen");
-    } catch (err) {
-      fsLog(`requestDisplayMode FAILED: ${err}`);
-    }
-  }, [displayMode, elements.length, inputIsFinal]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && displayMode === "fullscreen") toggleFullscreen();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [displayMode, toggleFullscreen]);
-
-  // Preload ALL Excalidraw fonts on first mount (inline mode) so they're
-  // cached before fullscreen. Without this, Excalidraw's component init
-  // downloads Assistant fonts, triggering a font recalc that corrupts
-  // text dimensions measured with not-yet-loaded Excalifont.
-  useEffect(() => {
-    Promise.all([
-      document.fonts.load('20px Excalifont'),
-      document.fonts.load('400 16px Assistant'),
-      document.fonts.load('500 16px Assistant'),
-      document.fonts.load('700 16px Assistant'),
-    ]).catch(() => {});
-  }, []);
-
-  // Set explicit height on html/body in fullscreen (position:fixed doesn't give body height in iframes)
-  useEffect(() => {
-    if (displayMode === "fullscreen" && containerHeight) {
-      const h = `${containerHeight}px`;
-      document.documentElement.style.height = h;
-      document.body.style.height = h;
-    } else {
-      document.documentElement.style.height = "";
-      document.body.style.height = "";
-    }
-  }, [displayMode, containerHeight]);
-
-  // Mount editor when entering fullscreen
-  useEffect(() => {
-    if (displayMode !== "fullscreen") {
-      setEditorReady(false);
-      setExcalidrawApi(null);
-      setEditorSettled(false);
-      return;
-    }
-    (async () => {
-      await document.fonts.ready;
-      setTimeout(() => setEditorReady(true), 200);
-    })();
-  }, [displayMode]);
-
-  // After editor mounts: refresh text dimensions, then reveal
-  const mountEditor = displayMode === "fullscreen" && inputIsFinal && elements.length > 0 && editorReady;
-  useEffect(() => {
-    if (!mountEditor || !excalidrawApi) return;
-    if (editorSettled) return; // already revealed, don't redo
-    const api = excalidrawApi;
-
-    const settle = async () => {
-      try { await document.fonts.load('20px Excalifont'); } catch {}
-      await document.fonts.ready;
-
-      const sceneElements = api.getSceneElements();
-      if (sceneElements?.length) {
-        const { elements: fixed } = restore(
-          { elements: sceneElements },
-          null, null,
-          { refreshDimensions: true }
-        );
-        api.updateScene({
-          elements: fixed,
-          captureUpdate: CaptureUpdateAction.NEVER,
-        });
-      }
-      requestAnimationFrame(() => setEditorSettled(true));
-    };
-
-    const timer = setTimeout(settle, 200);
-    return () => clearTimeout(timer);
-  }, [mountEditor, excalidrawApi, editorSettled]);
-
-  // Keep elementsRef in sync for ontoolresult handler (which captures closure once)
-  useEffect(() => { elementsRef.current = elements; }, [elements]);
-
-  // Set up MCP event handlers when app is provided
-  useEffect(() => {
-    appRef.current = app;
-    _logFn = (msg) => { try { app.sendLog({ level: "info", logger: "FS", data: msg }); } catch {} };
-
-    // Capture initial container dimensions + safe area insets
-    const initCtx = app.getHostContext() as any;
-    if (initCtx?.containerDimensions?.height) setContainerHeight(initCtx.containerDimensions.height);
-    if (initCtx?.safeAreaInsets) setSafeAreaInsets(initCtx.safeAreaInsets);
-
-    app.onhostcontextchanged = (ctx: any) => {
-      if (ctx.containerDimensions?.height) {
-        setContainerHeight(ctx.containerDimensions.height);
-      }
-      if (ctx.safeAreaInsets) {
-        setSafeAreaInsets(ctx.safeAreaInsets);
-      }
-      if (ctx.displayMode) {
-        fsLog(`hostContextChanged: displayMode=${ctx.displayMode}`);
-        // Sync edited elements when host exits fullscreen
-        if (ctx.displayMode === "inline") {
-          const edited = getLatestEditedElements();
-          if (edited) {
-            setElements(edited);
-            setUserEdits(edited);
-          }
-        }
-        setDisplayMode(ctx.displayMode as "inline" | "fullscreen");
-      }
-    };
-
-    app.ontoolinputpartial = async (input) => {
-      const args = (input as any)?.arguments || input;
-      setInputIsFinal(false);
-      setToolInput(args);
-    };
-
-    app.ontoolinput = async (input) => {
-      const args = (input as any)?.arguments || input;
-      setInputIsFinal(true);
-      setToolInput(args);
-    };
-
-    app.ontoolresult = (result: any) => {
-      const cpId = (result.structuredContent as { checkpointId?: string })?.checkpointId;
-      if (cpId) {
-        checkpointIdRef.current = cpId;
-        setCheckpointId(cpId);
-        // Use checkpointId as localStorage key for persisting user edits
-        setStorageKey(cpId);
-        // Check for persisted edits from a previous fullscreen session
-        const persisted = loadPersistedElements();
-        if (persisted && persisted.length > 0) {
-          elementsRef.current = persisted;
-          setElements(persisted);
-          setUserEdits(persisted);
-        }
-      }
-    };
-
-    app.onteardown = async () => ({});
-    app.onerror = (err) => console.error("[Excalidraw] Error:", err);
+  const imageSharingDescriptionId = useId();
+  const reducedMotion = useMedia("(prefers-reduced-motion: reduce)");
+  const isNarrow = useMedia("(max-width: 640px)");
+  const sceneRef = useRef<SceneData | null>(null);
+  const editorData = useRef<Parameters<NonNullable<ExcalidrawProps["onChange"]>> | null>(null);
+  const initialEditorViewport = useRef<ViewportRect | null>(null);
+  const [editorAppState, setEditorAppState] = useState<Partial<AppState>>({});
+  const editorInvalid = useRef(false);
+  const inputGeneration = useRef(0);
+  const editorChangeVersion = useRef(0);
+  const acceptedSignature = useRef("");
+  const finalSignature = useRef("");
+  const rejectedInput = useRef(false);
+  const lastCheckpoint = useRef<CheckpointReference | null>(null);
+  const userEdited = useRef(false);
+  const mounted = useRef(true);
+  const feedbackGeneration = useRef(0);
+  const feedbackTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const feedbackQueue = useRef(Promise.resolve());
+  const sendFeedbackRef = useRef<(scene: SceneData, revision: number, summary: string, checkpointId: string) => void>(() => {});
+  const reportError = useCallback((problem: unknown) => {
+    if (mounted.current) setError(errorMessage(problem));
+    log(app, errorMessage(problem));
   }, [app]);
 
-  // Track narrow viewport for mobile layout adjustments
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 640px)");
-    const handler = (e: MediaQueryListEvent) => setIsNarrow(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  // Bridge hostContext.safeAreaInsets → Excalidraw's native --sat/--sar/--sab/--sal.
-  // Excalidraw's .FixedSideContainer reads padding-top: var(--sat) — this offsets
-  // only the floating toolbar/menus, keeping the canvas full-bleed. env(safe-area-*)
-  // is 0 inside cross-origin iframes on iOS, so the host MUST supply pixel values.
-  useEffect(() => {
-    const root = document.documentElement;
-    if (displayMode === "fullscreen" && isNarrow && safeAreaInsets) {
-      root.style.setProperty("--sat", `${safeAreaInsets.top}px`);
-      root.style.setProperty("--sar", `${safeAreaInsets.right}px`);
-      root.style.setProperty("--sab", `${safeAreaInsets.bottom}px`);
-      root.style.setProperty("--sal", `${safeAreaInsets.left}px`);
-    } else {
-      root.style.removeProperty("--sat");
-      root.style.removeProperty("--sar");
-      root.style.removeProperty("--sab");
-      root.style.removeProperty("--sal");
-    }
-  }, [displayMode, isNarrow, safeAreaInsets]);
-
-  return (
-    <main className={`main${displayMode === "fullscreen" ? " fullscreen" : ""}`} style={displayMode === "fullscreen" && containerHeight ? { height: containerHeight } : undefined}>
-      {displayMode === "inline" && (
-        <div className="toolbar">
-          <ShareButton
-                onConfirm={async () => {
-                  await shareToExcalidraw({
-                    elements,
-                    appState: {},
-                    files: {}
-                  }, app);
-                }}
-              />
-
-          <button
-            className="app-button"
-            onClick={toggleFullscreen}
-            title="Enter fullscreen"
-          >
-            <span>Edit</span>
-            <ExpandIcon />
-          </button>
-        </div>
-      )}
-      {/* Editor: mount hidden when ready, reveal after viewport is set */}
-      {mountEditor && (
-        <div style={{
-          width: "100%",
-          height: "100%",
-          visibility: editorSettled ? "visible" : "hidden",
-          position: editorSettled ? undefined : "absolute",
-          inset: editorSettled ? undefined : 0,
-        }}>
-          <Excalidraw
-            excalidrawAPI={(api) => { setExcalidrawApi(api); fsLog(`excalidrawAPI set`); }}
-            initialData={{ elements: elements as any, scrollToContent: true }}
-            theme="light"
-            onChange={(els) => onEditorChange(app, els)}
-            renderTopRightUI={isNarrow ? undefined : () => (
-              <ShareButton
-                onConfirm={async () => {
-                  if (excalidrawApi) {
-                    const elements = excalidrawApi.getSceneElements();
-                    const appState = excalidrawApi.getAppState();
-                    const files = excalidrawApi.getFiles();
-
-                    await shareToExcalidraw({ elements, appState, files }, app);
-                  }
-                }}
-              />
-            )}
-          >
-            <MainMenu>
-              <MainMenu.Item
-                onSelect={() => {
-                  app.openLink({
-                    url: "https://plus.excalidraw.com?utm_source=mcp_app_menu"
-                  })
-                }}
-                style={{minWidth: 200}}
-              >
-                {excalidrawLogo} Excalidraw
-              </MainMenu.Item>
-              <MainMenu.Item
-                onSelect={() => {
-                  app.openLink({
-                    url: "https://github.com/excalidraw/excalidraw"
-                  })
-                }}
-                style={{minWidth: 200}}
-              >
-                {githubIcon} GitHub
-              </MainMenu.Item>
-              <MainMenu.Item
-                onSelect={() => {
-                  app.openLink({
-                    url: "https://x.com/excalidraw"
-                  })
-                }}
-                style={{minWidth: 200}}
-              >
-                {twitterIcon} Follow us
-              </MainMenu.Item>
-              <MainMenu.Item
-                onSelect={() => {
-                  app.openLink({
-                    url: "https://discord.gg/UexuTaE"
-                  })
-                }}
-                style={{minWidth: 200}}
-              >
-                {discordIcon} Discord chat
-              </MainMenu.Item>
-            </MainMenu >
-          </Excalidraw>
-          {isNarrow && (
-            <div className="mobile-share-slot">
-              <ShareButton
-                compact
-                onConfirm={async () => {
-                  if (excalidrawApi) {
-                    const elements = excalidrawApi.getSceneElements();
-                    const appState = excalidrawApi.getAppState();
-                    const files = excalidrawApi.getFiles();
-                    await shareToExcalidraw({ elements, appState, files }, app);
-                  }
-                }}
-              />
-            </div>
-          )}
-        </div>
-      )}
-      {/* SVG: stays visible until editor is fully settled */}
-      {!editorSettled && (
-        <div
-          onClick={undefined}
-          style={undefined}
-        >
-          <DiagramView toolInput={toolInput} isFinal={inputIsFinal} displayMode={displayMode} onElements={(els) => { elementsRef.current = els; setElements(els); }} editedElements={userEdits ?? undefined} onViewport={(vp) => { svgViewportRef.current = vp; }} loadCheckpoint={async (id) => {
-            if (!appRef.current) return null;
-            try {
-              const result = await appRef.current.callServerTool({ name: "read_checkpoint", arguments: { id } });
-              const text = (result.content[0] as any)?.text;
-              if (!text) return null;
-              return JSON.parse(text);
-            } catch { return null; }
-          }} />
-        </div>
-      )}
-    </main>
-  );
-}
-
-export function ExcalidrawApp() {
-  const { app, error } = useApp({
-    appInfo: { name: "Excalidraw", version: "1.0.0" },
-    capabilities: {},
+  const [controller] = useState(() => {
+    let storage: Storage | undefined;
+    try { storage = window.localStorage; } catch { /* Some hosts disallow localStorage. */ }
+    return createEditController({
+      storage,
+      save: (args) => app.callServerTool({ name: "save_checkpoint", arguments: args }, { timeout: 8000 }),
+      onState: (state) => { if (mounted.current) setSaveState(state); },
+      onSaved: (saved, revision, summary, checkpointId) => {
+        if (mounted.current) setCheckpointWarning("");
+        if (lastCheckpoint.current?.id === checkpointId) {
+          lastCheckpoint.current.warning = undefined;
+          lastCheckpoint.current.revision = revision;
+        }
+        sendFeedbackRef.current(saved, revision, summary, checkpointId);
+      },
+    });
   });
 
-  if (error) return <div className="error">ERROR: {error.message}</div>;
-  if (!app) return <div className="loading">Connecting...</div>;
-  return <ExcalidrawAppCore app={app} />;
+  sendFeedbackRef.current = (saved, revision, summary, checkpointId) => {
+    if (!mounted.current) return;
+    const capability = app.getHostCapabilities()?.updateModelContext;
+    if (!capability || (!capability.text && !capability.image)) return;
+    const epoch = ++feedbackGeneration.current;
+    setFeedbackError("");
+    clearTimeout(feedbackTimer.current);
+    feedbackTimer.current = setTimeout(() => {
+      // Serialize sends: an older in-flight request cannot arrive after a newer summary.
+      feedbackQueue.current = feedbackQueue.current.catch(() => {}).then(async () => {
+        if (epoch !== feedbackGeneration.current) return;
+        const content: NonNullable<Parameters<App["updateModelContext"]>[0]["content"]> = [];
+        const text = `Diagram checkpoint ${checkpointId}, saved revision ${revision}. ${summary || "Diagram ready."}`;
+        if (capability.text) content.push({ type: "text", text });
+        try {
+          if (capability.image && saved.elements.length) {
+            await loadSceneFonts(saved);
+            const blob = await withDeadline<Blob>(exportToBlob({
+              elements: nativeElements(saved), files: nativeFiles(saved), appState: { ...nativeAppState(saved), exportBackground: true },
+              maxWidthOrHeight: 512, mimeType: "image/png",
+            }), "The diagram snapshot timed out.");
+            if (blob.size > 1024 * 1024) throw new Error("The diagram snapshot exceeded the 1 MB limit.");
+            const bytes = new Uint8Array(await blob.arrayBuffer());
+            let binary = "";
+            for (const byte of bytes) binary += String.fromCharCode(byte);
+            content.push({ type: "image", mimeType: "image/png", data: btoa(binary) });
+          }
+        } catch (problem) {
+          if (epoch === feedbackGeneration.current && mounted.current) setFeedbackError("The visual snapshot could not be sent. Your diagram is still saved.");
+          log(app, `Snapshot: ${errorMessage(problem)}`);
+        }
+        if (epoch !== feedbackGeneration.current || (!content.length && saved.elements.length)) return;
+        try { await app.updateModelContext({ content }, { timeout: 8000 }); }
+        catch (problem) {
+          if (mounted.current && epoch === feedbackGeneration.current) setFeedbackError("The host could not receive diagram feedback. Your diagram is still saved.");
+          log(app, `Model feedback: ${errorMessage(problem)}`);
+        }
+      });
+    }, 1500);
+  };
+
+  const flush = useCallback(async () => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([controller.flush(), new Promise<void>((resolve) => { timer = setTimeout(resolve, 2500); })]);
+    } finally { clearTimeout(timer); }
+    if (controller.hasChanges()) log(app, "Unsaved edits remain in the local recovery copy; teardown/exit saving was not acknowledged.");
+  }, [app, controller]);
+
+  const applyScene = useCallback((value: SceneData, checkpoint: { id: string; revision: number } | null, final: boolean) => {
+    sceneRef.current = value; setScene(value); setIsFinal(final);
+    if (final) {
+      finalSignature.current = acceptedSignature.current;
+      editorData.current = null;
+      editorInvalid.current = false;
+      controller.initialize(checkpoint?.id ?? null, checkpoint?.revision ?? 0, value);
+      setCheckpointReady(!!checkpoint);
+      userEdited.current = false;
+      setEditorKey((key) => key + 1);
+      if (checkpoint) sendFeedbackRef.current(value, checkpoint.revision, "", checkpoint.id);
+    }
+  }, [controller]);
+
+  const editsAreProtected = useCallback(() => (
+    userEdited.current || editorInvalid.current || controller.hasChanges() || controller.getState().status === "saving"
+  ), [controller]);
+
+  const loadServerCopy = useCallback(async (replaceEdits = false, checkpoint = lastCheckpoint.current) => {
+    if (!checkpoint) return;
+    const changesAtStart = editorChangeVersion.current;
+    const sceneAtStart = controller.getScene();
+    const epoch = ++inputGeneration.current;
+    try {
+      const saved = await readCheckpoint(app, checkpoint.id);
+      try { await loadSceneFonts(saved.scene); } catch (problem) { log(app, errorMessage(problem)); }
+      if (epoch !== inputGeneration.current) return;
+      if (changesAtStart !== editorChangeVersion.current || sceneAtStart !== controller.getScene() ||
+        (!replaceEdits && editsAreProtected())) {
+        reportError("The checkpoint changed while this diagram has local edits. Download your edits before reloading the server copy.");
+        return;
+      }
+      const native = toNativeScene(saved.scene);
+      lastCheckpoint.current = { ...checkpoint, revision: saved.revision };
+      applyScene(native, lastCheckpoint.current, true);
+      setCheckpointWarning([checkpoint.warning, saved.warning].filter(Boolean).join("\n"));
+      setError("");
+    } catch (problem) { if (epoch === inputGeneration.current) reportError(problem); }
+  }, [app, applyScene, controller, editsAreProtected, reportError]);
+
+  useEffect(() => {
+    mounted.current = true;
+    const handleEvent = (event: WidgetEvent) => {
+      if (event.type === "context") {
+        if (event.value.displayMode && event.value.displayMode !== "fullscreen") {
+          const edited = lastCheckpoint.current ? controller.getScene() : null;
+          if (edited) { sceneRef.current = edited; setScene(edited); }
+          void flush();
+        }
+        setHostContext((previous) => ({ ...previous, ...event.value }));
+        return;
+      }
+      if (event.type === "error" || event.type === "cancelled") {
+        if (rejectedInput.current || editsAreProtected()) {
+          reportError(event.type === "cancelled" ? "New diagram generation was cancelled. Your local edits are still available." : event.value);
+          return;
+        }
+        inputGeneration.current++;
+        feedbackGeneration.current++;
+        setIsFinal(false);
+        reportError(event.type === "cancelled" ? "Diagram generation was cancelled. The last preview is still available." : event.value);
+        return;
+      }
+      if (event.type === "result") {
+        const data = event.value.structuredContent;
+        if (lastCheckpoint.current?.id === data?.checkpointId && userEdited.current) return;
+        if (rejectedInput.current || editsAreProtected()) {
+          reportError("New diagram output arrived while this diagram has local edits. Download your edits before reloading the server copy.");
+          return;
+        }
+        if (event.value.isError) {
+          inputGeneration.current++; setCheckpointReady(false);
+          reportError(resultError(event.value)); return;
+        }
+        if (typeof data?.checkpointId !== "string" || !Number.isSafeInteger(data.revision) || Number(data.revision) < 0) {
+          reportError("The server did not acknowledge a checkpoint revision. Download a local copy before closing.");
+          return;
+        }
+        feedbackGeneration.current++;
+        clearTimeout(feedbackTimer.current);
+        if (!lastCheckpoint.current) setCheckpointReady(false);
+        const warning = Array.isArray(data.warnings) ? data.warnings.filter((value): value is string => typeof value === "string").join("\n") : undefined;
+        void loadServerCopy(false, { id: data.checkpointId, revision: Number(data.revision), warning });
+        return;
+      }
+      let args: Record<string, unknown>;
+      try { args = inputArguments(event.value); } catch (problem) { if (event.type === "input") reportError(problem); return; }
+      const final = event.type === "input";
+      const signature = JSON.stringify(args);
+      if (final && signature === finalSignature.current) return;
+      if (editsAreProtected()) {
+        rejectedInput.current = true;
+        reportError("New diagram input arrived while this diagram has local edits. Download your edits before reloading the server copy.");
+        return;
+      }
+      rejectedInput.current = false;
+      lastCheckpoint.current = null;
+      editorData.current = null;
+      setCheckpointReady(false);
+      feedbackGeneration.current++;
+      clearTimeout(feedbackTimer.current);
+      acceptedSignature.current = final ? signature : "";
+      finalSignature.current = "";
+      const epoch = ++inputGeneration.current;
+      setIsFinal(false); setError("");
+      void (async () => {
+        try {
+          if (final && (args.scene !== undefined) === (args.elements !== undefined)) {
+            throw new Error("Provide exactly one scene or elements JSON string.");
+          }
+          let next: SceneData;
+          let inheritedWarning = "";
+          if (typeof args.scene === "string") next = parseSceneData(JSON.parse(args.scene));
+          else {
+            if (typeof args.elements !== "string") {
+              if (!final) return;
+              throw new Error("Diagram input needs an elements or scene JSON string.");
+            }
+            const operations = final ? parseElementsInput(args.elements) : previewOperations(args.elements);
+            const restoreId = findRestoreCheckpoint(operations);
+            const base = restoreId ? await readCheckpoint(app, restoreId) : undefined;
+            inheritedWarning = base?.warning ?? "";
+            next = reduceSceneOperations(operations, base?.scene);
+          }
+          try { await loadSceneFonts(next); } catch (problem) { log(app, errorMessage(problem)); }
+          if (epoch !== inputGeneration.current) return;
+          next = toNativeScene(next);
+          if (final) setCheckpointWarning(inheritedWarning);
+          applyScene(next, null, final);
+        } catch (problem) {
+          if (final && epoch === inputGeneration.current) reportError(`Unable to load this diagram: ${errorMessage(problem)} Ask for corrected input, or download the last preview.`);
+        }
+      })();
+    };
+    setHostContext(app.getHostContext() ?? {});
+    const unsubscribe = events.subscribe(handleEvent, async () => {
+      await flush();
+      if (controller.hasChanges() || editorInvalid.current) throw new Error("Checkpoint save was not acknowledged. Download unsaved edits before closing.");
+    });
+    const onPageHide = () => { void flush(); };
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      mounted.current = false;
+      unsubscribe(); inputGeneration.current++; feedbackGeneration.current++;
+      clearTimeout(feedbackTimer.current);
+      window.removeEventListener("pagehide", onPageHide);
+      void controller.dispose();
+    };
+  }, [app, events, applyScene, controller, editsAreProtected, flush, loadServerCopy, reportError]);
+
+  const fullscreen = hostContext.displayMode === "fullscreen";
+  const availableModes = hostContext.availableDisplayModes ?? [];
+  const canEdit = availableModes.includes("fullscreen");
+  const height = hostContext.containerDimensions && "height" in hostContext.containerDimensions ? hostContext.containerDimensions.height : undefined;
+  const toggleFullscreen = useCallback(async () => {
+    const mode = fullscreen ? "inline" : "fullscreen";
+    if (!availableModes.includes(mode)) { reportError("This host does not support that display mode."); return; }
+    if (fullscreen) {
+      const edited = controller.getScene();
+      if (edited) { sceneRef.current = edited; setScene(edited); }
+      await flush();
+      if (editorInvalid.current) { reportError("These edits cannot be saved. Download a local copy before leaving the editor."); return; }
+    }
+    try {
+      const result = await app.requestDisplayMode({ mode });
+      setHostContext((previous) => ({ ...previous, displayMode: result.mode }));
+      if (result.mode !== mode) reportError("The host kept the current display mode.");
+    } catch (problem) { reportError(problem); }
+  }, [app, availableModes, controller, flush, fullscreen, reportError]);
+
+  useEffect(() => {
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented || document.querySelector("dialog[open], [role='dialog']")) return;
+      if (fullscreen) void toggleFullscreen();
+    };
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, [fullscreen, toggleFullscreen]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const insets = hostContext.safeAreaInsets;
+    const values = { "--sat": insets?.top, "--sar": insets?.right, "--sab": insets?.bottom, "--sal": insets?.left };
+    for (const [key, value] of Object.entries(values)) root.style.setProperty(key, fullscreen ? `${value ?? 0}px` : "0px");
+    root.style.height = fullscreen && height ? `${height}px` : "";
+    document.body.style.height = root.style.height;
+    return () => {
+      for (const key of Object.keys(values)) root.style.removeProperty(key);
+      root.style.height = ""; document.body.style.height = "";
+    };
+  }, [fullscreen, height, hostContext.safeAreaInsets]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setEditorReady(false);
+    initialEditorViewport.current = null;
+    if (fullscreen && sceneRef.current && isFinal && checkpointReady) {
+      void loadSceneFonts(sceneRef.current).catch((problem) => log(app, errorMessage(problem))).then(() => {
+        if (cancelled || !sceneRef.current) return;
+        const current = sceneRef.current;
+        const preview = document.querySelector(".diagram-preview")?.getBoundingClientRect();
+        const viewport = current.viewport;
+        const zoom = viewport ? Math.max(0.1, Math.min(30, (preview?.width || window.innerWidth) / viewport.width, (preview?.height || window.innerHeight) / viewport.height)) : 1;
+        setEditorAppState({
+          ...nativeAppState(current),
+          ...(viewport ? { scrollX: -viewport.x, scrollY: -viewport.y, zoom: { value: zoom as AppState["zoom"]["value"] } } : {}),
+        });
+        setEditorReady(true);
+      });
+    }
+    return () => { cancelled = true; };
+  }, [app, fullscreen, isFinal, checkpointReady, editorKey]);
+
+  const currentScene = () => userEdited.current ? controller.getScene() ?? sceneRef.current : sceneRef.current;
+  const canOpenLinks = !!app.getHostCapabilities()?.openLinks;
+  const canShare = canOpenLinks && !!app.getHostCapabilities()?.serverTools;
+  const imageSharingRestricted = () => hasLiveImages(editorData.current?.[0] ?? currentScene()?.elements ?? []);
+  const containsImages = imageSharingRestricted();
+  const currentJSON = () => {
+    if (editorData.current) {
+      const [elements, appState, files] = editorData.current;
+      return serializeAsJSON(elements, appState, files, "local");
+    }
+    const current = currentScene();
+    if (!current) throw new Error("Wait for a diagram before exporting.");
+    return serializeScene(current);
+  };
+  const share = async () => {
+    if (!isFinal || !checkpointReady) throw new Error("Wait for the diagram to finish before sharing.");
+    if (!canShare) throw new Error("This host cannot open sharing links. Download the diagram instead.");
+    if (imageSharingRestricted()) throw new Error(IMAGE_SHARING_MESSAGE);
+    const result = await app.callServerTool({ name: "export_to_excalidraw", arguments: { json: currentJSON() } });
+    if (result.isError) throw new Error(resultError(result));
+    const text = result.content.find((item) => item.type === "text");
+    let url = "";
+    if (typeof result.structuredContent?.url === "string") {
+      url = result.structuredContent.url;
+    } else if (text?.type === "text") {
+      url = text.text;
+    }
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" || parsed.hostname !== "excalidraw.com") throw new Error("The server returned an invalid sharing link.");
+    await app.openLink({ url: parsed.href });
+  };
+  const download = (value = currentScene(), recovery = false) => {
+    if (!value) return;
+    try {
+      if (editorData.current && !recovery) {
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(new Blob([currentJSON()], { type: "application/json" }));
+        link.href = url; link.download = "diagram.excalidraw"; link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } else downloadScene(value, recovery);
+    } catch (problem) { reportError(problem); }
+  };
+  const mountEditor = fullscreen && isFinal && checkpointReady && scene !== null && editorReady;
+  let saveLabel = "Diagram preview";
+  if (checkpointReady) {
+    saveLabel = {
+      saved: `Saved · revision ${saveState.revision}`,
+      dirty: "Unsaved changes",
+      saving: "Saving…",
+      error: "Save failed · edits kept locally where available",
+      conflict: "Revision conflict · server copy was not overwritten",
+    }[saveState.status];
+  } else if (isFinal) {
+    saveLabel = "Waiting for checkpoint acknowledgement";
+  }
+
+  return <main className={`main${fullscreen ? " fullscreen" : ""}${!motion || reducedMotion ? " reduce-motion" : ""}`}
+    style={fullscreen && height ? { height } : undefined}>
+    <div className={`toolbar${fullscreen ? " fullscreen-actions" : ""}`} aria-label="Diagram actions" role="group">
+      {!mountEditor && canShare && <ShareButton onConfirm={share} onError={reportError} compact={isNarrow}
+        disabled={!isFinal || !checkpointReady} imageRestricted={containsImages} descriptionId={imageSharingDescriptionId} />}
+      <button type="button" className="app-button" disabled={!scene} onClick={() => download()}>Download</button>
+      {!fullscreen && <>
+        <button type="button" className="app-button" aria-pressed={audio} onClick={async () => {
+          if (!audio) { try { await initPencilAudio(); setAudio(true); } catch (problem) { reportError(problem); } }
+          else { stopPencilAudio(); setAudio(false); }
+        }}>Pencil sounds</button>
+        <button type="button" className="app-button" aria-pressed={motion && !reducedMotion} disabled={reducedMotion}
+          title={reducedMotion ? "Your reduced-motion preference is enabled" : undefined} onClick={() => setMotion(!motion)}>Animate diagram</button>
+      </>}
+      {(fullscreen || canEdit) && <button type="button" className="app-button" disabled={!isFinal || !checkpointReady}
+        onClick={() => { void toggleFullscreen(); }}>{fullscreen ? "Exit fullscreen" : "Edit"}</button>}
+    </div>
+    <div className="diagram-status">
+      <p role="status" aria-live="polite">{saveLabel}</p>
+      <p role="alert">{error || saveState.error}</p>
+      <p role="status">{checkpointWarning}</p>
+      <p role="status">{feedbackError}</p>
+      {containsImages && <div className="recovery-actions">
+        <p id={imageSharingDescriptionId} role="status">{IMAGE_SHARING_MESSAGE}</p>
+        <button type="button" className="app-button" onClick={() => download()}>Download .excalidraw with images</button>
+      </div>}
+      {(saveState.status === "error" || saveState.status === "conflict") && <div className="recovery-actions">
+        {saveState.status === "error" && <button type="button" className="app-button" onClick={() => { void controller.retry(); }}>Retry save</button>}
+        <button type="button" className="app-button" onClick={() => download()}>Download unsaved edits</button>
+        <button type="button" className="app-button" onClick={() => { void loadServerCopy(true); }}>Reload server copy</button>
+      </div>}
+      {saveState.recovery && <div className="recovery-actions">
+        <span>{saveState.recovery.message ?? `Unsaved recovery copy from revision ${saveState.recovery.revision}. The server copy is shown.`}</span>
+        <button type="button" className="app-button" onClick={() => download(saveState.recovery?.scene, true)}>Download recovery copy</button>
+        {saveState.recovery.revision === saveState.revision && <button type="button" className="app-button" onClick={() => {
+          const recovered = controller.restoreRecovery();
+          if (recovered) {
+            sceneRef.current = recovered; setScene(recovered); userEdited.current = true; setEditorKey((key) => key + 1);
+          }
+        }}>Restore unsaved edits</button>}
+      </div>}
+    </div>
+    {mountEditor ? <div className="editor-container">
+      <Excalidraw key={editorKey}
+        initialData={{ elements: nativeElements(scene), files: nativeFiles(scene), appState: editorAppState, scrollToContent: !scene.viewport }}
+        theme={hostContext.theme ?? "light"}
+        onChange={(elements, appState, files) => {
+          if (!lastCheckpoint.current) return;
+          editorData.current = [elements, appState, files];
+          try {
+            const liveViewport = appState.width > 0 && appState.height > 0 ? {
+              x: -appState.scrollX, y: -appState.scrollY,
+              width: appState.width / appState.zoom.value, height: appState.height / appState.zoom.value,
+            } : null;
+            initialEditorViewport.current ??= liveViewport;
+            const viewport = liveViewport && JSON.stringify(liveViewport) !== JSON.stringify(initialEditorViewport.current)
+              ? liveViewport : sceneRef.current?.viewport;
+            const next = parseSceneData({ schemaVersion: 1, elements: elements.filter((element) => !element.isDeleted), appState, files, viewport });
+            const previous = controller.getScene();
+            controller.change(next);
+            if (controller.getScene() !== previous) editorChangeVersion.current++;
+            if (controller.hasChanges()) userEdited.current = true;
+            if (editorInvalid.current) { editorInvalid.current = false; setError(""); }
+          } catch (problem) {
+            editorChangeVersion.current++;
+            editorInvalid.current = true; userEdited.current = true; reportError(problem);
+          }
+        }}
+        renderTopRightUI={isNarrow || !canShare ? undefined : () => <ShareButton onConfirm={share} onError={reportError}
+          disabled={!isFinal || !checkpointReady}
+          imageRestricted={containsImages} descriptionId={imageSharingDescriptionId} />}>
+        <MainMenu>
+          <MainMenu.DefaultItems.LoadScene />
+          <MainMenu.Item onSelect={() => download()}>Download .excalidraw</MainMenu.Item>
+          {canOpenLinks && <><MainMenu.Separator />
+          <MainMenu.Item onSelect={() => { void app.openLink({ url: "https://plus.excalidraw.com?utm_source=mcp_app_menu" }).catch(reportError); }}>Excalidraw</MainMenu.Item>
+          <MainMenu.Item onSelect={() => { void app.openLink({ url: "https://github.com/excalidraw/excalidraw" }).catch(reportError); }}>GitHub</MainMenu.Item>
+          <MainMenu.Item onSelect={() => { void app.openLink({ url: "https://x.com/excalidraw" }).catch(reportError); }}>Follow us</MainMenu.Item>
+          <MainMenu.Item onSelect={() => { void app.openLink({ url: "https://discord.gg/UexuTaE" }).catch(reportError); }}>Discord chat</MainMenu.Item></>}
+        </MainMenu>
+      </Excalidraw>
+      {isNarrow && canShare && <div className="mobile-share-slot"><ShareButton compact onConfirm={share} onError={reportError}
+        disabled={!isFinal || !checkpointReady}
+        imageRestricted={containsImages} descriptionId={imageSharingDescriptionId} /></div>}
+    </div> : <DiagramView scene={scene} fullscreen={fullscreen} animate={motion && !reducedMotion} audio={audio && !isFinal} onError={reportError} />}
+  </main>;
+}
+
+export function ExcalidrawApp(): ReactElement {
+  const [events] = useState(createAppEventBuffer);
+  const { app, error, isConnected } = useApp({
+    appInfo: APP_INFO, capabilities: { availableDisplayModes: ["inline", "fullscreen"] },
+    onAppCreated: (created) => events.register(created),
+  });
+  if (error) return <div className="error" role="alert">Unable to connect: {error.message}</div>;
+  if (!app || !isConnected) return <div className="loading" role="status">Connecting…</div>;
+  return <ExcalidrawAppCore app={app} events={events} />;
 }

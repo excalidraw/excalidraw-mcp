@@ -1,8 +1,11 @@
 {
   "name": "@mcp-demos/excalidraw-server",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "type": "module",
   "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=22.15.0"
+  },
   "description": "Streamable Excalidraw diagram MCP App server",
   "license": "MIT",
   "main": "dist/server.js",
@@ -22,29 +25,34 @@
   "scripts": {
     "postinstall": "node scripts/setup-bun.mjs || echo 'setup-bun.mjs failed or not available'",
     "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --import ./scripts/register-ts.mjs --test tests/*.test.ts",
+    "test:dist": "cross-env MCP_TEST_DIST=1 node --experimental-strip-types --import ./scripts/register-ts.mjs --test tests/stdio.test.ts",
+    "check": "npm test && npm run build && npm run test:dist",
     "watch": "vite build --watch",
     "serve": "bun --watch src/main.ts",
     "start": "cross-env NODE_ENV=development npm run build && npm run serve",
     "dev": "cross-env NODE_ENV=development concurrently 'npm run watch' 'npm run serve'",
     "dev:ui": "vite --config vite.config.dev.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run check"
   },
   "dependencies": {
-    "@excalidraw/excalidraw": "^0.18.0",
-    "@modelcontextprotocol/ext-apps": "^0.4.0",
-    "@modelcontextprotocol/sdk": "1.25.2",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "mcp-handler": "1.0.7",
-    "morphdom": "^2.7.8",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "@excalidraw/excalidraw": "0.18.0",
+    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@modelcontextprotocol/express": "2.0.0",
+    "@modelcontextprotocol/node": "2.0.0",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@modelcontextprotocol/server": "2.0.0",
+    "express": "^5.2.1",
+    "morphdom": "2.7.8",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "@upstash/redis": "^1.34.0",
-    "zod": "^4.0.0"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.0",
+    "@modelcontextprotocol/client": "2.0.0",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",

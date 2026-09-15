@@ -11,6 +11,7 @@ let audioCtx: AudioContext | null = null;
 let softBuffer: AudioBuffer | null = null;
 let initialized = false;
 let initPromise: Promise<void> | null = null;
+const activeSources = new Set<AudioBufferSourceNode>();
 
 function getAudioContext(): AudioContext {
   if (!audioCtx) {
@@ -31,14 +32,16 @@ async function decodeBase64Audio(base64: string): Promise<AudioBuffer> {
 
 /** Initialize audio buffers. Call once, safe to call multiple times. */
 export async function initPencilAudio(): Promise<void> {
+  await getAudioContext().resume();
   if (initialized) return;
   if (initPromise) return initPromise;
   initPromise = (async () => {
     try {
       softBuffer = await decodeBase64Audio(PENCIL_STROKE_SOFT);
       initialized = true;
-    } catch (e) {
-      console.warn("[PencilAudio] Failed to init:", e);
+    } catch (error) {
+      initPromise = null;
+      throw error;
     }
   })();
   return initPromise;
@@ -87,10 +90,17 @@ export function playStroke(elementType: string): void {
   const maxOffset = Math.max(0, buffer.duration - duration - 0.1);
   const offset = Math.random() * maxOffset;
   source.start(0, offset, duration + 0.1);
+  activeSources.add(source);
 
   // Cleanup
   source.onended = () => {
+    activeSources.delete(source);
     source.disconnect();
     gain.disconnect();
   };
+}
+
+export function stopPencilAudio() {
+  for (const source of activeSources) source.stop();
+  activeSources.clear();
 }
