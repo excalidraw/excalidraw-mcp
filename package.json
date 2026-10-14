@@ -20,6 +20,7 @@
     }
   },
   "scripts": {
+    "test": "node --test scripts/checkpoint-restore.test.mjs scripts/app-initialization.test.mjs",
     "postinstall": "node scripts/setup-bun.mjs || echo 'setup-bun.mjs failed or not available'",
     "build": "node scripts/build.mjs",
     "watch": "vite build --watch",

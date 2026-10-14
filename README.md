@@ -44,6 +44,16 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 Restart Claude Desktop.
 
+## Validation
+
+Run `npm test` and `npm run build` before submitting changes. Checkpoint restoration
+keeps complete saved element geometry and bindings. The App registers tool
+notification handlers before the connection handshake, then replays the latest
+input and result when the React core mounts, so eager hosts do not open a blank
+restored diagram. The standalone tests cover the normalizer and this bootstrap
+contract; browser initialization and checkpoint round trips are qualified by the
+[Bifrost MCP Apps harness](https://github.com/sofianbll/bifrost/pull/15).
+
 ## Usage
 
 Example prompts:

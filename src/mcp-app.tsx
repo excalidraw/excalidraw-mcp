@@ -42,17 +42,29 @@ interface ViewportRect {
   height: number;
 }
 
-/** Convert raw shorthand elements → Excalidraw format (labels → bound text, font fix).
+/** Convert raw shorthand elements → Excalidraw format while retaining saved elements.
  *  Preserves pseudo-elements like cameraUpdate (not valid Excalidraw types). */
 function convertRawElements(els: any[]): any[] {
   const pseudoTypes = new Set(["cameraUpdate", "delete", "restoreCheckpoint"]);
   const pseudos = els.filter((el: any) => pseudoTypes.has(el.type));
   const real = els.filter((el: any) => !pseudoTypes.has(el.type));
+  const saved = new Map(real.filter((el: any) => typeof el.version === "number" && typeof el.id === "string")
+    .map((el: any) => [el.id, el]));
+  // Saved text already has top-left coordinates and measured dimensions; conversion recenters it again.
+  if (saved.size === real.length) return [...real, ...pseudos];
   const withDefaults = real.map((el: any) =>
     el.label ? { ...el, label: { textAlign: "center", verticalAlign: "middle", ...el.label } } : el
   );
   const converted = convertToExcalidrawElements(withDefaults, { regenerateIds: false })
-    .map((el: any) => el.type === "text" ? { ...el, fontFamily: (FONT_FAMILY as any).Excalifont ?? 1 } : el);
+    .map((el: any) => {
+      const original = saved.get(el.id);
+      if (original) {
+        const addedBindings = (el.boundElements ?? []).filter((binding: any) =>
+          !(original.boundElements ?? []).some((existing: any) => existing.id === binding.id));
+        return addedBindings.length ? { ...original, boundElements: [...(original.boundElements ?? []), ...addedBindings] } : original;
+      }
+      return el.type === "text" ? { ...el, fontFamily: (FONT_FAMILY as any).Excalifont ?? 1 } : el;
+    });
   return [...converted, ...pseudos];
 }
 
@@ -652,7 +664,12 @@ const excalidrawLogo = <svg
   const discordIcon = <svg focusable="false" role="img" viewBox="0 0 20 20"  fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="1.25"><path d="M7.5 10.833a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666ZM12.5 10.833a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666ZM6.25 6.25c2.917-.833 4.583-.833 7.5 0M5.833 13.75c2.917.833 5.417.833 8.334 0"></path><path d="M12.917 14.167c0 .833 1.25 2.5 1.666 2.5 1.25 0 2.361-1.39 2.917-2.5.556-1.39.417-4.861-1.25-9.584-1.214-.846-2.5-1.116-3.75-1.25l-.833 2.084M7.083 14.167c0 .833-1.13 2.5-1.526 2.5-1.191 0-2.249-1.39-2.778-2.5-.529-1.39-.397-4.861 1.19-9.584 1.157-.846 2.318-1.116 3.531-1.25l.833 2.084"></path></g></svg>
 
 
-export function ExcalidrawAppCore({ app }: { app: App }) {
+type PendingToolNotifications = {
+  input?: { params: any; final: boolean };
+  result?: any;
+};
+
+export function ExcalidrawAppCore({ app, pending }: { app: App; pending?: PendingToolNotifications }) {
   const [toolInput, setToolInput] = useState<any>(null);
   const [inputIsFinal, setInputIsFinal] = useState(false);
   const [displayMode, setDisplayMode] = useState<"inline" | "fullscreen">("inline");
@@ -801,19 +818,19 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
       }
     };
 
-    app.ontoolinputpartial = async (input) => {
+    const onPartialInput = (input: any) => {
       const args = (input as any)?.arguments || input;
       setInputIsFinal(false);
       setToolInput(args);
     };
 
-    app.ontoolinput = async (input) => {
+    const onInput = (input: any) => {
       const args = (input as any)?.arguments || input;
       setInputIsFinal(true);
       setToolInput(args);
     };
 
-    app.ontoolresult = (result: any) => {
+    const onResult = (result: any) => {
       const cpId = (result.structuredContent as { checkpointId?: string })?.checkpointId;
       if (cpId) {
         checkpointIdRef.current = cpId;
@@ -830,9 +847,21 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
       }
     };
 
+    app.ontoolinputpartial = onPartialInput;
+    app.ontoolinput = onInput;
+    app.ontoolresult = onResult;
+    if (pending?.input) {
+      (pending.input.final ? onInput : onPartialInput)(pending.input.params);
+      delete pending.input;
+    }
+    if (pending?.result) {
+      onResult(pending.result);
+      delete pending.result;
+    }
+
     app.onteardown = async () => ({});
     app.onerror = (err) => console.error("[Excalidraw] Error:", err);
-  }, [app]);
+  }, [app, pending]);
 
   // Track narrow viewport for mobile layout adjustments
   useEffect(() => {
@@ -995,12 +1024,19 @@ export function ExcalidrawAppCore({ app }: { app: App }) {
 }
 
 export function ExcalidrawApp() {
+  const pending = useRef<PendingToolNotifications>({});
   const { app, error } = useApp({
     appInfo: { name: "Excalidraw", version: "1.0.0" },
     capabilities: {},
+    // Hosts can deliver tool data before React mounts the connected core.
+    onAppCreated: (created) => {
+      created.ontoolinputpartial = (params) => { pending.current.input = { params, final: false }; };
+      created.ontoolinput = (params) => { pending.current.input = { params, final: true }; };
+      created.ontoolresult = (params) => { pending.current.result = params; };
+    },
   });
 
   if (error) return <div className="error">ERROR: {error.message}</div>;
   if (!app) return <div className="loading">Connecting...</div>;
-  return <ExcalidrawAppCore app={app} />;
+  return <ExcalidrawAppCore app={app} pending={pending.current} />;
 }
