@@ -49,6 +49,7 @@ Restart Claude Desktop.
 Example prompts:
 - "Draw a cute cat using excalidraw"
 - "Draw an architecture diagram showing a user connecting to an API server which talks to a database"
+- "Take this drawing https://excalidraw.com/#json=...,... and add a cache layer between the server and database"
 
 ## What are MCP Apps and how can I build one?
 

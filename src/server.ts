@@ -4,7 +4,7 @@ import type { CallToolResult, ReadResourceResult } from "@modelcontextprotocol/s
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { deflateSync } from "node:zlib";
+import { deflateSync, inflateSync, inflateRawSync } from "node:zlib";
 import { z } from "zod/v4";
 import type { CheckpointStore } from "./checkpoint-store.js";
 
@@ -643,6 +643,118 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
         return { content: [{ type: "text", text: JSON.stringify(data) }] };
       } catch (err) {
         return { content: [{ type: "text", text: `read failed: ${(err as Error).message}` }], isError: true };
+      }
+    },
+  );
+
+  // ============================================================
+  // Tool 6: import_from_excalidraw
+  // Fetches and decrypts an excalidraw.com shareable link (#json=id,key)
+  // ============================================================
+  server.registerTool(
+    "import_from_excalidraw",
+    {
+      description: "Fetches and decrypts a shareable Excalidraw URL (https://excalidraw.com/#json=<id>,<key>), returning the diagram elements and scene JSON.",
+      inputSchema: z.object({
+        url: z.string().describe("The full shareable Excalidraw URL or '#json=<id>,<key>' hash"),
+      }),
+    },
+    async ({ url }): Promise<CallToolResult> => {
+      try {
+        const match = url.match(/#json=([a-zA-Z0-9_-]+),([a-zA-Z0-9_-]+)/);
+        if (!match) {
+          return {
+            content: [{ type: "text", text: "Invalid Excalidraw URL. Must contain '#json=<id>,<key>'." }],
+            isError: true,
+          };
+        }
+        const id = match[1];
+        const key = match[2];
+
+        const resp = await fetch(`https://json.excalidraw.com/api/v2/${id}`);
+        if (!resp.ok) {
+          return {
+            content: [{ type: "text", text: `Failed to fetch from Excalidraw backend (HTTP ${resp.status}).` }],
+            isError: true,
+          };
+        }
+
+        const buffer = new Uint8Array(await resp.arrayBuffer());
+
+        function splitBuffers(concatenatedBuffer: Uint8Array) {
+          const buffers: Uint8Array[] = [];
+          const dv = new DataView(concatenatedBuffer.buffer, concatenatedBuffer.byteOffset, concatenatedBuffer.byteLength);
+          let cursor = 4; // version offset
+          while (cursor < concatenatedBuffer.byteLength) {
+            const chunkSize = dv.getUint32(cursor);
+            cursor += 4;
+            buffers.push(concatenatedBuffer.slice(cursor, cursor + chunkSize));
+            cursor += chunkSize;
+          }
+          return buffers;
+        }
+
+        const cryptoKey = await globalThis.crypto.subtle.importKey(
+          "jwk",
+          { alg: "A128GCM", ext: true, k: key, key_ops: ["decrypt"], kty: "oct" },
+          { name: "AES-GCM", length: 128 },
+          false,
+          ["decrypt"],
+        );
+
+        let sceneJson = "";
+        try {
+          const [, iv, encrypted] = splitBuffers(buffer);
+          const decrypted = await globalThis.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: iv as any },
+            cryptoKey,
+            encrypted as any,
+          );
+          let decompressed: Uint8Array;
+          try {
+            decompressed = new Uint8Array(inflateSync(Buffer.from(decrypted)));
+          } catch {
+            decompressed = new Uint8Array(inflateRawSync(Buffer.from(decrypted)));
+          }
+          const [, contents] = splitBuffers(decompressed);
+          sceneJson = new TextDecoder().decode(contents);
+        } catch {
+          // Legacy format fallback
+          const iv = buffer.subarray(0, 12);
+          const encrypted = buffer.subarray(12);
+          const decrypted = await globalThis.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: iv as any },
+            cryptoKey,
+            encrypted as any,
+          );
+          sceneJson = new TextDecoder().decode(decrypted);
+        }
+
+        let parsedElements: any[] = [];
+        try {
+          const parsed = JSON.parse(sceneJson);
+          parsedElements = Array.isArray(parsed) ? parsed : (parsed.elements || []);
+        } catch {
+          // fallback
+        }
+
+        const checkpointId = crypto.randomUUID().replace(/-/g, "").slice(0, 18);
+        await store.save(checkpointId, { elements: parsedElements });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Successfully imported ${parsedElements.length} elements from Excalidraw link!\nCreated Checkpoint ID: "${checkpointId}".\n\nYou can now immediately modify this canvas with create_view using:\n[{"type":"restoreCheckpoint","id":"${checkpointId}"}, ...your modifications or additions...]\nOr remove specific elements using {"type":"delete","ids":"<id1>,<id2>"}.\n\nRaw scene preview: ${sceneJson.slice(0, 500)}...`,
+            },
+          ],
+          structuredContent: { checkpointId, elementsCount: parsedElements.length },
+        };
+      } catch (err) {
+        return {
+          content: [{ type: "text", text: `Import failed: ${(err as Error).message}` }],
+          isError: true,
+        };
       }
     },
   );
