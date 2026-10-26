@@ -6,7 +6,7 @@ MCP server that streams hand-drawn Excalidraw diagrams with smooth viewport came
 
 ## Install
 
-Works with any client that supports [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) — Claude, ChatGPT, VS Code, Goose, and others. If something doesn't work, please [open an issue](https://github.com/antonpk1/excalidraw-mcp-app/issues).
+Works with any client that supports [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) — Claude, ChatGPT, VS Code, Goose, and others. If something doesn't work, please [open an issue](https://github.com/excalidraw/excalidraw-mcp/issues).
 
 ### Remote (recommended)
 
@@ -18,14 +18,14 @@ For apps that don't yet have an official integration, you can add a custom MCP /
 
 **Option A: Download Extension**
 
-1. Download `excalidraw-mcp-app.mcpb` from [Releases](https://github.com/antonpk1/excalidraw-mcp-app/releases)
+1. Download `excalidraw-mcp-app.mcpb` from [Releases](https://github.com/excalidraw/excalidraw-mcp/releases)
 2. Double-click to install in Claude Desktop
 
 **Option B: Build from Source**
 
 ```bash
 git clone https://github.com/excalidraw/excalidraw-mcp.git
-cd excalidraw-mcp-app
+cd excalidraw-mcp
 pnpm install && pnpm run build
 ```
 
@@ -36,7 +36,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "excalidraw": {
       "command": "node",
-      "args": ["/path/to/excalidraw-mcp-app/dist/index.js", "--stdio"]
+      "args": ["/path/to/excalidraw-mcp/dist/index.js", "--stdio"]
     }
   }
 }
@@ -78,7 +78,7 @@ You can deploy your own copy to Vercel in a few clicks:
 ```bash
 # 1. Bump version in manifest.json and package.json
 # 2. Build and pack
-pnpm run build && mcpb pack .
+pnpm run build && mcpb pack . excalidraw-mcp-app.mcpb
 
 # 3. Create GitHub release
 gh release create v0.3.0 excalidraw-mcp-app.mcpb --title "v0.3.0" --notes "What changed"
