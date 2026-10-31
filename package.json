@@ -56,16 +56,16 @@
     "vite-plugin-singlefile": "^2.3.0"
   },
   "optionalDependencies": {
-    "@oven/bun-darwin-aarch64": "^1.2.21",
-    "@oven/bun-darwin-x64": "^1.2.21",
-    "@oven/bun-darwin-x64-baseline": "^1.2.21",
-    "@oven/bun-linux-aarch64": "^1.2.21",
-    "@oven/bun-linux-aarch64-musl": "^1.2.21",
-    "@oven/bun-linux-x64": "^1.2.21",
-    "@oven/bun-linux-x64-baseline": "^1.2.21",
-    "@oven/bun-linux-x64-musl": "^1.2.21",
-    "@oven/bun-linux-x64-musl-baseline": "^1.2.21",
-    "@oven/bun-windows-x64": "^1.2.21",
-    "@oven/bun-windows-x64-baseline": "^1.2.21"
+    "@oven/bun-darwin-aarch64": "^1.4.4",
+    "@oven/bun-darwin-x64": "^1.4.4",
+    "@oven/bun-darwin-x64-baseline": "^1.4.4",
+    "@oven/bun-linux-aarch64": "^1.4.4",
+    "@oven/bun-linux-aarch64-musl": "^1.4.4",
+    "@oven/bun-linux-x64": "^1.4.4",
+    "@oven/bun-linux-x64-baseline": "^1.4.4",
+    "@oven/bun-linux-x64-musl": "^1.4.4",
+    "@oven/bun-linux-x64-musl-baseline": "^1.4.4",
+    "@oven/bun-windows-x64": "^1.4.4",
+    "@oven/bun-windows-x64-baseline": "^1.4.4"
   }
 }
