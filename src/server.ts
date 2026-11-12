@@ -634,6 +634,7 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
     {
       description: "Read checkpoint state for restore.",
       inputSchema: { id: z.string() },
+      annotations: { readOnlyHint: true },
       _meta: { ui: { visibility: ["app"] } },
     },
     async ({ id }): Promise<CallToolResult> => {
