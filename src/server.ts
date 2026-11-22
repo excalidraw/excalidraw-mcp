@@ -96,8 +96,7 @@ Canvas background is white.
 - endArrowhead: null | "arrow" | "bar" | "dot" | "triangle"
 
 ### Arrow Bindings
-Arrow: \`"startBinding": { "elementId": "r1", "fixedPoint": [1, 0.5] }\`
-fixedPoint: top=[0.5,0], bottom=[0.5,1], left=[0,0.5], right=[1,0.5]
+For \`create_view\` input, bind an arrow with target shape ids: \`"start": { "id": "b1" }, "end": { "id": "b2" }\`. Include both endpoints, or only the endpoint that should be bound. The target shapes must already exist in the same input array. Keep explicit arrow \`x\`, \`y\`, \`width\`, \`height\`, and \`points\` to control its geometry. The app converts these skeleton bindings into Excalidraw binding metadata. Do not use raw-element \`startBinding\`/\`endBinding\` with \`elementId\`/\`fixedPoint\` for this input.
 
 **cameraUpdate** (pseudo-element — controls the viewport, not drawn):
 \`{ "type": "cameraUpdate", "width": 800, "height": 600, "x": 0, "y": 0 }\`
@@ -115,9 +114,10 @@ fixedPoint: top=[0.5,0], bottom=[0.5,1], left=[0,0.5], right=[1,0.5]
 
 ### Drawing Order (CRITICAL for streaming)
 - Array order = z-order (first = back, last = front)
-- **Emit progressively**: background → shape → its label → its arrows → next shape
+- **Emit progressively**: background → shape1 + label → shape2 + label → connecting arrow → next shape
+- For a bound arrow, emit its target shapes before the arrow so its referenced targets are present when it is drawn
 - BAD: all rectangles → all texts → all arrows
-- GOOD: bg_shape → shape1 → text1 → arrow1 → shape2 → text2 → ...
+- GOOD: bg_shape → shape1 → text1 → shape2 → text2 → arrow1 → ...
 
 ### Example: Two connected labeled boxes
 \`\`\`json
@@ -125,7 +125,7 @@ fixedPoint: top=[0.5,0], bottom=[0.5,1], left=[0,0.5], right=[1,0.5]
   { "type": "cameraUpdate", "width": 800, "height": 600, "x": 50, "y": 50 },
   { "type": "rectangle", "id": "b1", "x": 100, "y": 100, "width": 200, "height": 100, "roundness": { "type": 3 }, "backgroundColor": "#a5d8ff", "fillStyle": "solid", "label": { "text": "Start", "fontSize": 20 } },
   { "type": "rectangle", "id": "b2", "x": 450, "y": 100, "width": 200, "height": 100, "roundness": { "type": 3 }, "backgroundColor": "#b2f2bb", "fillStyle": "solid", "label": { "text": "End", "fontSize": 20 } },
-  { "type": "arrow", "id": "a1", "x": 300, "y": 150, "width": 150, "height": 0, "points": [[0,0],[150,0]], "endArrowhead": "arrow", "startBinding": { "elementId": "b1", "fixedPoint": [1, 0.5] }, "endBinding": { "elementId": "b2", "fixedPoint": [0, 0.5] } }
+  { "type": "arrow", "id": "a1", "x": 300, "y": 150, "width": 150, "height": 0, "points": [[0,0],[150,0]], "endArrowhead": "arrow", "start": { "id": "b1" }, "end": { "id": "b2" } }
 ]
 \`\`\`
 
